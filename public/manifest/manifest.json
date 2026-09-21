@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Tonbox Media Server",
   "short_name": "Tonbox",
   "description": "Local media control center for radio, vinyl, audio and streaming.",
