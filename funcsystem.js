@@ -2224,42 +2224,9 @@ module.exports = function(required){
             doSystem(res)
         }
     },
+    //DUMMY: Audio/Video library upload disabled in this BASIS build - call
+    //received, no file is moved.
     this.uploadMedia = function(res,files,typ){
-        let dest = ""
-        if (typ === "Audio") dest = devMusic+"/Audio/"
-        else dest = devMusic+"/Video/"
-        if (Array.isArray(files.upfile)){
-            for (i in files.upfile){
-                let f = files.upfile[i].name
-                if (checkMedia(f,typ)) {
-                    let fname = f.replace(/ /g,"" )
-                    dest += fname
-                    files.upfile[i].mv(dest,(err => {
-                        if (err){ 
-                            console.log(typ + " upload failed") 
-                        }else {
-                            console.log("upload " + fname + " ok")
-                        }
-                    }))
-                }else {
-                    console.log(fname+": not supported type, ignored")
-                }
-            }
-        }
-        else{
-            if (checkMedia(files.upfile.name,typ)) {
-                dest += files.upfile.name.replace(/ /g,"" )
-                files.upfile.mv(dest,(err => {
-                    if (err){ 
-                        console.log(typ + " upload failed") 
-                    }else {
-                        console.log("upload " + files.upfile.name + " to "+dest+" ok")
-                    }
-                }))
-            }else {
-                console.log(files.upfile.name+" not supported type, ignored")
-            }
-        }
         if (typ == "Audio")
             showMusicDir("Audio", res)
         else
@@ -2429,37 +2396,22 @@ module.exports = function(required){
         }
         res.json({ youtubeKey: yt, discogsUserToken: disc });
     },
+    //DUMMY: myUSB browsing disabled in this BASIS build. This only checks
+    //(read-only, shallow) whether the USB medium has any audio files at all,
+    //so the "myUSB" nav item still shows up correctly - it no longer builds
+    //the real track list, so the myUSB page itself always renders empty.
     this.scanDirectory = async function(rootDir){
         const AUDIO_EXT = new Set([".mp3", ".wav", ".ogg", ".m4a", ".flac"]);
-        const LIMIT = 1024 * 1024 * 1024; // 1 GB
         myUSB = [];
-        let totalSize = 0;
-        const queue = [rootDir];
-        while (queue.length > 0) {
-            const currentDir = queue.pop();
-            let entries;
-            try {
-                entries = await fsPromises.readdir(currentDir, { withFileTypes: true });
-            } catch (err) {
-                continue;
-            }
+        try {
+            const entries = await fsPromises.readdir(rootDir, { withFileTypes: true });
             for (const entry of entries) {
-                const fullPath = path.join(currentDir, entry.name);
-                if (entry.isDirectory()) {
-                    queue.push(fullPath);
-                } else {
-                    const ext = path.extname(entry.name).toLowerCase();
-                    if (!AUDIO_EXT.has(ext)) continue;
-                    const stat = await fs.stat(fullPath);
-                    if (totalSize + stat.size > LIMIT) {
-                        return myUSB; // Limit erreicht
-                    }
-                    myUSB.push(fullPath);
-                    totalSize += stat.size;
+                if (entry.isFile() && AUDIO_EXT.has(path.extname(entry.name).toLowerCase())) {
+                    return true;
                 }
             }
-        }
-        return myUSB;
+        } catch (err) {}
+        return false;
     },
     this.writeSettings = async function(){
         var data = JSON.stringify(settings)

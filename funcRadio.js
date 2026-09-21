@@ -1755,20 +1755,9 @@ module.exports = function(){
     return radioRec
   },
   this.playUsbAudio = async function(res,track) {
+    //DUMMY: myUSB playback disabled in this BASIS build - call received, no
+    //audio is played.
     await stopMusicPlay(constants.AUDIO_ALL)
-    if (!settings.mediaOut.match("HTTP")){
-      //Line out
-      allTracks = myUSB
-      for (let i =0; i<myUSB.length; i++){
-        if (track === myUSB[i]){
-          trackIndex = i;
-          break;
-        }
-      }
-      musicDir = "myUSB"
-      await playTrack2AudioJack("start")
-      procStatus.marquee = myUSB[trackIndex]
-     }
     pageInfo = "myUSB"
     rememberDB = "myUSB"
     res.render('pages/usbAudio',{
@@ -1782,6 +1771,12 @@ module.exports = function(){
     await stopMusicPlay(constants.AUDIO_ALL)
     track = track.split("=")
     let cmd = ""
+    //DUMMY: Audio/Video library playback disabled in this BASIS build - Radio
+    //playback (Radio, My Radio) stays real, everything else just re-renders.
+    if (!String(track[0] || "").match("Radio")){
+      showMusicDir(rememberDB, res)
+      return
+    }
     try{
       if (track[0].match("Radio")){
         ext = getPrgSyntax(allTracks[track[1]])
@@ -1893,6 +1888,12 @@ module.exports = function(){
     }
   },
   this.getAllTracks = async function (dir){
+    //DUMMY: Audio/Video library browsing disabled in this BASIS build - Radio
+    //directory browsing (My Radio) stays real, everything else returns empty.
+    if (!String(dir || "").match(/^Radio/)) {
+      allTracks = []
+      return false
+    }
     //list subdirs
     var cmd = "ls " + devMusic + "/" + dir + " >&1"
     console.log(cmd)
@@ -2091,6 +2092,12 @@ module.exports = function(){
     }
   },
   this.deleteTrack = async function (res,tracks){
+    //DUMMY: Audio/Video library delete disabled in this BASIS build - Radio
+    //delete (My Radio) stays real, everything else just re-renders.
+    if (!String(rememberDB || "").match(/^Radio/)){
+      showMusicDir(rememberDB, res)
+      return
+    }
     const baseDir = path.resolve(devMusic, rememberDB);
     const deleteNamedTrack = async (rawName) => {
       const trackName = (rawName || "").replaceAll("🎵", "").trim();

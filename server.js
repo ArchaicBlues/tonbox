@@ -705,122 +705,19 @@ app.post('/captureVideo', urlencodedParser, function (req, res) {
     setInitialPage(res)
 })
 
+//DUMMY: Rec Video hardware capture disabled in this BASIS build - routes stay
+//reachable but no ffmpeg process is spawned anymore.
 app.get("/video-audio", (req, res) => {
-    res.writeHead(200, {
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "no-cache",
-        "Connection": "close"
-    });
-
-    videoAudio = spawn("/usr/bin/ffmpeg", [
-        "-f", "alsa",
-        "-i", "hw:2",
-        "-c:a", "libmp3lame",
-        "-b:a", "128k",
-        "-f", "mp3",
-        "pipe:1"
-    ]);
-
-    videoAudio.stdout.pipe(res);
-
-    videoAudio.stderr.on("data", data => {
-        console.error("FFmpeg AUDIO:", data.toString().trim());
-    });
-
-    req.on("close", () => {
-        // if (!ffmpeg.killed) {
-        //     ffmpeg.kill("SIGINT");
-        // }
-    });
-
-    videoAudio.on("close", () => {
-        if (!res.writableEnded) {
-            res.end();
-        }
-    });
+    res.writeHead(200, { "Content-Type": "audio/mpeg" });
+    res.end();
 });
 app.get("/video-recording-stream", (req, res) => {
-    res.writeHead(200, {
-        "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg",
-        "Cache-Control": "no-cache",
-        "Connection": "close",
-        "Pragma": "no-cache"
-    });
-    if (!(videoStreamClients instanceof Set)) {
-        videoStreamClients = new Set();
-    }
-    videoStreamClients.add(res);
-    console.log(
-        "Video Stream Client verbunden:",
-        videoStreamClients.size
-    );
-
-    if (!videoRecording) {
-        startVideoRecording(recVideo.recordFile || recVideo.title);
-    }
-    req.on("close", () => {
-        videoStreamClients.delete(res);
-        console.log(
-            "Video Stream Client getrennt:",
-            videoStreamClients.size
-        );
-
-        /*
-         * FFmpeg NICHT sofort beenden.
-         *
-         * Besonders wichtig während einer Aufnahme.
-         */
-    });
+    res.writeHead(200, { "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg" });
+    res.end();
 });
 app.get("/video-view-stream", (req, res) => {
-
-    res.writeHead(200, {
-        "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg",
-        "Cache-Control": "no-cache",
-        "Connection": "close",
-        "Pragma": "no-cache"
-    });
-
-    videoView = spawn("/usr/bin/ffmpeg", [
-        "-f", "v4l2",
-        "-standard", "PAL",
-        "-video_size", "720x576",
-        "-input_format", "yuyv422",
-        "-i", "/dev/video0",
-        "-vf", "fps=15",
-        "-f", "mpjpeg",
-        "-q:v", "7",
-        "pipe:1"
-    ]);
-
-    videoView.stdout.on("data", data => {
-        res.write(data);
-    });
-
-    videoView.stderr.on("data", data => {
-        console.error("FFmpeg:", data.toString());
-    });
-
-    videoView.on("error", err => {
-        console.error("FFmpeg spawn error:", err);
-        if (!res.headersSent) {
-            res.status(500).end("ffmpeg start failed");
-            return;
-        }
-        if (!res.writableEnded) {
-            res.end();
-        }
-    });
-
-    req.on("close", () => {
-        //
-    });
-
-    videoView.on("close", () => {
-        if (!res.writableEnded) {
-            res.end();
-        }
-    });
+    res.writeHead(200, { "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg" });
+    res.end();
 });
 
 app.post('/songRecognitionProcess', urlencodedParser, function (req, res) {
@@ -1040,78 +937,9 @@ app.get("/cddvd", (req, res) => {
     cdDvd(req.body.action, t, res)
 });
 
+//DUMMY: CD cover editor image upload disabled in this BASIS build.
 app.post('/cddvd/editor-images', async function (req, res) {
-    try {
-        if (!req.files) {
-            return res.status(400).json({ ok: false, error: 'No files uploaded' });
-        }
-
-        const pickFile = (entry) => {
-            if (!entry) return null;
-            return Array.isArray(entry) ? entry[0] : entry;
-        };
-
-        const file1 = pickFile(req.files.image1);
-        const file2 = pickFile(req.files.image2);
-
-        if (!file1 && !file2) {
-            return res.status(400).json({ ok: false, error: 'No editor images provided' });
-        }
-
-        const imagesDir = path.join(__dirname, 'public', 'images');
-        if (!fs.existsSync(imagesDir)) {
-            fs.mkdirSync(imagesDir, { recursive: true });
-        }
-
-        const dest1 = path.join(imagesDir, 'image1.jpg');
-        const dest2 = path.join(imagesDir, 'image2.jpg');
-        try { fs.unlinkSync(dest1); } catch (e) {}
-        try { fs.unlinkSync(dest2); } catch (e) {}
-
-        const moveFile = (upload, target) => new Promise((resolve, reject) => {
-            upload.mv(target, (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-
-        const convertToJpg = async (upload, dest, idx) => {
-            const tmp = path.join(imagesDir, `editor_upload_${idx}_${Date.now()}_${Math.random().toString(36).slice(2)}.tmp`);
-            await moveFile(upload, tmp);
-            try {
-                await execCmd("convert " + JSON.stringify(tmp) + " -auto-orient -strip -quality 92 " + JSON.stringify(dest) + " >&1");
-            } catch (err) {
-                fs.copyFileSync(tmp, dest);
-            } finally {
-                try { fs.unlinkSync(tmp); } catch (e) {}
-            }
-        };
-
-        if (file1) await convertToJpg(file1, dest1, 1);
-        if (file2) await convertToJpg(file2, dest2, 2);
-
-        const uploaded = [];
-        if (fs.existsSync(dest1)) uploaded.push('public/images/image1.jpg');
-        if (fs.existsSync(dest2)) uploaded.push('public/images/image2.jpg');
-
-        if (!cdInfo || typeof cdInfo !== 'object') {
-            cdInfo = { tracks: [], images: [], discogsTitel: 'empty' };
-        }
-        cdInfo.images = uploaded.slice();
-
-        if (!discogsResult || typeof discogsResult !== 'object') {
-            return res.status(500).json({ ok: false, error: 'discogsResult not available' });
-        }
-        discogsResult.image = [];
-        for (let i = 0; i < uploaded.length; i++) {
-            discogsResult.image[i] = uploaded[i];
-        }
-
-        return res.json({ ok: true, images: uploaded });
-    } catch (err) {
-        console.log('editor image upload failed: ' + err);
-        return res.status(500).json({ ok: false, error: 'editor image upload failed' });
-    }
+    return res.status(400).json({ ok: false, error: 'CD feature disabled in this BASIS build' });
 });
 
 app.post('/cddvd', urlencodedParser, async function (req, res) {
@@ -1580,7 +1408,11 @@ app.post('/showMusicWorld', urlencodedParser, async function (req, res) {
             var n = req.body.Delete
         else var n = req.body.Rename
         n = parseInt(n)
-        if (n >= 0 && allTracks[0]) {
+        if (n >= 0 && allTracks[0] && !rememberDB.match("Radio")) {
+            //DUMMY: Audio/Video library Delete/Rename disabled in this BASIS build - call
+            //received, no filesystem action taken.
+            res.render('pages/showMusicWorld',{pageInfo:pageInfo, settings:settings, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, basetracks: allTracks, dirMain: 0, dir: 0, indexStart: trackIndex, loc: rememberDB, vidsrc: "0", vol: volumeAudioOut})
+        } else if (n >= 0 && allTracks[0]) {
             var track = allTracks[n]
             track = escapeTrack(track)
             if (req.body.Delete != void 0) {
@@ -2693,53 +2525,12 @@ app.get('/radio', async (req, res) => {
 
 //lokale USB-Audio-Capture (pw-loopback -> eq10) zusätzlich per HTTP an den Browser streamen,
 //damit playAudioCapture.ejs den Ton auch über volumeWEB()/die Web-Audio-Kette abspielen kann
+//DUMMY: Play USB HTTP audio capture stream disabled in this BASIS build - no
+//ffmpeg process is spawned anymore.
 app.get('/captureStream', function (req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Transfer-Encoding", "chunked");
-
-    const ffmpeg = spawn('/usr/bin/ffmpeg', [
-        '-hide_banner',
-        '-loglevel', 'error',
-        '-f', 'pulse',
-        '-i', 'eq10.monitor',
-        '-ac', '2',
-        '-acodec', 'libmp3lame',
-        '-b:a', '128k',
-        '-f', 'mp3',
-        'pipe:1'
-    ]);
-
-    ffmpeg.stdout.pipe(res);
-
-    ffmpeg.stderr.on('data', (data) => {
-        console.error("ffmpeg captureStream:", data.toString());
-    });
-
-    ffmpeg.on('error', (err) => {
-        console.error("ffmpeg captureStream spawn failed:", err);
-        if (!res.headersSent) {
-            res.sendStatus(502);
-        }
-    });
-
-    ffmpeg.on('close', (code) => {
-        if (code !== 0) {
-            console.error("ffmpeg captureStream exited with code", code);
-        }
-        if (!res.writableEnded) {
-            res.end();
-        }
-    });
-
-    req.on('close', () => {
-        if (!ffmpeg.killed) {
-            ffmpeg.kill('SIGTERM');
-        }
-    });
+    res.end();
 });
 
 //---------------------------------------
