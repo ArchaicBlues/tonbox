@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;             /* need for iframe height 100% to work */
+}
+iframe {
+  box-sizing: border-box;   /* make the border size be included in the height */
+  display: block;           /* make them block to fix white space margin */
+  width: 90%;
+}
+iframe:nth-child(1) {
+  height: 800px;
+}
+</style>
+
+
+<body>
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../entryLinks', method='POST', content-type="text/javascript">
+        <button type="submit" name='Back' value="Back" >Back</button> 
+        
+        <div class="group-img-center">
+            <img src="images/StationMap.png"  width="10%" height="10%" alt="">&nbsp;&nbsp;
+            Web-Links&nbsp;&nbsp;
+            <img src="images/StationMap.png"  width="10%" height="10%" alt="">
+        </div>            
+        <br><br>
+        <div class="input-group mb-3">
+            <label class="visually-hidden">URL:</label>&nbsp;&nbsp;
+            <input type="text" class="form-control" name="add">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <label class="visually-hidden">Name:</label>&nbsp;&nbsp;
+            <input type="text" class="form-control" name="name">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="rect-btn" type="submit" name="Submit" value="add" class="btn btn-dark">Add Link</button>
+        </div>
+
+        <br><br>
+        <% if ((weblinks.length > 0) && (webshow >= 0) && (webshow < weblinks.length)) {%>
+        <div align="center">
+            <iframe src="<%- weblinks[webshow].url %>"></iframe>
+        </div>
+        <%}%>
+        <br><br>
+        
+        <% for (var i=0; i<weblinks.length; i++) {%>
+        <div class="input-group mb-3">
+            <!-- https://symbl.cc/de/1F310/ -->
+            <input class=form-control type="submit" name="vote" value="🌐<%- weblinks[i].name %>" style="font-size:18px;background-color:rgb(8, 8, 8); color:white">
+            <button class="rect-btn" type="submit" name="remove" value="<%- i %>" style="color:red">Remove</button>
+        </div>
+        <% } %>
+
+        <script>
+            console.log("weblinks.length="+JSON.stringify("<%- weblinks.length %>"))
+            console.log("webshow="+JSON.stringify("<%- webshow %>"))
+            console.log("weblinks[webshow]="+JSON.stringify("<%- weblinks[webshow] %>"))
+        </script>
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

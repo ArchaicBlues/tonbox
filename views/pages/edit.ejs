@@ -1,0 +1,65 @@
+<!-- *1 -->
+<!DOCTYPE html>
+<html lang="en">
+<body onload="checkEdits()">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<link rel=stylesheet type="text/css" href="views/style.css">
+<style>
+    nobreak {
+        white-space: pre-line;
+    }
+</style>
+
+<main>
+    <div class="w3-container"  >
+    <form action='../edit', method='POST', content-type="text/javascript">
+        <button type="submit" name='Back' value="Back" >Back</button>
+        <br>
+        <center>
+            <br>
+            <b><h3 style="color:rgb(1, 1, 1);">all.wav.tracks</h3></b>
+            <textarea id="tracks" name="allWavTracks" rows="50" cols="80">
+                <%- txt %>
+            </textarea> 
+            <br>
+            <br>
+            <h3><b>Wenn die Anzahl der Musikstücke nicht stimmt, kann "number_of_tracks"
+            geändert, Blöcke gelöscht, hinzugefügt oder geändert werden.
+            Eine Blocklänge 1 entspricht 10ms. Eine Blocklänge 240 entspricht 4min.
+            </b></h3>
+            <br>
+            <button type="submit" name="Analyze" value="Analyze" class="btn btn-dark mb-3 btn-lg btn-block">Start Analyse mit Track-Separationsfile</button>
+            <br>
+            <img src="/images/wav.png" alt="not available" width="50%">   
+        </center>
+    </form>
+    </div>
+</main>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

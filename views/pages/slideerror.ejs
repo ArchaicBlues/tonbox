@@ -1,0 +1,46 @@
+<!-- *1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+<body>
+    <%- include('../partials/header'); %>
+<main>
+    <div class="w3-container w3-dark-gray" style="background-color:rgb(198, 197, 197);">
+        <h3>Sorry no images detected in /media/usbmedium1/ ? </h3>
+        <form action='../slideButton', method='POST', content-type="text/javascript"></form>
+    </div>
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

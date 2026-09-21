@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../partials/head'); %>
+
+    <!-- SSE Script Integration -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/event-source-polyfill/0.0.9/eventsource.min.js"></script>
+    <script>
+      const es = new EventSource("http://" + "<%= ip %>" + ":8000" + "<%= typeof sysdir !== 'undefined' ? sysdir : '' %>" + "/ArchaicNodeEJS/funcSSE");
+      const listener = function (event) {
+        const type = event.type;
+        if (type === 'result') {
+          es.close();
+        }
+      };
+      es.addEventListener('open', listener);
+      es.addEventListener('message', listener);
+      es.addEventListener('error', listener);
+      es.addEventListener('result', listener);
+    </script>
+</head>
+
+<body>
+
+  <%- include('../partials/header'); %>
+
+    <main class="container animate-in" style="margin-top: 2rem;">
+
+      <div class="glass-panel p-4 mb-5 text-center">
+        <h1>Welcome to Tonbox</h1>
+        <p class="lead" style="color: var(--text-muted);">Manage your media through your web browser</p>
+        <% if (typeof tagline !=='undefined' ) { %>
+          <p>
+            <%= tagline %>
+          </p>
+          <% } %>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div class="grid-auto">
+
+        <!-- Radio Card -->
+        <a href="/entry?src=radio" class="glass-card d-flex flex-column align-items-center text-center">
+          <i class="bi bi-broadcast display-4 mb-3" style="color: #ff0055;"></i>
+          <h3>Radio</h3>
+          <p>Listen to internet radio stations</p>
+        </a>
+
+        <!-- CD Player Card -->
+        <a href="/entry?src=cdmob" class="glass-card d-flex flex-column align-items-center text-center">
+          <i class="bi bi-disc display-4 mb-3" style="color: #00ff87;"></i>
+          <h3>CD Player</h3>
+          <p>Play Audio CDs</p>
+        </a>
+
+        <!-- Media Library Card -->
+        <a href="/entry?src=audio" class="glass-card d-flex flex-column align-items-center text-center">
+          <i class="bi bi-music-note-list display-4 mb-3" style="color: #00d2ff;"></i>
+          <h3>Music Library</h3>
+          <p>Browse your digital collection</p>
+        </a>
+
+        <!-- Video Library Card -->
+        <a href="/entry?src=video" class="glass-card d-flex flex-column align-items-center text-center">
+          <i class="bi bi-film display-4 mb-3" style="color: #ffe600;"></i>
+          <h3>Video</h3>
+          <p>Watch movies and clips</p>
+        </a>
+
+      </div>
+
+      <% if (typeof info !=='undefined' && info.length> 0) { %>
+        <div class="mt-5">
+          <h4 class="mb-3">System Info</h4>
+          <div class="glass-panel p-3">
+            <ul class="list-unstyled">
+              <% info.forEach(function(item) { %>
+                <li class="mb-2">
+                  <strong style="color: var(--accent-color);">
+                    <%= item.name %>
+                  </strong>
+                  <span class="text-white-50">used for <%= item.organization %></span>
+                </li>
+                <% }); %>
+            </ul>
+          </div>
+        </div>
+        <% } %>
+
+    </main>
+
+    <%- include('../partials/footer'); %>
+
+</body>
+
+</html>

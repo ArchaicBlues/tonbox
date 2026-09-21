@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../systemSettings', method='POST', content-type="text/javascript">
+        <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back / Submit</button>
+        <br><br>
+        <div class="w3-container w3-khaki"  >
+        <div style="overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+            <br><br>
+            <h4 style="background-color:Tomato;">
+            <b>New IP address will be used with the next "Reboot"<br>
+              You may not need to change Gateway Address if WiFi is running already
+            </b></h4>
+            <br><br>
+        <div style="text-align: center;">
+            <h6>
+                Gateway:<%- ipList[0] %>&nbsp;
+                eth0:<%- ipList[1] %>&nbsp;
+                wlan0:<%- ipList[2] %>
+            </h6>
+            <br><br>
+
+        <div>
+        <!-- <h6>Mit Änderung der derzeit gültigen Web-App Adresse <b><%- settings.ip %></b> wird das System neu gestartet!</h6>                 -->
+        <label><b>IP address</b></label>
+        192.168.2.<input type="text" name="ip" size="3" maxlength="3" aria-label="ip" placeholder="140">&nbsp;[10..254]<br><br>
+        <br>
+        <!-- <h6>Router Einstellung hier eintragen</h6>                 -->
+        <label><b>Gateway</b></label>
+        192.168.<input type="text" name="gateway" size="5" maxlength="5" aria-label="gateway" placeholder="2.1"><br><br>
+        <br>
+                <!-- <h6>WLAN Einstellung bei Erstinstallation:</h6>
+                <label><b>Wifi SSID</b></label>
+                <input type="text" name="ssid" size="20" aria-label="ssid" placeholder="<%- settings.ssid %>"><br>
+                <label><b>Wifi Pass</b></label>
+                <input type="text" size="20" name="pass" aria-label="pass" placeholder="<%- settings.pass %>"><br><br><br>
+                <br><br> -->
+
+                <!-- <h6>MP3 File per Email senden - Konfiguration Mail Transfer Agent: </h6>
+                <label><b>Ausgehender Mail Server</b></label><br>
+                <input type="text" size="30" name="mailhub" aria-label="mailhub" placeholder="securesmtp.t-online.de:587"><br>
+                <label><b>Benutzer</b></label>
+                <input type="text" size="22" name="mailUser" aria-label="mailuser" placeholder=""><br>
+                <label><b>Passwort</b></label>
+                <input type="text" size="22" name="mailPass" aria-label="mailpass" placeholder=""><br>
+                <br><br>
+                <button class="rect-btn" type="submit" name="sys" value="Back" >Submit</button> -->
+        </div>
+    </form>
+</main>
+    <%- include('../partials/footer'); %>
+<script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+</body>
+</html>

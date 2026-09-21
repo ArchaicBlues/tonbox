@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="/button.css">
+
+        <link rel="manifest" href="/manifest/manifest.json?v=2">
+</head>
+
+<body>
+    <%- include('../partials/captureModals'); %>
+    <%- include('../partials/header'); %>
+
+<script>
+    audioOut = JSON.stringify("<%- settings.mediaOut %>");
+    dirType = "none"
+    modalWin = false
+    audioTag = false
+</script>
+
+<main class="container animate-in">
+<form action='../audioCapture' method='POST' enctype='multipart/form-data'>
+<div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center">
+    <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i>
+        Back</button>
+    <h4 class="m-0">Vinyl Capture</h4>
+    <div style="width: 80px;"></div> <!-- Spacer -->
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="glass-panel p-5 text-center">
+        <% if (userSave) {%>
+            <div class="alert alert-warning mb-4"
+                style="background: rgba(255, 193, 7, 0.2); border: 1px solid #ffc107; color: white;">
+                <h5><i class="bi bi-exclamation-triangle"></i> Mismatch detected</h5>
+                <p>Proposed song titles do not match.</p>
+                <button class="btn-modern btn-warning" type="submit" name="userSave"
+                    value="ADrecords">Move anyway?</button>
+            </div>
+        <%}%>
+
+        <div class="mb-4">
+            <button class="btn-modern" type="submit" name="Discogs" value="GetInfo">
+                <i class="bi bi-disc"></i> Retrieve Vinyl Info
+            </button>
+        </div>
+
+        <% if (discogs && discogs.info != "none") { %>
+        <div class="glass-card mb-4 p-3 d-inline-block">
+            <b><%- discogs.info %></b><br>
+            <img src="/images/image1.jpg" alt="Album Art" class="img-fluid rounded mt-2"
+                style="max-height: 200px; opacity: 0.9;">
+        </div>
+        <% } %>
+
+        <div class="d-flex flex-column gap-3 align-items-center"
+            style="max-width: 400px; margin: 0 auto;">
+
+            <button class="btn-modern w-100" type="button"
+                onclick="openLevelModal()"
+                ><i class="bi bi-soundwave"></i> Show Monitor Rec Level
+            </button>
+            <br>
+            <div class="glass-card w-100 p-3 text-start">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <label>Type:</label>
+                    <select id="discType" name="discType" class="form-select"
+                        style="width: auto; background: #222; color: #fff; border: 1px solid #444;">
+                        <option value="33rpm">33rpm (LP)</option>
+                        <option value="45rpm">45rpm (EP)</option>
+                        <option value="78rpm">78rpm (SP)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <label>Side:</label>
+                    <select name="side" class="form-select"
+                        style="width: auto; background: #222; color: #fff; border: 1px solid #444;">
+                        <% for (i in recSide) { %>
+                            <option value="<%- recSide[i] %>"><%- recSide[i] %>
+                            </option>
+                            <% } %>
+                    </select>
+                </div>
+
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <label>Format:</label>
+                    <div class="d-flex gap-3">
+                        <label><input type="radio" name="format" value="WAV"
+                            checked="checked">WAV</label>
+                        <label><input type="radio" name="format" value="MP3">MP3</label>
+                    </div>
+                </div>
+            </div>
+
+            <% if (audioInfo && audioInfo.match("all.wav") && discogs.sideA[0]) {%>
+                <button class="btn-success w-100" type="button"
+                    onclick="startAnalyzer()">
+                    Analyze existing record !
+                </button>
+            <%}%>
+            <hr class="w-100" style="border-color: rgba(255,255,255,0.1);">
+            <button class="btn-modern btn-danger w-100 py-3" type="button"
+                onclick="startAudioRecording()"
+                style="background: linear-gradient(45deg, #ff0055, #ff4d4d); border: none; font-size: 1.1rem; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                <i class="bi bi-record-circle"></i> Start Recording
+            </button>
+            <small class="text-muted mt-2">Files will be saved in
+                "Vinyl"</small>
+        </div>
+        </div>
+    </div>
+</div>
+</form>
+</main>
+<%- include('../partials/footer'); %>
+    <script src="/scripts/audioWeb.js"></script>
+<script>
+audioInfo = JSON.stringify("<%- audioInfo %>")
+console.log("audioInfo="+audioInfo)
+discogsInfo = JSON.stringify("<%- discogs.info %>")
+console.log("discogsInfo="+discogsInfo)
+const DISC_TYPE_STORAGE_KEY = 'audioCapture.discType';
+let es;
+const lm = document.getElementById("levelModal")
+lm.style.display = "none";
+const rm = document.getElementById("recordModal")
+rm.style.display = "none";
+const am = document.getElementById("analyzerModal")
+const discTypeSelect = document.getElementById("discType")
+let stopTime = null;
+let autoStopTimerId = null;
+
+if (discTypeSelect) {
+    try {
+        const savedDiscType = localStorage.getItem(DISC_TYPE_STORAGE_KEY);
+        if (savedDiscType && Array.from(discTypeSelect.options).some(option => option.value === savedDiscType)) {
+            discTypeSelect.value = savedDiscType;
+        }
+    } catch (err) {
+        console.log("disc type restore unavailable", err);
+    }
+
+    discTypeSelect.addEventListener("change", function () {
+        try {
+            localStorage.setItem(DISC_TYPE_STORAGE_KEY, discTypeSelect.value);
+        } catch (err) {
+            console.log("disc type save unavailable", err);
+        }
+    });
+}
+
+/*----------------------------------*/
+function getRecordDurationMinutes(typeValue) {
+    const t = String(typeValue || "").toLowerCase();
+    if (t === "45rpm" || t === "78rpm") return 7;
+    return 30;
+}
+
+function updateStopTimeForType(typeValue) {
+    const durationMinutes = getRecordDurationMinutes(typeValue);
+    const startTime = new Date();
+    stopTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
+    const stopTimeTag = document.getElementById("stopTime");
+    if (stopTimeTag) {
+        stopTimeTag.style.display = "block";
+        stopTimeTag.style.textAlign = "center";
+        stopTimeTag.innerText = "auto stop " + stopTime.toLocaleTimeString();
+    }
+}
+
+if (discTypeSelect) {
+    updateStopTimeForType(discTypeSelect.value);
+    discTypeSelect.addEventListener("change", function () {
+        updateStopTimeForType(discTypeSelect.value);
+    });
+} else {
+    updateStopTimeForType("33rpm");
+}
+/*----------------------------------*/
+
+    async function openLevelModal() {
+    //await wichtig, da sonst 2 Server Anfragen gleichzeitig kommen
+    await fetch("/audioCaptureTape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            MonitorLevel: "start",
+        })
+    })
+
+    lm.classList.add("show");
+    lm.style.display = "flex";
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const el = document.getElementById("levelValue")
+        if (el)
+            el.innerText = event.data;
+    });
+    es.addEventListener("result", function() {
+        es.close();
+    });
+}
+
+function stopAnalyzer() {
+    console.log("stop Analyzer")
+    am.classList.remove("show");
+    am.style.display = "none";
+    if (es) es.close();
+}
+
+
+function closeLevelModal() {
+    lm.classList.remove("show");
+    lm.style.display = "none";
+    if (es) es.close();
+    fetch('/audioCapture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({MonitorLevel: "stop",
+        })
+    });
+}
+async function closeRecordModal() {
+    //Archtecture: client Start Rec --> Server starts "arecord" sends SSE modal info
+    // --> client open recordModal shows bytes...--> recording, shows analyzer stuff in recordModal
+    // --> server kills "adrecord" start analyzing -->sends SSE modal info --> refresh client page
+    // --> client close recordModal
+    rm.style.display = "none";
+    if (autoStopTimerId) {
+        clearTimeout(autoStopTimerId);
+        autoStopTimerId = null;
+    }
+    if (es) es.close();
+    try {
+        await fetch('/audioCapture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recordingStop: "audioCapture" })
+        });
+        location.reload() //loads ejs var 
+        // const data = await res.json();
+    } catch (err) {
+        console.error("audio analyzer probably failed:", err);
+        // document.getElementById("recordModal").style.display = "none";
+        // if (es) es.close();
+    }
+}
+
+
+async function startAnalyzer() {
+    const type = document.querySelector('[name=discType]').value;
+    const side = document.querySelector('[name=side]').value;
+    const format = document.querySelector('[name=format]').value;
+    //await wichtig, da sonst 2 Server Anfragen (this & SSE) gleichzeitig kommen
+    await fetch("/audioCapture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            Analyze: "startAnalyzer",
+            type: type,
+            side: side,
+            format: format
+        })
+    })
+
+    console.log("open analyzer modal")
+    am.classList.add("show");
+    am.style.display = "flex";
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const el = document.getElementById("analyzerValue")
+        if (el){
+            el.innerText = event.data;
+        }
+    });
+    es.addEventListener("result", function(event) {
+        console.log("received es.close", event.data)
+        es.close();
+        stopAnalyzer()
+        const msg = event.data || "";
+        if (msg.match("sseEndDisc")) {
+            window.location.href = "/entry?src=vinyl&t=" + Date.now();
+            return;
+        }
+        if (msg.match("done")) {
+            window.location.reload();
+        }
+    });
+}
+
+
+async function startAudioRecording() {
+    if (!discogsInfo || discogsInfo === "none") {
+        alert("No Record Info!\nGet disc info thru DISCOGS or edit ...");
+        return;
+    }
+
+    const type = document.querySelector('[name=discType]').value;
+    const side = document.querySelector('[name=side]').value;
+    const format = document.querySelector('[name=format]').value;
+
+    updateStopTimeForType(type);
+    if (autoStopTimerId) {
+        clearTimeout(autoStopTimerId);
+    }
+    const msUntilStop = stopTime.getTime() - Date.now();
+    autoStopTimerId = setTimeout(() => {
+        console.log("Auto stop triggered");
+        stopRecording();
+    }, msUntilStop);
+
+    // open modal immediately so the user sees feedback right away
+    rm.classList.add("show");
+    rm.style.display = "flex";
+
+    // check if this disc side was already recorded
+    const checkRes = await fetch("/audioCapture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ CheckExist: "yes", type: type, side: side, format: format })
+    })
+    const checkData = await checkRes.json()
+    if (checkData.exists) {
+        rm.classList.remove("show");
+        rm.style.display = "none";
+        window.location.href = "/entry?src=vinyl&t=" + Date.now();
+        return;
+    }
+
+    /*
+      Client now reacts to that error and closes modal:  
+        Checks the response from POST /audioCapture
+        If not ok:
+        Closes the recording modal
+        Shows alert with server message
+        Navigates to initial page (/) with cache-busting timestamp
+    */
+    const startRes = await fetch("/audioCapture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            Auto: "yes",
+            type: type,
+            side: side,
+            format: format,
+            stoptime: stopTime
+        })
+    })
+
+    if (!startRes.ok) {
+        let payload = null;
+        try {
+            payload = await startRes.json();
+        } catch (err) {
+            console.error("Failed to parse start recording response:", err);
+        }
+        rm.classList.remove("show");
+        rm.style.display = "none";
+        if (payload && payload.message) {
+            alert(payload.message);
+        }
+        window.location.href = ((payload && payload.redirect) ? payload.redirect : "/") + "?t=" + Date.now();
+        return;
+    }
+
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const rV = document.getElementById("recordValue")
+        if (rV)
+            rV.innerText = event.data;
+    });
+    es.addEventListener("result", async function(event) {
+        console.log("received es.close", event.data)
+        if (autoStopTimerId) {
+            clearTimeout(autoStopTimerId);
+            autoStopTimerId = null;
+        }
+        if (es) es.close();
+        rm.classList.remove("show");
+        rm.style.display = "none";
+
+        const msg = event && event.data ? String(event.data) : "";
+        if (msg.match("sseEndDisc") || msg.match("done")) {
+            await startAnalyzer();
+        }
+    });
+
+    //console.log("Recording started with title:", title);
+    //console.log("Recording time:", time);
+}
+
+function stopRecording(){
+    closeRecordModal()
+}
+
+lm.addEventListener("click", function (event) {
+    console.log("event="+event)
+    lm.style.display = "none";
+    console.log("click close 1")
+    closeLevelModal()
+});
+</script>
+</body>
+
+</html>

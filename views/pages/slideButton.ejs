@@ -1,0 +1,103 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<script>
+    function setImg(num){
+        let tag = document.getElementById(num);
+        tag.setAttribute("src", "p"+num);
+        tag.setAttribute("type", "image/jpg");
+        tag.setAttribute("alt", "unavailable");
+        tag.setAttribute("height", "4%");
+        tag.setAttribute("width", "4%");
+        document.append(tag)
+    }   
+</script>
+
+<body>    
+    <%- include('../partials/head'); %>
+    <main>
+        <form action='../slideButton', method='POST', content-type="text/javascript" enctype="multipart/form-data">
+            <button class="rect-btn" type="submit" name='Back' value="Back" class="btn btn-dark btn-lg">Back</button> 
+            <br>
+            
+            <h1><img src="images/BildPic.jpg"  width="5%" height="5%" alt="Slideshow">&nbsp;&nbsp;Slideshow 
+            <span class="hovertext" style="font-size:18px" data-hover="<%- hooverHelp[9] %>">
+                <label for="id1" style="font-size:18px;background-color:black; color:white" class="visually-hidden">Pause time in seconds</label>
+            </span>
+            <input type="text"  name="pauseTime" aria-label="Pause Time" size="1">
+            </h1><br>
+
+            <p id="pics">:</p>
+            <% for (var i=0; i<dirs.length; i++) { %>
+                <script>
+                    document.getElementById("pics").innerHTML+=('<img id = "<%- i %>">')
+                    document.getElementById("pics").innerHTML+=('<input type="submit" style="font-size:18px;background-color:black; color:white" name="show" value=<%- dirs[i] %>>')
+                    document.getElementById("pics").innerHTML+=('&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ')
+                    var x = "<%- JSON.stringify(i) %>";
+                    console.log("x="+x);
+                    setImg(x);
+                </script>
+            <% } %>
+            <br>
+            <h4><b>Umbenennen</b>
+                <br>
+                <div class="input-group mb-3">
+                <label for="id1" class="visually-hidden">Alt:</label>&nbsp;&nbsp;
+                <input type="text" class="form-control" size="20" name="old" id="id1">&nbsp;&nbsp;
+                <label for="id2" class="visually-hidden">Neu:</label>&nbsp;&nbsp;
+                <input type="text" class="form-control" name="new">&nbsp;&nbsp;
+                <span class="hovertext" data-hover="<%- hooverHelp[10] %>">
+                    <button class="rect-btn" type="submit" name="Submit" value="Submit" class="btn btn-dark">Submit Rename</button>
+                </span>
+            </div>
+            <b>Upload pics</b><br>
+            <div class="input-group mb-3">           
+            <form action="/action_page_inputtags_multiplefiles.php">
+                <!-- <label for="id3" class="visually-hidden">Enter existing directory or a new one:</label>&nbsp;&nbsp; -->
+                <input type="text" class="form-control" name="targetDir" id="id3">&nbsp;&nbsp;
+                <!-- <label for="id4" class="visually-hidden">Browse:</label>&nbsp;&nbsp; -->
+                <input type="file" name="upfile" id="id4" multiple="multiple">&nbsp;&nbsp;
+                <span class="hovertext" data-hover="<%- hooverHelp[11] %>">
+                    <button class="rect-btn" type="submit" name="Submit" value="uploadPic" class="btn btn-dark">Enter target directory and upload</button>
+                </span>
+            </form>
+            </div>
+            </h4>
+        </form>
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

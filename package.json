@@ -1,0 +1,46 @@
+{
+  "name": "archaicnodeejs",
+  "version": "1.0.0",
+  "description": "A server app with multiple audio / video / slide / TV functionality",
+  "main": "server.js",
+  "keywords": [
+    "dlna",
+    "upnp",
+    "cast",
+    "client"
+  ],
+  "author": "ArchaicBlues",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bartve/disconnect.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "ejs": "^6.0.1",
+    "express": "^4.17.2",
+    "express-fileupload": "^1.4.0",
+    "google": "^2.1.0",
+    "icy": "^2.1.0",
+    "lodash": "^4.17.21",
+    "mjpeg-server": "^0.3.1",
+    "node-fetch": "^3.3.2",
+    "radio-browser": "^2.1.9",
+    "rpio": "^2.4.2",
+    "youtube-node": "^1.3.3"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "bugs": {
+    "url": "https://github.com/bartve/disconnect/issues"
+  },
+  "homepage": "https://github.com/bartve/disconnect#readme",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true
+  }
+}

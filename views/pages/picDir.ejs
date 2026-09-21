@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<body class="my-body">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<link rel=stylesheet type="text/css" href="views/css/style.css">
+<style>
+.checkbox-container input {
+    display: none;
+  }
+  
+  .checkbox-container .checkbox-indicator {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    border: 3px solid #f70404;
+    position: relative;
+    margin-right: 3px;
+    vertical-align: middle
+  }
+  
+  .checkbox-container .checkbox-indicator:hover {
+    border: 3px solid #0f1dd4;
+  }
+  
+  .checkbox-container input:checked ~ .checkbox-indicator {
+    background-color: rgb(249, 5, 34);
+    box-shadow: 0 0 0 3px #f00202 inset;
+  }
+
+  img.custom:hover,
+	img.custom:focus {
+  	width: 20%;
+  	height: auto;
+	}
+
+.input_btn {
+  border: none;
+    color:white;
+  background-color: black;
+  /* padding: 14px 28px; */
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-block;
+}
+.form-group {
+  display: inline-block;
+  width: auto;
+}
+
+.media-section {
+    width: min(1100px, 96%);
+    margin: 0 auto;
+}
+
+.media-collection {
+    display: grid;
+    gap: 10px;
+}
+
+.media-collection.is-grid {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.media-collection.is-slider {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+}
+
+.media-slider-btn {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.media-slider-btn:disabled {
+    opacity: 0.35;
+}
+
+.media-slider-viewport {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+}
+
+.media-slider-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(170px, 1fr);
+    gap: 10px;
+}
+
+.media-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.media-thumb {
+    width: 100%;
+    height: 86px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #111;
+}
+
+.media-file-btn {
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.media-delete-label {
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.media-meta {
+    color: rgba(255,255,255,0.68);
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .media-slider-track {
+        grid-auto-columns: minmax(145px, 1fr);
+    }
+}
+
+.required {
+  float: right;
+  margin-left: 5px; /* adjust the spacing as needed */
+}
+/* 
+.custom, .input_btn, .checkbox-container {
+       margin-right: 10px;
+} */
+</style>
+
+
+<body class="my-body">
+<script>
+    singleVid=false
+    dir = JSON.stringify("<%- dir %>")
+    dir = dir.replace(/"/g,"")
+
+    function setImg(num){
+        console.log("num="+num+", dir="+dir)
+        let tag = document.getElementById(num);
+        //tag.setAttribute("src", "p"+num+"-"+ dir);
+        tag.setAttribute("type", "image/jpg");
+        // tag.setAttribute("alt", "unavailable");
+        tag.setAttribute("height", "4%");
+        tag.setAttribute("width", "4%");
+        //document.append(tag)
+
+       var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/p"+num+"-"+dir, true);
+        xhr.send();
+
+    }   
+</script>
+
+<body class="my-body">
+<script>
+    //define page contents
+    dirType = "none"//needed for showMusicWorld.ejs
+    modalWin = false
+    audioTag = false
+</script>
+
+<main class="container">
+
+<form action='../picDir', method='POST', content-type="text/javascript" enctype="multipart/form-data">
+    <div class="glass-panel top-controls">
+        <div class="d-flex align-items-center gap-3">
+            <button id="back" class="btn-modern" type="submit" value="Back" name="Back"><i class="bi bi-arrow-left"></i>Back</button> 
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label
+                style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                    class="bi bi-volume-up"></i> Volume</label>
+            <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50" style="width: 100%;">
+            <% } else { %>
+                    <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                        value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="width: 100%;">
+            <% } %>
+        </div>
+        <button type="button" class="btn-modern"
+            onclick="openEq()">
+            Eq
+        </button>
+    </div>    <br><br>
+    <% if (bigpath) {%>
+      <div class="group-img-center" style="text-align:center;">
+        <div style="display:flex; justify-content:center; align-items:center; width:100%; min-height:60vh; overflow:auto;">
+          <img src="<%- bigpath %>" type="image/jpg; image/bmp" style="max-width:100%; max-height:75vh; width:auto; height:auto; object-fit:contain; display:block;" alt="single">
+        </div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:12px;">
+          <button type="submit" name="backward" value="<%- bigpath %>" style="font-size: 1.8rem; width: 52px; height: 52px; border-radius: 10px; display:flex; align-items:center; justify-content:center;">←</button>
+          <button type="submit" name="Rotate" value="<%- bigpath %>" style="font-size: 1.8rem; width: 52px; height: 52px; border-radius: 10px; display:flex; align-items:center; justify-content:center;">↻</button>
+          <button type="submit" name="forward" value="<%- bigpath %>" style="font-size: 1.8rem; width: 52px; height: 52px; border-radius: 10px; display:flex; align-items:center; justify-content:center;">→</button>
+        </div>
+      </div>
+    <%}else{%>
+        <div class="group-img-center" style="text-align: center;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: nowrap; margin-bottom: 12px; width: fit-content; margin-left: auto; margin-right: auto;">
+                <input type="text" name="Name" size="14" placeholder=<%-dir %>>
+                <button type="submit" name="Rename" value="<%- dir %>" class="btn btn-dark">Umbenennen</button>
+                <button type="submit" name="Entfernen" value="<%- dir %>" class="btn btn-danger">Löschen</button>
+            </div>
+            <br>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: nowrap; width: fit-content; margin-left: auto; margin-right: auto;">
+                <button type="submit" name="mediaShow" value="<%- dir %>" class="btn btn-primary" onclick="try{var el=document.documentElement;var req=el.requestFullscreen||el.webkitRequestFullscreen;if(req)req.call(el);}catch(e){}"><b>Media Show</b></button>
+                <input type="number" name="pauseTime" aria-label="Pause[sec]" placeholder="4" min="2" max="10" step="1" inputmode="numeric" size="6">
+            </div>
+        </div>
+        <br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <img src="images/tv.jpg" width="30%" height="auto" alt="">
+        </div>
+        <br>
+        
+
+        <%
+            const mediaItems = [];
+            const convertItems = [];
+            for (let i = 0; i < data.length; i++) {
+                const file = data[i];
+                const isConvertible = /\.(flv|mts|mpg)$/i.test(file) && !/\.mp4$/i.test(file);
+                const isMediaItem = /\.(jpg|jpeg|bmp|png|gif|mp4)$/i.test(file);
+                if (isConvertible) convertItems.push({ idx: i, file: file });
+                if (isMediaItem) mediaItems.push({ idx: i, file: file });
+            }
+            const useSlider = mediaItems.length > 4;
+        %>
+
+        <% if (convertItems.length > 0) { %>
+            <% for (let c = 0; c < convertItems.length; c++) { %>
+                <br><input type="submit" style="background-color:rgb(119, 196, 119)" name="show" value="<%-dir %>/<%- convertItems[c].file %>::Videoformat wandeln">
+            <% } %>
+        <% } %>
+
+        <% if (mediaItems.length > 0) { %>
+        <div class="media-section">
+            <div class="media-collection <%- useSlider ? 'is-slider' : 'is-grid' %>">
+                <% if (useSlider) { %>
+                    <button id="mediaPrevBtn" type="button" class="media-slider-btn" aria-label="Previous media">&#8249;</button>
+                    <div id="mediaSliderViewport" class="media-slider-viewport">
+                        <div id="mediaSliderTrack" class="media-slider-track">
+                <% } %>
+
+                <% for (let m = 0; m < mediaItems.length; m++) { %>
+                    <div class="media-card compact">
+                        <% if (/\.mp4$/i.test(mediaItems[m].file)) { %>
+                            <video class="media-thumb" muted preload="metadata" src="p<%- mediaItems[m].idx %>-<%- dir %>"></video>
+                        <% } else { %>
+                            <img class="media-thumb" src="p<%- mediaItems[m].idx %>-<%- dir %>" type="image/jpg" alt="media thumb">
+                        <% } %>
+                        <input class="input_btn media-file-btn" type="submit" name="show" value="<%- dir %>/<%- mediaItems[m].file %>">
+                        <label class="checkbox-container media-delete-label" style="display: inline-flex; align-items: center;">
+                            <input type="checkbox" name="Delete" value="<%- dir %>/<%- mediaItems[m].file %>">Entf.
+                            <span class="checkbox-indicator"></span>
+                        </label>
+                    </div>
+                <% } %>
+
+                <% if (useSlider) { %>
+                        </div>
+                    </div>
+                    <button id="mediaNextBtn" type="button" class="media-slider-btn" aria-label="Next media">&#8250;</button>
+                <% } %>
+            </div>
+            <% if (useSlider) { %>
+                <div class="media-meta">Mehr als 4 Dateien: mit Buttons oder per Wischen horizontal durchblättern.</div>
+            <% } %>
+        </div>
+        <% } %>
+
+
+        <br><br>
+        <hr style="background-color:black">
+        <br><br>
+        <div class="input-group mb-3">
+            <form action="/action_page_inputtags_multiplefiles.php">
+                <button type="submit" name="Submit" value="uploadPic" class="btn btn-dark">Hochladen</button><br>
+                <label class="visually-hidden"></label>&nbsp;&nbsp;
+                <input type="file" name="upfile" id="id4" multiple="multiple">
+            </form>
+        </div>
+        <!-- <div class="input-group mb-3">
+            <button type="submit" name="Dir" value="<%-dir %>/<%- data[i] %>" class="btn btn-dark">Anlegen</button>
+            <label class="visually-hidden"></label>&nbsp;&nbsp;
+            <input type="text" name="Create" placeholder="neues Verzeichnis">&nbsp;&nbsp;
+        </div> -->
+    <%}%>
+    <br>
+</form>
+<br><br><br><br><br><br><br>
+<!-- <script src="views/scripts/audioWeb.js"></script> -->
+<script>
+    (function initPicMediaSlider() {
+        const viewport = document.getElementById('mediaSliderViewport');
+        const track = document.getElementById('mediaSliderTrack');
+        const prevBtn = document.getElementById('mediaPrevBtn');
+        const nextBtn = document.getElementById('mediaNextBtn');
+
+        if (!viewport || !track || !prevBtn || !nextBtn) return;
+
+        function cardsPerView() {
+            return window.innerWidth <= 700 ? 2 : 4;
+        }
+
+        function scrollStep() {
+            const firstCard = track.querySelector('.media-card');
+            if (!firstCard) return viewport.clientWidth;
+            const computed = window.getComputedStyle(track);
+            const gap = parseFloat(computed.columnGap || computed.gap || '0') || 0;
+            return (firstCard.getBoundingClientRect().width + gap) * cardsPerView();
+        }
+
+        function updateButtons() {
+            const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+            prevBtn.disabled = viewport.scrollLeft <= 2;
+            nextBtn.disabled = viewport.scrollLeft >= (maxScroll - 2);
+        }
+
+        prevBtn.addEventListener('click', function () {
+            viewport.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+        });
+
+        nextBtn.addEventListener('click', function () {
+            viewport.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+        });
+
+        viewport.addEventListener('scroll', updateButtons, { passive: true });
+        window.addEventListener('resize', updateButtons);
+        updateButtons();
+    })();
+</script>
+</main>
+</body>
+
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+</body>
+</html>

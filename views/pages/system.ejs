@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+    .audio-system-card {
+        background: rgba(20, 20, 40, 0.9);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 15px 20px;
+        max-width: 400px;
+        font-family: 'Inter', sans-serif;
+        color: white;
+    }
+
+    .audio-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .audio-option {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .audio-option:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .audio-option input[type="radio"] {
+        display: none; /* hide the default radio button */
+    }
+
+    .audio-option span {
+        position: relative;
+        padding-left: 28px;
+    }
+
+    .audio-option span::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        border: 2px solid #0ff;
+        border-radius: 50%;
+        background: transparent;
+        transition: all 0.2s;
+    }
+
+    .audio-option input[type="radio"]:checked + span::before {
+        background: #0ff;
+        box-shadow: 0 0 5px #0ff;
+    }
+
+
+    .wifi-card {
+        background: rgba(20, 20, 40, 0.95);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 20px 25px;
+        max-width: 400px;
+        margin: 0 auto 20px auto;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        font-family: 'Inter', sans-serif;
+        color: white;
+    }
+
+    .wifi-card h4 {
+        margin-bottom: 15px;
+        color: var(--accent-color);
+    }
+
+    .wifi-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .wifi-inputs label {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+        display: block;
+        color: #ccc;
+    }
+
+    .wifi-input {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.05);
+        color: white;
+        font-size: 1rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .wifi-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 8px var(--accent-color);
+        background: rgba(255,255,255,0.1);
+    }
+
+    .wifi-actions {
+        display: flex;
+        justify-content: center;
+    }
+
+    .wifi-btn {
+        background: var(--accent-color);
+        color: black;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .wifi-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,255,255,0.4);
+    }
+
+/*************API Keys**************/
+.card { max-width:600px; margin:auto; background:#1e1e1e; padding:30px; border-radius:8px; }
+h2 { margin-top:0; }
+label { display:block; margin-top:20px; }
+input { width:100%; padding:8px; margin-top:5px; border-radius:4px; border:none; }
+button { margin-top:25px; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; }
+.primary { background:#4CAF50; color:white; }
+.test { background:#2196F3; color:white; margin-left:10px; }
+.notice { font-size:0.9em; color:#bbb; margin-top:10px; }
+.success { color:#4CAF50; margin-top:15px; }
+.error { color:#f44336; margin-top:15px; }
+.small-text {
+  font-size: 10px;     /* kleiner */
+  font-weight: normal; /* kein bold */
+}
+
+.tv-results {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.tv-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.tv-title {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.tv-meta {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.tv-cap-list {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tv-cap {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.tv-cap-ok {
+    border-color: rgba(78, 198, 116, 0.65);
+    background: rgba(78, 198, 116, 0.18);
+    color: #dbffe7;
+}
+
+.tv-cap-off {
+    opacity: 0.72;
+}
+
+.tv-empty {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.85rem;
+}
+
+</style>
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        let audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        console.log("audioOut="+audioOut);
+    </script>
+    <main class="container">
+        <form action='../system', method='POST', content-type="text/javascript">
+        <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back / Submit</button>
+        <br><br>
+        <hr style="border-color:rgb(236, 6, 6)">
+        <div class="audio-system-card">
+            <b>Set Audio System:</b>
+            <div class="audio-options">
+                <!-- HTTP Web Option -->
+                <label class="audio-option">
+                    <input type="radio"
+                        name="mediaSet"
+                        value="HTTP live streaming"
+                        <%= String(settings.mediaOut).includes("HTTP") ? "checked" : "" %>>
+                    <span>HTTP Web</span>
+                </label>
+
+                <!-- Line-Out Options DAC / RPI-->
+                <% for (var i = 0; i < audio.length; i++) { %>
+                    <label class="audio-option">
+                        <input type="radio" 
+                            name="mediaSet"
+                            value="<%- i %>" 
+                            <%= i === Number(settings.mediaOut) ? "checked" : "" %>>
+                        <span>Line-Out <%- audio[i] %></span>
+                    </label>
+                <% } %>
+            </div>
+        </div>
+
+        <hr style="border-color:rgb(236, 6, 6)">
+            <button class="btn-primary" type="submit" id="theme-toggle" name='sys' value="DESIGN" style="font-size:1.0rem">Change View</button>&nbsp;&nbsp;
+            <button class="btn-primary" type="submit" name='sys' value="UPDATE" style="font-size:1.0rem">Software Update</button>
+            <br><br>
+            <button class="btn-primary" type="submit" name='sys' value="CHECKTV" style="font-size:1.0rem">Check TV</button>
+            <div class="tv-results">
+                <%
+                    const tvData = Array.isArray(resultTV) ? resultTV : [];
+                    const capOrder = [
+                        'dlnaRenderer', 'dlnaServer', 'avTransport', 'setAVTransportURI', 'setNextAVTransportURI',
+                        'play', 'stop', 'pause', 'seek', 'next', 'previous', 'webUriPlayable',
+                        'dial', 'samsungRemoteControl', 'samsungMainTVAgent', 'chromecast', 'airplay'
+                    ];
+                %>
+                <% if (tvData.length === 0) { %>
+                    <div class="tv-empty">No TV data yet. Click "Check TV".</div>
+                    <div class="tv-empty">Browser-Spiegelung "Media Show" an TV nicht möglich</div>
+                <% } else { %>
+                    <div class="tv-empty">Smart View auf TV möglich</div>
+                    <% for (let i = 0; i < tvData.length; i++) { %>
+                        <% const tv = tvData[i] || {}; %>
+                        <% const caps = tv.capabilities && typeof tv.capabilities === 'object' ? tv.capabilities : {}; %>
+                        <% const avTransport = tv.protocols && tv.protocols.avTransport && typeof tv.protocols.avTransport === 'object' ? tv.protocols.avTransport : {}; %>
+                        <% const avTransportActions = Array.isArray(avTransport.actions) ? avTransport.actions : []; %>
+                        <% const avActionSet = new Set(avTransportActions); %>
+                        <% const normalizedCaps = Object.assign({}, caps, {
+                            avTransport: avTransportActions.length > 0,
+                            setAVTransportURI: avActionSet.has('SetAVTransportURI'),
+                            setNextAVTransportURI: avActionSet.has('SetNextAVTransportURI'),
+                            play: avActionSet.has('Play'),
+                            stop: avActionSet.has('Stop'),
+                            pause: avActionSet.has('Pause'),
+                            seek: avActionSet.has('Seek'),
+                            next: avActionSet.has('Next'),
+                            previous: avActionSet.has('Previous')
+                        }); %>
+                        <% const avTransportCapOrder = [
+                            'avTransport', 'setAVTransportURI', 'setNextAVTransportURI',
+                            'play', 'stop', 'pause', 'seek', 'next', 'previous'
+                        ]; %>
+                        <div class="tv-card">
+                            <div class="tv-title"><%- tv.name || 'Unknown device' %></div>
+                            <div class="tv-meta">IP: <%- tv.ip || '-' %> | <%- tv.manufacturer || '-' %> | <%- tv.model || '-' %></div>
+                            <div class="tv-meta">Recommended: <%- tv.recommended || '-' %></div>
+                            <div class="tv-meta">AVTransport: <%- avTransport.serviceType || '-' %></div>
+                            <div class="tv-meta">Control URL: <%- avTransport.controlURL || '-' %></div>
+                            <div class="tv-meta">Event Sub URL: <%- avTransport.eventSubURL || '-' %></div>
+                            <div class="tv-meta">SCPD URL: <%- avTransport.SCPDURL || '-' %></div>
+                            <div class="tv-cap-list">
+                                <% if (avTransportActions.length === 0) { %>
+                                    <span class="tv-cap tv-cap-off">actions: none</span>
+                                <% } else { %>
+                                    <% for (let a = 0; a < avTransportActions.length; a++) { %>
+                                        <span class="tv-cap tv-cap-ok"><%- avTransportActions[a] %></span>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                            <div class="tv-cap-list">
+                                <% for (let c = 0; c < avTransportCapOrder.length; c++) { %>
+                                    <% const key = avTransportCapOrder[c]; %>
+                                    <% const enabled = !!normalizedCaps[key]; %>
+                                    <span class="tv-cap <%- enabled ? 'tv-cap-ok' : 'tv-cap-off' %>"><%- key %>: <%- enabled ? 'true' : 'false' %></span>
+                                <% } %>
+                            </div>
+                            <div class="tv-cap-list">
+                                <% for (let c = 0; c < capOrder.length; c++) { %>
+                                    <% const key = capOrder[c]; %>
+                                    <% const enabled = !!normalizedCaps[key]; %>
+                                    <span class="tv-cap <%- enabled ? 'tv-cap-ok' : 'tv-cap-off' %>"><%- key %>: <%- enabled ? 'true' : 'false' %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+            <br><br>
+        <hr style="border-color:rgb(236, 6, 6)"><br>
+        <br>
+        </form>
+        
+<form action='../system', method='POST', content-type="text/javascript">
+<div class="audio-system-card">
+    <h2>External Services</h2>
+
+    <p class="notice">
+        Für die Nutzung einer vollständigen You-Tube-Suche oder Download von Platten-Cover für Platten-Digitalisierung sind kostenlose, eigene API-Schlüssel erforderlich.
+    </p>
+    <label>
+        YouTube Data API Key
+        <input type="text" id="youtubeKey" name="youtubeKey" placeholder="AIza...">
+    </label>
+    <ol class="small-text">
+        <li>Gehe zu <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a>  und melde dich mit deinem Google-Konto an. Wenn du noch kein Konto hast, erstelle eines.</li>
+        <li>Klicke auf das Projektmenü oben rechts und wähle „Neues Projekt erstellen“. Gib beliebigen Projekt Namen ein, erstelle es.</li>
+        <li>Navigiere im Menü zu „APIs & Services“. Suche nach „YouTube Data API v3“, klick auf „Aktivieren“</li>
+        <li>Dann „APIs & Services“ > „Zugangsdaten“. Klicke auf „Zugangsdaten erstellen“ und wähle „API-Schlüssel“ aus. Ein neuer Schlüssel wird generiert.</li>
+        <li>Kopiere den generierten API-Schlüssel hier: (wird nur einmal angezeigt)</li>
+    </ol>
+
+    <label>
+        Discogs Consumer Token
+        <input type="text" id="discogsUserToken" name="discogsUserToken" placeholder="Discogs Token...">
+    </label>
+    <ol class="small-text">
+        <li>Registriere auf <a href="https://www.discogs.com" target="_blank">discogs.com</a></li>
+        <li>Selektiere Settings</li>
+        <li>In der linken Sidebar, klick "Developers"</li>
+        <li>Click "Generate new token button"</li>
+        <li>Kopiere den generierten API-Schlüssel hier: (wird nur einmal angezeigt)</li>
+        <li>Halte den Token Schlüssel privat.</li>
+    </ol>
+
+
+    <!-- <label>
+        Song Recognition (songrec)
+        <input type="text" id="songrecHost" placeholder="z.B. http://localhost:8000">
+    </label> -->
+
+    <button type="button" class="wifi-btn" id="saveApiKeysBtn">Save</button>
+    <!-- <button type="button" class="test" onclick="testKeys()">API-Test</button> -->
+
+    <div id="status"></div>
+
+    </div>
+    <br><br>
+        <hr style="border-color:rgb(236, 6, 6)"><br>
+            <h4>Wi-Fi Configuration</h4>
+            <div class="wifi-inputs">
+                <label for="SSID">SSID</label>
+                <input type="text" id="SSID" class="wifi-input" name="SSID" placeholder="<%- settings.ssid %>" required>
+                <div style="position: relative;">
+                    <input type="password" id="pass" class="wifi-input" name="pass" placeholder="********" required>
+                    <span onclick="togglePassword()" style="
+                        position:absolute;
+                        right:10px;
+                        top:50%;
+                        transform:translateY(-50%);
+                        cursor:pointer;
+                    ">👁</span>
+                </div>
+            </div>
+
+            <div class="wifi-actions">
+                <button type="submit" class="wifi-btn">Apply Config</button>
+            </div>
+        
+</form>
+<form action='../system', method='POST', content-type="text/javascript">
+    <br>
+        <div style="text-align: center;">
+            <button type="submit" 
+                    name="setting" 
+                    value="setting" 
+                    class="btn btn-danger mb-3">
+                IP, Gateway
+            </button>
+        </div>
+</form>
+
+        <hr style="border-color:rgb(236, 6, 6)"><br>
+
+        <b>System Info</b><br>
+        <%= sys %>
+        <br><br>
+        <b>User Agent Info (Your Web Browser capability for audio visualisation)</b><br>
+        <p id="ua"></p>
+        <script>
+            let audioApi=true
+            document.write(navigator.userAgent); 
+            var ua = document.getElementById("ua")
+            ua.style.color = "red"
+            if (navigator.userAgent.match("SamsungBrowser/27")) {
+                audioApi = false
+                console.log("Web Audio API not supported");
+            }
+            if (navigator.userAgent.match("Chrome/125")) {
+                audioApi = false
+                console.log("Web Audio API not supported");
+            }
+            if (navigator.userAgent.match("Firefox")){ 
+                if ('webkitAudioContext' in window || 'AudioContext' in window) {
+                    console.log('Web Audio API should be ok');
+                } else {
+                    audioApi = false
+                    console.log('Web Audio API may not be enabled')
+                    ua.innerHTML = '<b>Web Audio API not enabled in Firefox Browser ! </b>'
+                }
+            }
+            if (!audioApi){
+                if (!ua.innerHTML.match('Web Audio API not enabled'))
+                    // ua.innerHTML += "<b>Dieser Browser hat möglicherweise \
+                    // kein Web Audio API integriert! Equalizer und FrequenzBars könnten nicht funktionieren. \
+                    // Benutze den FIREFOX Browser</b>"
+                    ua.innerHTML += "<b>This Browser may have not \
+                    a Web Audio API ! Equalizer and Frequency-Bars may not work. \
+                    Use Mozilla / Firefox Browser</b>"
+            }else{
+                if (!ua.innerHTML.match('Web Audio API not enabled in your Web-Browser'))
+                    ua.innerHTML += '<b>Web Audio API ok</b>'
+            }
+        </script>
+        <form action='../system', method='POST', content-type="text/javascript">
+        <hr style="border-color:rgb(236, 6, 6)">
+        <span style=font-size:0.7rem>
+            <% if (usb.usbaudiocapture != "nok") {%>
+            USB Audio Capture Device exist: yes
+            <%}else{%>
+            USB Audio Capture Device exist:no
+            <%}%>
+            <% if (usb.usbvideocapture === "ok") {%>
+            &nbsp;&nbsp;&nbsp;USB Video Capture Device exist: yes
+            <%}else{%>
+            &nbsp;&nbsp;&nbsp;USB Video Capture Device exist: no
+            <%}%>
+            <% if (usb.usbCDROM === "ok") {%>
+            &nbsp;&nbsp;&nbsp;USB CDROM Device exist: yes
+            <%}else{%>
+            &nbsp;&nbsp;&nbsp;USB CDROM Device exist: no
+            <%}%>
+        </span>
+        <br><br>
+        <button class="btn-primary" type="submit" id="usb-disconnect-btn" name='sys' value="UMOUNT" >Disconnect USB storage</button>&nbsp;&nbsp;
+        <button class="btn-primary" type="submit" id="usb-init-btn" name='sys' value="INIT" >Init USB storage</button>
+        <br><br>
+        <b>Storage Info</b>
+        
+        <%- devADrecords %> - Size: <%- storage.ADrecords.size %>, Used: <%- storage.ADrecords.use %>, Free: <%- storage.ADrecords.free %><br>
+        <% var i=0; for (i in treeA) {%>
+            <%- treeA[i] %> <br>
+        <%}%>
+        <br><br>
+        <%- devMusic %> - Size: <%- storage.Music.size %>, Used: <%- storage.Music.use %>, Free: <%- storage.Music.free %><br>
+        <% var i=0; for (i in treeM) {%>
+            <%- treeM[i] %> <br>
+        <%}%>
+        <br><br>
+        <%- devHome %> - Size: <%- storage.Home.size %>, Used: <%- storage.Home.use %>, Free: <%- storage.Home.free %><br>
+        <% var i=0; for (i in treeH) {%>
+            <%- treeH[i] %> <br>
+        <%}%>
+        <br><br>
+
+        <button type="submit" name='MP4codecs' value="MP4codecs" class="wifi-btn">Convert all incompatible video (may take time!)</button>
+        </form>
+
+    <script>
+         document.addEventListener('click', function (event) {
+        const menuToggle = document.getElementById('menu-toggle');
+        const mainMenu = document.getElementById('main-menu-bar');
+
+        if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+        if (menuToggle.checked) {
+            // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+            // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+            if (!mainMenu.contains(event.target)) {
+            menuToggle.checked = false;
+            }
+        }
+        });
+
+    </script>
+<script>
+// Save button click handler – sends only the API keys
+document.getElementById("saveApiKeysBtn").addEventListener("click", async function() {
+    const youtubeKey = document.getElementById("youtubeKey").value.trim();
+    const discogsToken = document.getElementById("discogsUserToken").value.trim();
+
+    // if (!youtubeKey || !discogsKey) {
+    //     showStatus("Bitte alle Pflichtfelder ausfüllen.", false);
+    //     return;
+    // }
+
+    try {
+        const response = await fetch("/apiKeySet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                youtubeKey: youtubeKey,
+                discogsUserToken: discogsToken
+                // If you later uncomment songrecHost, add it here
+            })
+        });
+        
+        if (response.ok) {
+            // Optionally read the response body (if your server sends JSON back)
+            const data = await response.json();
+            console.log("Server response:", data);
+            showStatus("youtube Key = "+data.youtubeKey+" / discogs User Token = "+data.discogsUserToken)
+        } else {
+            // Try to get error message from response
+            let errorMsg = "Fehler beim Speichern. (Status: " + response.status + ")";
+            try {
+                const errorData = await response.json();
+                if (errorData.message) errorMsg += " - " + errorData.message;
+            } catch (e) {
+                // Ignore if response is not JSON
+            }
+            showStatus(errorMsg, false);
+        }
+    } catch (err) {
+        showStatus("Fehler beim Speichern: " + err.message, false);
+    }
+});
+
+// Status helper (reused from your original code)
+function showStatus(message, success) {
+    const status = document.getElementById("status");
+    status.className = success ? "success" : "error";
+    let msg = message.split("/")
+    let inf1="YouTube Key ok, confirmed and saved"
+    let inf2 ="Discogs User Token ok, confirmed and saved"
+    if (msg[0].match("nok")) inf1=" no valid YouTube Key - not saved !"
+    if (msg[1].match("nok")) inf2=" not valid Discogs User Token - not saved !"
+    status.innerText = inf1+"\n"+inf2;
+}
+
+function togglePassword() {
+    const passInput = document.getElementById("pass");
+    if (passInput.type === "password") {
+        passInput.type = "text";
+    } else {
+        passInput.type = "password";
+    }
+}
+</script>    
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const themeBtn = document.getElementById('theme-toggle');
+    if (!themeBtn) return;
+
+    // Reihenfolge: Modern -> Vintage -> Sci-Fi -> Inverse -> (zurück zu Modern)
+    const themes = ['modern', 'vintage', 'sci-fi'];
+
+    themeBtn.addEventListener('click', () => {
+      let current = localStorage.getItem('theme') || 'modern';
+      let nextIndex = (themes.indexOf(current) + 1) % themes.length;
+      let nextTheme = themes[nextIndex];
+
+      // Klassen am Body/HTML aktualisieren
+      themes.forEach(t => document.body.classList.remove(t));
+      if (nextTheme !== 'modern') {
+          document.body.classList.add(nextTheme);
+      }
+
+      localStorage.setItem('theme', nextTheme);
+      
+      // Optisches Feedback auf dem Button
+      const icons = {
+          modern: 'fa-magic',
+          vintage: 'fa-clock',
+          'sci-fi': 'fa-rocket',
+      };
+      themeBtn.querySelector('i').className = 'fas ' + (icons[nextTheme] || 'fa-palette');
+    });
+  });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const scrollKey = 'system-scroll-to-end-after-usb-action';
+
+    const disconnectBtn = document.getElementById('usb-disconnect-btn');
+    const initBtn = document.getElementById('usb-init-btn');
+
+    const markForScroll = () => {
+        sessionStorage.setItem(scrollKey, '1');
+    };
+
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', markForScroll);
+    }
+
+    if (initBtn) {
+        initBtn.addEventListener('click', markForScroll);
+    }
+
+    if (sessionStorage.getItem(scrollKey) === '1') {
+        sessionStorage.removeItem(scrollKey);
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+    }
+});
+</script>
+</main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

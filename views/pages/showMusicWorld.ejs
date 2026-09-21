@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        console.clear();
+        //define page contents
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        console.log("audioOut="+audioOut)
+        dirType = "<%- loc %>"
+        console.log("dirType="+dirType)
+        modalWin = false
+        if (dirType.match("Audio") || dirType.match("Radio/") || dirType.match("Video"))
+             modalWin = true
+        audioTag = true //audio element
+        btracks = <%- JSON.stringify(basetracks) %> //this is correct for Array !
+        let currentReverb = "<%= settings.reverb %>";
+        let currentRadioDir = ""; 
+    </script>
+
+    <main class="container">
+    <form action='../showMusicWorld', method='POST', content-type="text/javascript" enctype="multipart/form-data">
+            <div id="debug" style="color:red; font-size:14px;"></div>
+
+        <% if (loc.match("Audio") || loc.match("Radio")) { %>
+            <!-- Top Controls: Volume & EQ -->
+            <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                        <button class="btn-modern" id="back" type="submit" name="Back" value="Back"><i
+                                class="bi bi-arrow-left"></i> Back</button>
+                </div>
+
+                <div style="flex: 1;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                            class="bi bi-volume-up"></i> Volume</label>
+                    <!-- Check for settings.mediaOut existence -->
+                    <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                        <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50"
+                            style="flex: 1;">
+                    <% } else { %>
+                            <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                                value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="flex: 1;">
+                    <% } %>
+                </div>
+
+                <button type="button" class="btn-modern"
+                    onclick="openEq()">
+                    Eq
+                </button>
+            </div>
+            <% if (loc.match("Audio")){%>
+                <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;"> 
+                    <!-- frequency bars -->
+                    <canvas class="visualizer"></canvas>
+                </div>
+                <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+                <% if (settings.mediaOut.match("HTTP")) { %>
+                    <div class="progress-wrapper">
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span>
+                            <span id="duration">0:00</span>
+                        </div>
+                        <input type="range" id="progress" class="eq-slider">
+                    </div>
+                <%}%>
+
+                <p style="display: flex; justify-content: center;"> Found <%- basetracks.length %></p>
+                <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                    <div id="button-container">
+                    <div id='butt'></div></div>
+                </div>
+
+
+                <br>
+                <div style="display: flex; justify-content: center;align-items: center; gap: 10px;">
+                    <input type="text" class="w-20" id="searchtext" placeholder="Titel suchen..." 
+                        style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.1); color: white;"
+                        oninput="filterAudioTracks()">
+                    <button class="btn-modern" type="button" onclick="resetAudioSearch()"><i class="bi bi-x-circle"></i> Reset</button>
+                </div>
+                <br>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 1px;">
+                    <form action="/action_page_inputtags_multiplefiles.php" style="display: inline-block;">
+                        <button class="btn-modern " type="submit" name="uploadAudio" value="uploadAudio">
+                            Upload
+                        </button>
+                        <input type="file" name="upfile" multiple style="display:none;">
+                    </form>
+                    <label class="visually-hidden"></label>
+                    <input type="file" name="upfile" multiple>
+                </div>
+                <div style="display:flex; justify-content:center; margin-top: 10px;">
+                    <p id="audioRename"></p>
+                </div>
+            <%}%>
+
+             <% if (loc.match("Radio")) {%>
+                <!-- <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                    <button class="rect-btn" type="submit" name="Radiostation" value="Radiostation" style="background-color:rgb(7, 7, 7)">Search Radiostation</button>
+                    <br><br>
+                    <button class="rect-btn" type="submit" name="Favorites" value="Favorites" style="background-color:rgb(5, 5, 5)">Radiostation Favorites</button>
+                </div> -->
+
+                <% if (loc.match("Radio/")) {%>
+                    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;"> 
+                        <!-- frequency bars -->
+                        <canvas class="visualizer"></canvas>
+                    </div>
+                    <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+                    <p id="Station"></p>
+                    <% if (settings.mediaOut.match("HTTP")) { %>
+                        <div class="progress-wrapper">
+                            <div class="time-display">
+                                <span id="currentTime">0:00</span>
+                                <span id="duration">0:00</span>
+                            </div>
+                            <input type="range" id="progress" class="eq-slider">
+                        </div>
+                    <%}%>
+                    <div style="display: flex; justify-content: center;">
+                        <button class="control-music-btn" type="button" id="searchbutton">Search</button>
+                        <input type="text" class="w-20" id="searchtext">&nbsp;&nbsp;
+                    </div>
+                    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;"><p style="color:rgb(0, 255, 13)"><%- loc %></p></div>
+
+                    <%if (basetracks.length > 10){%>
+                    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                        <div id="button-container"><p id='butt'></p></div>
+                    </div>
+                    <%}%>
+                <%}%>
+
+                <% if (!loc.match("Radio/")) {%>
+                <br>
+                <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                    <p style="color: red;">Recorded Stations:</p>
+                    <% for(i in basetracks) {%>
+                        <button class="control-music-btn" type="submit" style="background-color:black;color:rgb(245, 239, 239)" name="subdir" value='<%- basetracks[i] %>'>🗀'<%- basetracks[i] %>'</button>
+                        <br>
+                    <%}%>
+                </div>
+                <%}%>
+            <%}%>
+           <!-- Equalizer -->
+            <script>modalWin=true</script>
+            <!-- EQ Modal  -->
+            <div id="eqModel" class="modal"
+                style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+                <div class="modal-content"
+                    style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Equalizer</h5>
+                        <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                            style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                    </div>
+                    <form onsubmit="return false;">
+                        <div class="mb-1 d-flex gap-1">
+                            <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                    ? 'checked' : '' %>> Clear</label>
+                            <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                    ? 'checked' : '' %>> Neutral</label>
+                            <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                    ? 'checked' : '' %>> Warm</label>
+                            <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                    ? 'checked' : '' %>> Bass</label>
+                            <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                    ? 'checked' : '' %>> My</label>
+                        </div>
+                        <div style="max-height:45vh; overflow-y:auto;">
+                            <div class="eq-row">
+                                <span class="eq-label">40  Hz</span>
+                                <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">121 Hz</span>
+                                <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">547 Hz</span>
+                                <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">674 Hz</span>
+                                <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">818 Hz</span>
+                                <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1503Hz</span>
+                                <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1605Hz</span>
+                                <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1722Hz</span>
+                                <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">4160Hz</span>
+                                <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">12 kHz</span>
+                                <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                            </div>
+                        </div>
+
+                        <!-- Reverb Toggle (Form Submit) -->
+                        <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                            Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                        </button>
+                    </form>
+                    <script>
+                        function toggleReverb() {
+                            const newValue = currentReverb === "off" ? "on" : "off";
+                            fetch('/reverb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ reverb: newValue })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+
+                                currentReverb = data.reverb;   // 🔥 update JS state
+
+                                if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                    applyReverbRouting(currentReverb === "on");
+                                }
+
+                                const reverbBtn = document.getElementById('reverbButton');
+                                if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+
+                                document.getElementById('eqModel').style.display = 'none';
+                            })
+                            .catch(err => console.error("Reverb error:", err));
+                        }
+                    </script>
+
+                </div>
+            </div>
+        <%}%>
+    
+        <% if (loc.match("Video")){%> 
+        <!-- Top Controls: Volume & blind -->
+        <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                    <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back</button>
+                    <!-- <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back</button> -->
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+                <label style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                        class="bi bi-volume-up"></i> Volume</label>
+                <!-- Check for settings.mediaOut existence -->
+                <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                    <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50"
+                        style="width: 100%;">
+                    <% } else { %>
+                        <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                            value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="width: 100%;">
+                        <% } %>
+            </div>
+
+            <button type="button" class="btn-modern" onclick="openEq()">Eq</button>
+        </div>
+
+        <!-- EQ Modal (Video) -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <form onsubmit="return false;">
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Form Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </form>
+                <script>
+                    function toggleReverb() {
+                        const newValue = currentReverb === "off" ? "on" : "off";
+                        fetch('/reverb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reverb: newValue })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+
+                            currentReverb = data.reverb;   // 🔥 update JS state
+
+                            if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                applyReverbRouting(currentReverb === "on");
+                            }
+
+                            const reverbBtn = document.getElementById('reverbButton');
+                            if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+
+                            document.getElementById('eqModel').style.display = 'none';
+                        })
+                        .catch(err => console.error("Reverb error:", err));
+                    }
+                </script>
+
+            </div>
+        </div>
+        <div class="group-img-center">
+            <br>
+            <div style="display: flex; justify-content: center;">
+                <video id="myVideo" width="50%" height="auto" controls autoplay poster="images/tv.jpg"></video>
+            </div>
+            
+            <div style="display:flex; justify-content:center; align-items:center; gap: 12px; flex-wrap: wrap;">
+                <p id="rename"></p>
+                <p id="convert"></p>
+                <p id="delete"></p>
+            </div>
+            
+            <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                <div id="button-container"><p id='videobutt'></p></div>
+            </div>
+            <br>
+            <%if (basetracks.length > 10){%>
+            <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+                <input type="text" class="w-20" id="searchtextVideo" placeholder="Video suchen..." 
+                    style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.1); color: white;"
+                    oninput="filterVideoTracks()">
+                <button class="btn-modern" type="button" onclick="resetVideoSearch()"><i class="bi bi-x-circle"></i> Reset</button>
+            </div>
+            <br>
+            <%}%>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 1px;">
+                    <form action="/action_page_inputtags_multiplefiles.php" style="display: inline-block;">
+                        <button class="btn-modern" type="submit" name="uploadVideo" value="uploadVideo">
+                            Upload
+                        </button>
+                        <input type="file" name="upfile" multiple style="display:none;">
+                    </form>
+                    <label class="visually-hidden"></label>
+                    <input type="file" name="upfile" multiple>
+                </div>
+        </div>
+        <%}%> 
+
+
+
+    <!-- Filter Functions for Audio and Video -->
+    <script>
+        function suppressSearchSubmit(inputId) {
+            const searchInput = document.getElementById(inputId);
+            if (!searchInput) return;
+
+            searchInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        function filterAudioTracks() {
+            const searchInput = document.getElementById('searchtext');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const buttContainer = document.getElementById('butt');
+            if (!buttContainer) return;
+
+            const buttons = buttContainer.querySelectorAll('button');
+            buttons.forEach(button => {
+                const buttonText = (button.innerText || button.textContent || '').toLowerCase();
+                if (searchTerm === '' || buttonText.includes(searchTerm)) {
+                    button.style.display = 'inline-block';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        }
+
+        function resetAudioSearch() {
+            const searchInput = document.getElementById('searchtext');
+            if (searchInput) {
+                searchInput.value = '';
+                filterAudioTracks();
+                searchInput.focus();
+            }
+        }
+
+        function filterVideoTracks() {
+            const searchInput = document.getElementById('searchtextVideo');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const videoButtContainer = document.getElementById('videobutt');
+            if (!videoButtContainer) return;
+
+            const buttons = videoButtContainer.querySelectorAll('button');
+            buttons.forEach(button => {
+                const buttonText = (button.innerText || button.textContent || '').toLowerCase();
+                if (searchTerm === '' || buttonText.includes(searchTerm)) {
+                    button.style.display = 'inline-block';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        }
+
+        function resetVideoSearch() {
+            const searchInput = document.getElementById('searchtextVideo');
+            if (searchInput) {
+                searchInput.value = '';
+                filterVideoTracks();
+                searchInput.focus();
+            }
+        }
+
+        suppressSearchSubmit('searchtext');
+        suppressSearchSubmit('searchtextVideo');
+    </script>
+
+    <%if (loc.match("Audio") || loc.match("Radio/")) {%>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    let buttonCon = document.getElementById("button-container");
+    let buttonBack = document.getElementById("back");
+    let delItems = [];
+    let lastClickId = "";
+    let lastClickTs = 0;
+    const dblClickWindowMs = 450;
+
+    buttonCon.addEventListener("click", function(event) {       
+        let button = event.target.closest("button");
+        if (!button || !button.id) return;
+        let name = (button.innerText || button.textContent || "").trim();
+        if (!name) return;
+
+        if (delItems.includes(name)) {
+            // single click on selected item -> unselect
+            button.style = "";
+            delItems = delItems.filter(item => item !== name);
+            lastClickId = "";
+            lastClickTs = 0;
+            updateBackButton();
+            return;
+        }
+
+        const now = Date.now();
+        const isDoubleClick = (lastClickId === button.id) && ((now - lastClickTs) <= dblClickWindowMs);
+        if (isDoubleClick) {
+            button.style = "text-decoration: line-through; color:red;";
+            delItems.push(name);
+            lastClickId = "";
+            lastClickTs = 0;
+            updateBackButton();
+            return;
+        }
+
+        // first click: remember only, no visual change
+        lastClickId = button.id;
+        lastClickTs = now;
+    });
+
+    function updateBackButton() {
+        if (delItems.length > 0) {
+            buttonBack.style = "color:red;";
+            buttonBack.innerHTML = "Back / Delete";
+            if (dirType.match("Video"))
+                buttonBack.value = "DeleteVideo " + delItems;
+            else if (dirType.match("Audio"))
+                buttonBack.value = "DeleteAudio " + delItems;
+            else if (dirType.match("Radio"))
+                buttonBack.value = "DeleteRadio " + delItems;
+        } else {
+            buttonBack.style = "";
+            buttonBack.innerHTML = "Back";
+            buttonBack.value = "dirMain";
+        }
+
+        console.log("Selected:", delItems);
+    }
+})
+</script>
+    <%}%>
+    <script src="/scripts/audioWeb.js"></script>
+    </form>
+    </main>
+
+    <%- include('../partials/footer'); %>
+
+    <script>
+        // // Add modern interactions
+        // document.querySelectorAll('.rect-btn').forEach(button => {
+        //     button.addEventListener('click', () => {
+        //         button.classList.add('clicked');
+        //         setTimeout(() => button.classList.remove('clicked'), 200);
+        //     });
+        // });
+    </script>
+</body>
+</html>

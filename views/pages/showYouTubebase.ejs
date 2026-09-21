@@ -1,0 +1,217 @@
+<!-- 
+    1 zeige alle Verzeichnisse per Button
+    2 wenn "klick" auf Verzeichnis dann Covers zeigen und Abspielbutton
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <style>
+        body {
+            background-image: url('/images/milky-way-5295160_960_720.jpg');
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+        <form action='../showYouTubebase', method='POST', content-type="text/javascript">
+        <div class="jumbotron">
+            <button class="rect-btn" type="submit" name="Back" value="Back" class="btn btn-primary btn-lg btn-block">Back</button>
+            <br><br>
+            <h1>YouTube Database</h1><br>
+            <h3>
+            <% if (dir) {%> 
+            
+            <% for(i in basetracks) {%>
+                <button class="rect-btn" type="submit" name="check" value="<%- basetracks[i] %>"><%- basetracks[i] %></button>
+                <br>
+            <% } %>
+            <% }else{ %>
+                <%if (audioOut == "Server Audio Out") {%>
+                    Server Audio Out Volume:
+                    <div class="slidecontainer">
+                        <input type="range" min="0" max="100" value="0" class="slider" id="vol">
+                    </div>
+                    <script>
+                        var dummy
+                        var slider = document.getElementById("range");
+                        let update = () => dummy = slider.value;
+                        slider.addEventListener('input', update);
+                        slider.onchange = function(event){
+                            var xhr = new XMLHttpRequest();
+                            xhr.open("GET", "/volume="+slider.value, true);
+                            xhr.send();
+                        }
+                    </script>                        
+                    <br>
+                    <button class="rect-btn" type="submit" name="StopPlayx" value="StopPlayx"   >Stop
+                    <br><br>
+                    <% } else{%>
+                    <%if (indexStart > 0) {%>
+                    <p id="song">:</p>
+                    <script>
+                        document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[indexStart-1] %>");
+                    </script>
+                    <audio id="s1" controls autoplay>
+                        <source src="y1" type="audio/wav">
+                        <source src="y1" type="audio/mp3" >
+                        <source src="y1" type="audio/ogg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    
+
+
+                    <script>
+                    var audiotag;
+                    function playAudio(myId){
+                        audiotag = document.createElement("audio")
+                        audiotag.setAttribute("src", "y"+myId+1)
+                        //console.log("a")
+                        audiotag.setAttribute("id", myId)
+                        //console.log("b")
+                        audiotag.setAttribute("type", "audio/wav")
+                        audiotag.setAttribute("type", "audio/mp3")
+                        audiotag.setAttribute("type", "audio/ogg")
+                        document.body.appendChild(audiotag)
+                        setTimeout(audiotag.play(),1000);
+                        console.log("append " + myId)
+                    }
+
+
+                    function Next(myId){
+                        console.log("create next")
+                        document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[indexStart-1] %>");
+                        playAudio(myId)
+                    }
+
+                    var song1 = document.getElementById("s1");
+                    var myId = 1
+                    song1.onended = function() {//1
+                        console.log("end song1")
+                        song1.remove()
+                        document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[++indexStart-1] %>");
+                        playAudio(myId)
+                        var old = document.getElementById(myId);
+                        old.onended = function() {//2
+                            old.remove(); Next(++myId)
+                            old = document.getElementById(myId);
+                            old.onended = function() {//3
+                                old.remove(); Next(++myId)
+                                old = document.getElementById(myId);
+                                old.onended = function() {//4
+                                    old.remove(); Next(++myId)
+                                    old = document.getElementById(myId);
+                                    old.onended = function() {//5
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                        old.onended = function() {//6
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//7
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//8
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//9
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//10
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//11
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//12
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//13
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//14
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//15
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//16
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//17
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//18
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//19
+                                            old.remove();  Next(++myId)
+                                            old = document.getElementById(myId);
+                                        old.onended = function() {//20
+                                            old.remove();  Next(++myId)
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                        }
+                                    }
+                                }
+                            }
+                            }
+                    }
+                    </script> 
+                   <%}%>
+                <%}%>
+                <br>
+                <h5>
+                <% for(i in basetracks) {%>
+                <button class="rect-btn" type="submit" name="check" value="<%- basetracks[i] %>"><%- basetracks[i] %></button>
+                <br>
+                <% } %>
+                </h5>
+                <% } %>
+            </h3>
+        </div>
+        </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

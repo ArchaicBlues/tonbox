@@ -1,0 +1,41 @@
+<!-- used in audioCapture.ejs & audioCaptureTape.ejs -->
+<div id="levelModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeLevelModal()">&times;</span>
+    <h2>Audio Input Level</h2>
+    <b>adjust between 0.60...0.95</b>
+    <br>
+    <h3 style="display: flex; justify-content: center;" id="levelValue"></h3>
+  </div>
+</div>
+
+<div id="recordModal" class="modal">
+    <div class="modal-content">
+        <% if(recAD.type == "CD"){ %>
+        <p style="display:flex;justify-content:center;text-align:center;">
+            CD ripping
+        </p>
+        <% }else{ %>
+        <p style="display:flex;justify-content:center;text-align:center;">
+            A/D recording stops after 20s of silence.
+        </p>
+        <% } %>
+        <h4>
+            <span id="stopTime"></span>
+        </h4>
+        <h6 style="display:flex;justify-content:center;" id="recordValue"></h6>
+        <br><br>
+        <button style="display:flex;justify-content:center;" onclick="stopRecording()">
+            &times; Stop recording
+        </button>
+    </div>
+</div>
+
+<div id="analyzerModal" class="modal">
+    <div class="modal-content">
+        <h4>Analyzer active ...</h4>
+        <h6 style="display: flex; justify-content: center;" id="analyzerValue"></h6>
+        <br><br>
+        <button style="display: flex; justify-content: center;" onclick="stopAnalyzer()">&times;Stop analyzer</button>
+    </div>
+</div>

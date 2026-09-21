@@ -1,0 +1,40 @@
+.audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+
+    background: rgba(0, 210, 255, 0.12);
+    border: 1px solid rgba(0, 210, 255, 0.35);
+
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.audio-btn i {
+    font-size: 1.3rem;
+    color: var(--accent-color);
+}
+
+.audio-btn:hover {
+    background: rgba(0, 210, 255, 0.25);
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.audio-btn:active {
+    transform: scale(0.96);
+}
+
+.track-name {
+    white-space: nowrap;
+}

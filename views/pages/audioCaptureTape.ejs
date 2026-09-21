@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+    <%- include('../partials/captureModals'); %>
+    <%- include('../partials/header'); %>
+
+    <main class="container">
+    <form action='../audioCaptureTape', method='POST', content-type="text/javascript">
+        <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center">
+            <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i>
+                Back</button>
+            <h4 class="m-0">Tape Capture</h4>
+            <div style="width: 80px;"></div> <!-- Spacer -->
+        </div>
+        
+        <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <label for="tapename" style="color: #fcfdfc; font-weight: 600;">Title:</label>
+            <input type="text" class="w-40" name="tapename" placeholder="Title / Name " style="font-weight:bold;">
+        </div>
+        <% if (audioInfo.match("allTape.wav")){%>
+            <!-- <button class="smallButton" type="submit" name="Analyze" value="Analyze">Analyze existing A/D record</button> -->
+            <div class="glass-panel p-3 mb-4 d-flex justify-content-center align-items-center">
+                <button class="btn-success w-100" 
+                        type="button" 
+                        name="Analyze" 
+                        value="Analyze"
+                        onclick="startAnalyzer()"
+                        >
+                    Analyze / Save existing records !
+                </button>
+            </div>
+        <%}%>
+        <br><br>
+        <div style="display: flex; justify-content: center;">
+            <button class="btn-modern" type="button"
+                onclick="openLevelModal()"
+                style="width: auto; display: inline-flex; justify-content: center;">
+                Show Monitor Rec Level
+            </button>
+        </div>
+
+        <br><br><br>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <label for="stoptime" style="color: #fcfdfc; font-weight: 600;">Record Time:</label>
+                <select name="stoptime" id="stoptime" class="select-rect" style="width: auto; text-align: center; text-align-last: center;">
+                    <option value="15">15 min</option> 
+                    <option value="30">30 min</option> 
+                    <option value="45">45 min</option> 
+                    <option value="60">60 min</option> 
+                    <option value="@@">Stop after 10s silence</option> 
+                </select>
+            </div>
+            <% if (!audioInfo.match("allTape.wav")){%>
+            <br><br><br>
+            <%}else{%><br><br><%}%>
+            <div style="display: flex; justify-content: center;">
+                <button class="btn-modern btn-danger py-3" type="button"
+                    onclick="startRadioRecording(document.querySelector('input[name=tapename]').value, document.querySelector('select[name=stoptime]').value)"
+                    style="width: auto; display: inline-flex; justify-content: center; background: linear-gradient(45deg, #ff0055, #ff4d4d); border: none; font-size: 1.1rem; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                    <i class="bi bi-record-circle"></i> Start Recording
+                </button>
+            </div>
+            <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+                <small class="text-muted" style="text-align: center;">Files will be saved in Audio</small>
+            </div>
+
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+<script>
+audioInfo = JSON.stringify("<%- audioInfo %>")
+console.log("audioInfo="+audioInfo)
+document.getElementById("levelModal").style.display = "none";
+document.getElementById("recordModal").style.display = "none";
+
+let es;
+const lm = document.getElementById("levelModal")
+const rm = document.getElementById("recordModal")
+const am = document.getElementById("analyzerModal")
+
+
+async function openLevelModal() {
+    //await wichtig, da sonst 2 Server Anfragen gleichzeitig kommen
+    await fetch("/audioCaptureTape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            MonitorLevel: "start",
+        })
+    })
+
+    lm.classList.add("show");
+    lm.style.display = "flex";
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const el = document.getElementById("levelValue")
+        if (el)
+            el.innerText = event.data;
+    });
+    es.addEventListener("result", function() {
+        es.close();
+    });
+}
+
+function stopAnalyzer() {
+    am.classList.remove("show");
+    am.style.display = "none";
+    if (es) es.close();
+}
+
+
+function closeLevelModal() {
+    lm.classList.remove("show");
+    lm.style.display = "none";
+    if (es) es.close();
+
+    fetch('/audioCaptureTape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({MonitorLevel: "stop",
+        })
+    });
+}
+function closeRecordModal() {
+    //Archtecture: client Start Rec --> Server starts "arecord" sends SSE modal info
+    // --> client open recordModal shows bytes...--> stop recording, shows analyzer stuff in recordModal
+    // --> server kills "adrecord" start analyzing -->sends SSE modal info --> refresh client page
+    // --> client close recordModal
+    rm.style.display = "none";
+    if (es) es.close();
+    try {
+        fetch('/audioCaptureTape', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ RecordingStop: "audioCaptureTape" })
+        });
+        // const data = await res.json();
+        // console.log("Server response:", data);
+        // document.getElementById("recordModal").style.display = "none";
+        // if (es) es.close();
+    } catch (err) {
+        console.error("audio analyzer probably failed:", err);
+        // document.getElementById("recordModal").style.display = "none";
+        // if (es) es.close();
+    }
+}
+
+
+async function startAnalyzer() {
+    const tapename = document.querySelector('input[name=tapename]').value;
+    if (!tapename.trim()) {
+        alert("Please enter a title");
+        return false; // stops form submission
+    }
+
+    //await wichtig, da sonst 2 Server Anfragen gleichzeitig kommen
+    await fetch("/audioCaptureTape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            Analyze: "startAnalyzer",
+        })
+    })
+
+
+    console.log("open analyzer modal")
+    am.classList.add("show");
+    am.style.display = "flex";
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const el = document.getElementById("analyzerValue")
+        if (el){
+            el.innerText = event.data;
+            // if (event.data.match("done!"))
+            //     stopAnalyzer()
+        }
+    });
+    es.addEventListener("result", function() {
+        console.log("received es.close")
+        es.close();
+        stopAnalyzer()
+    });
+//    return true; // allows submission
+}
+
+
+async function startRadioRecording(title, time) {
+    if (!title) {
+        alert("Please enter a title!");
+        return;
+    }
+
+    //await wichtig, da sonst 2 Server Anfragen gleichzeitig kommen
+    await fetch("/audioCaptureTape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            Auto: "no",
+            tapename:title,
+            stoptime:time
+        })
+    })
+
+
+    //open recordModal win
+    rm.classList.add("show");
+    rm.style.display = "flex";
+    es = new EventSource("/funcSSE");
+    es.addEventListener("message", function(event) {
+        console.log("event.data="+event.data);
+        const rV = document.getElementById("recordValue")
+        if (rV)
+            rV.innerText = event.data;
+    });
+    es.addEventListener("result", function() {
+        es.close();
+    });
+
+    //console.log("Recording started with title:", title);
+    console.log("Recording time:", time);
+
+    //.then(resp => resp.json())
+    //.then(data => {
+    //     //console.log("received end of recording:"+JSON.stringify(data))
+    //})
+}
+
+function stopRecording(){
+    closeRecordModal()
+}
+
+lm.addEventListener("click", function (event) {
+    console.log("event="+event)
+    lm.style.display = "none";
+    console.log("click close 1")
+    closeLevelModal()
+});
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+  
+  
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

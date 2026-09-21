@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+<body>
+<%- include('../partials/header'); %>
+<main>
+    <form action='../youtube', method='POST', content-type="text/javascript">
+        <button type="submit" name='Back' value="Back" >Back</button><br>
+        <!-- <div class="group-img-center">
+            <img src="images/YouTube.jpg" width="5%" height="5%" alt="YouTube">&nbsp;&nbsp;
+            <b>Internet Suche</b> &nbsp;&nbsp;
+            <img src="images/YouTube.jpg" width="5%" height="5%" alt="YouTube">
+        </div><br> -->
+        <hr style="background-color:black">
+        <div class="col-auto">
+        <br><br>
+        <h2>
+            <input type="text" name='ytsearch' value="" aria-label="Search Item" placeholder="">            
+            <button class="rect-btn" type="submit" name='Submit' value="Submit" >YouTube Search</button> 
+        </h2>
+    </form>
+    <br><br>
+    <hr style="background-color:black">
+    <form id='formName' name='formName' onsubmit='redirect();return false;'>
+        <input type="text" id='userInput' name='mediatheksearch' value=""  aria-label="Search Item" placeholder="Rockpalast">
+        <button class="rect-btn" type="submit" name='Submit' value="Submit" >Mediathek Search</button> 
+        <span style=font-size:8px>Copy the URL within the Mediathek page and paste it below to download</span>
+    </form>
+    <hr style="background-color:black">
+
+    <script type='text/javascript'>
+        function redirect() {
+            let input = document.getElementById('userInput').value;
+            if (!input) input="Rockpalast"
+            let link = "https://mediathekviewweb.de/#query="+input;
+            console.log(link)
+            window.location.replace(link);
+        }
+    </script>
+
+    <form action='../youtubeselect', method='POST', content-type="text/javascript">
+        <label for="url">Url, http(s):</label>
+        <input type="text" name='url' id="url" size="50" placeholder="https://www.ardmediathek.de/Video/rockpalast/swing-in-mit-b-b-king-1968/wdr/..."><br>
+        <label for="title">Filename:</label>
+        <input type="text" name='title' id="url" size="20" placeholder="Filename"><br>
+        <button class="rect-btn" type="submit" name='dlMP4' value="dlMP4">Download MP4 Video</button> <br>
+        <button class="rect-btn" type="submit" name='dlMP3' value="dlMP3">Download MP3 Audio</button> 
+        <br><br>
+    </form>
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+    // Stop immediately if elements don't exist on this page
+  if (!menuToggle || !mainMenu) return;
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

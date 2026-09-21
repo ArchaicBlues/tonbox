@@ -1,0 +1,46 @@
+
+button:active{
+    transform: translate(0.0.3rem);
+    box-shadow: 0 01.rem rgba(184, 68, 68, 0.7);
+  }
+
+.buttonCircle {border-radius: 100%;}
+
+.smallButton {
+  /* width: 90%; */
+  height: auto;
+  font-size: 20px;
+  color:#fcfafa;
+  background-color:#020202;
+}
+.smallButton-grey {
+  /* width: 10%; */
+  height: auto;
+  font-size: 12px;
+  font-weight: bold;
+  color:#f50303;
+  background-color:#8b8989
+}
+.smallButton-blue {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  font-size: 12px;
+  color:#f5f1f1;
+  background-color:#370cd1
+}
+.smallButton-red {
+  height: auto;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  color:#f7f3f3;
+  background-color:rgb(248, 1, 25)
+}
+
+.midButton {
+  width: 90%;
+  height: auto;
+  font-size: 18px;
+}
+

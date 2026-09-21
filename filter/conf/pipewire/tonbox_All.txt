@@ -1,0 +1,182 @@
+# Implmentierung
+# Der Equalizer ist immer aktiv, Convolver und Flanger sollen on-the-fly unabhängig voneinander 
+# über den "pw-link" Befehl zu-/abgeschaltet werden können.
+
+# Da die automatischen internen Links nicht funktionieren (siehe pw-link -l): 
+# a) 
+# pw-play starten
+# b) 
+# pw-link -d "pw-play:output_FL" "alsa_output.platform-fe00b840.mailbox.stereo-fallback:playback_FL"
+# pw-link -d "pw-play:output_FR" "alsa_output.platform-fe00b840.mailbox.stereo-fallback:playback_FR"
+# pw-link "pw-play:output_FL" "flangerIn:playback_FL"
+# pw-link "pw-play:output_FR" "flangerIn:playback_FR"
+
+
+context.properties = {
+    log.level = 3
+}
+
+context.properties = {
+    default.audio.sink = eq10
+}
+context.modules = [
+     { name = libpipewire-module-filter-chain
+        args = {
+            node.description = "Equalizer Tonbox Sink"
+            media.name       = "Equalizer Tonbox Sink"
+
+            # Equalizer
+            # =========
+            # Q = f₀ / BW, wobei
+            # f₀ die Mittenfrequenz des Filters ist (z. B. 1503 Hz),
+            # BW die Bandbreite in Hertz ist (die Breite zwischen den −3 dB-Punkten).
+            # Je größer Q, desto schmaler das Filter (engerer Frequenzbereich).
+            # Beispiel: Q = 5 → sehr schmal (feine, chirurgische Korrektur).
+            # Q = 0.5 → sehr breit (breiter Boost / Cut).
+            # Alternative Sicht: Q beschreibt, wie schnell die Filterkurve außerhalb der Mittenfrequenz abfällt.
+
+            # Wichtige Beobachtungen aus der (alten) Tabelle
+            # Mehrere Bänder sind extrem breit (z. B. preamp Q=0.5 → BW 2000 Hz): das ist eher ein sanfter, breiter Boost/Cut, kein enger „Peaking“-Einsatz.
+            # Band_5 (19.453 kHz, Q=0.25) ergibt eine Bandbreite von ~77,8 kHz — das ist größer als die Nyquistfrequenz bei üblichen Sample-Raten (z. B. 48 kHz). Das ergibt praktisch eine Filterwirkung, die über das ganze hörbare Spektrum streut und ist vermutlich nicht das, was du willst.
+            # Für sehr tiefe Frequenzen (24 Hz mit Q=0.47) ergibt sich ein negativer unterer −3dB-Punkt → das bedeutet praktisch „von 0 Hz bis ~50 Hz“ (sehr breit). Das ist für Bass-Boosting üblich, aber die starke Verstärkung (+19.6 dB in deinem Fall) kann leicht zu Übersteuerung führen.
+            #
+            # Kurz erklärt, warum das so besser ist
+            # Shelving am Rand (low/high shelf) vermeidet merkwürdige Effekte bei extrem tiefen oder sehr hohen Frequenzen.
+            # Moderatere Gains reduzieren Risiko von Übersteuerung/Clipping und sind in der Praxis oft hörbar klarer.
+            # Q-Werte so gesetzt, dass Bänder sich überlappen, aber nicht „kämpfen“ — du behältst Kontrolle über Tonbalance.
+
+            # Empfohlene Min/Max-Werte pro Band
+            # Band	Typ	            Frequenz    Typische        Range	    Empfehlung (für UI-Schieberegler)	Kommentar
+            # Preamp	Peaking	        1000 Hz 	 −12 … +3 dB	−12 → 0 dB	verhindert Clipping, als globaler Trim
+            # Band 1	Low-Shelf   	40 Hz   	 −12 … +12 dB	−9 → +9 dB	Bass-Regler
+            # Band 2	Peaking     	120 Hz  	 −9 … +9 dB 	−9 → +9 dB	Oberbass / Wärme
+            # Band 3	Peaking 	    1500 Hz	     −6 … +6 dB	    −6 → +6 dB	Mitten / Präsenz
+            # Band 4	Peaking     	4160 Hz	     −6 … +6 dB	    −6 → +6 dB	Brillanzbereich
+            # Band 5	High-Shelf  	12 kHz	     −9 … +9 dB	    −9 → +9 dB	Luft / Höhen
+            # Band 6–8	Peaking	    500–800 Hz	 −9 … +6 dB	    −9 → +6 dB	Nasale oder mittlere Korrekturen
+            # Band 9–10	Peaking	    1.6–1.7 kHz  −6 … +6 dB	    −6 → +6 dB	Feinabstimmung der Mitten
+
+
+
+            filter.graph = {
+                nodes = [
+                    {
+                        type  = builtin
+                        name  = eq_preamp
+                        label = bq_peaking
+                        control = { "Freq" = 1000 "Q" = 0.10 "Gain" = -6.0 }# sehr breiter globaler Pegelsteller (verhindert Clipping bei großen Boosts)
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_1
+                        label = bq_lowshelf
+                        control = { "Freq" = 40.0 "Q" = 0.70 "Gain" = 0 }# moderater Bass-Shelf statt extremem Narrow-Peak
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_2
+                        label = bq_peaking
+                        control = { "Freq" = 121.0 "Q" = 0.70 "Gain" = -2 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_3
+                        label = bq_peaking
+                        control = { "Freq" = 547.0 "Q" = 2.10 "Gain" = -7.2 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_4
+                        label = bq_peaking
+                        control = { "Freq" = 674.0 "Q" = 0.72 "Gain" = -7.2 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_5
+                        label = bq_peaking
+                        control = { "Freq" = 818.0 "Q" = 2.82 "Gain" = 2.82 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_6
+                        label = bq_peaking
+                        control = { "Freq" = 1503.0 "Q" = 1.64 "Gain" = 1.64 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_7
+                        label = bq_peaking
+                        control = { "Freq" = 1605.0 "Q" = 4.95 "Gain" = 0.4 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_8
+                        label = bq_peaking
+                        control = { "Freq" = 1722.0 "Q" = 2.75 "Gain" = 2.5 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_9
+                        label = bq_peaking
+                        control = { "Freq" = 4160.0 "Q" = 1.62 "Gain" = 3 }
+                    }
+                    {
+                        type  = builtin
+                        name  = eq_band_10
+                        label = bq_highshelf
+                        control = { "Freq" = 12000.0 "Q" = 0.70 "Gain" = -3.2 }
+                    }
+                    {
+                        # Convolver
+                        # =========
+                        #https://www.wiregrind.com/impulse-response-library/
+                        #pw-cli set-param 56 Props "config.filename"=\"/home/pi/pipewireTest/WireGrind-IR-48000-v2/stereo/WireGrind_44x16x2-80dB_2.0s_20w_15m_0150Hz_036p_0100Hz_100p_00R.wav\"
+                        type = builtin
+                        name  = conv
+                        label = convolver
+                        config = {
+                            gain = 1.0
+                            delay = 0
+
+                            # Stereo Impuls Response (IR) File:
+                            filename = "/home/pi/.config/pipewire/pipewire.conf.d/WireGrind_44x16x2-80dB_2.0s_20w_15m_0150Hz_036p_0100Hz_100p_00R.wav"
+                            #dirac48.wav"
+                        }
+                    }
+                ]
+
+                links = [
+                    { output = "eq_preamp:Out"  input = "eq_band_1:In" }
+                    { output = "eq_band_1:Out"  input = "eq_band_2:In" }
+                    { output = "eq_band_2:Out"  input = "eq_band_3:In" }
+                    { output = "eq_band_3:Out"  input = "eq_band_4:In" }
+                    { output = "eq_band_4:Out"  input = "eq_band_5:In" }
+                    { output = "eq_band_5:Out"  input = "eq_band_6:In" }
+                    { output = "eq_band_6:Out"  input = "eq_band_7:In" }
+                    { output = "eq_band_7:Out"  input = "eq_band_8:In" }
+                    { output = "eq_band_8:Out"  input = "eq_band_9:In" }
+                    { output = "eq_band_9:Out"  input = "eq_band_10:In" }
+                    { output = "eq_band_10:Out"  input = "conv:In" }
+                ]
+
+                inputs  = [ "eq_preamp:In" ]
+                outputs = [ "conv:Out"]
+            }
+
+            capture.props = {
+                node.name   = "eq10"
+                media.class = Audio/Sink
+                audio.channels = 2
+                audio.position=[FL FR]
+            }
+            playback.props = {
+                node.name   = "conv"
+                #Note: Bezeichnung für target -> pw-cli ls Node | grep -A2 alsa_output
+		        node.target = alsa_output.platform-fe00b840.mailbox.stereo-fallback
+                node.passive = true
+                audio.channels = 2
+                audio.position=[FL FR]
+            }
+        }
+    }
+]

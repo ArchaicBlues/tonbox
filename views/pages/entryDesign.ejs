@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="views/style.css">
+    <style>
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-label {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: #ebf8ff; /* Helles Blau */
+        }
+        .card:hover {
+            transform: translateY(-0.5rem);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a202c; /* Dunkles Grau für bessere Lesbarkeit */
+        }
+        .card-link {
+            display: block;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body class="bg-blue-50 text-gray-800">
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body class="my-body">
+    <div class="container mx-auto p-5 my-5 bg-white rounded-lg shadow-lg">
+        <form action='../entry' method='POST' enctype='multipart/form-data'>
+            <div class="text-center slider-container">
+                <% if (!settings.mediaOut.match("HTTP")) { %>
+                    <div class="slider-label">Lautstärke</div>
+                    <input type="range" min="50" max="100" value="<%- vol %>" class="w-full" id="volumeRange">
+                    <button type="submit" name="killPlay" value="killPlay" class="btn btn-danger btn-lg mt-3 bg-red-500 text-white px-4 py-2 rounded-lg" class="button buttonCircle" >Stop
+                    <script>
+                        var slider = document.getElementById("volumeRange");
+                        slider.addEventListener('input', function() {
+                            var xhr = new XMLHttpRequest();
+                            xhr.open("GET", "/volume=" + slider.value, true);
+                            xhr.send();
+                        });
+                    </script>
+                <% } %>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                
+                <a href="../entry?Capture Vinyl" class="card-link">
+                    <div class="card">
+                        <button type="submit" name="Capture Vinyl">
+                        <div class="card-body">
+                            <div class="card-title">Schallplatten</div>
+                        </div>
+                    </button>
+                    </div>
+                </a>
+                <a href="../entry?Musik" class="card-link">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">Musik</div>
+                        </div>
+                    </div>
+                </a>
+                <a href="../entry?PicVids" class="card-link">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">Galerie</div>
+                        </div>
+                    </div>
+                </a>
+             </div>
+        </form>
+    </div>
+</body>
+
+<!-- <footer>
+    <%- include('../partials/footer'); %>
+</footer> -->
+
+<!-- Tailwind JS -->
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+</body>
+</html>

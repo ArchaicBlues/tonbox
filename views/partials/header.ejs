@@ -1,0 +1,532 @@
+<script>
+  // Restore the desktop sidebar-collapsed state before first paint, so the
+  // sidebar never briefly flashes open and then animates shut on page load.
+  (function () {
+    try {
+      if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "1") {
+        document.body.classList.add("sidebar-collapsed");
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  /* Header & Sidebar Specific Styles - supplementing modern.css */
+
+  /* Top Bar */
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    z-index: 1000;
+    background: rgba(15, 12, 41, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .brand img {
+    height: 32px;
+    border-radius: 50%;
+  }
+
+  /* Sidebar Navigation */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    bottom: 0;
+    width: 207px;
+    background: rgba(15, 12, 41, 0.6);
+    backdrop-filter: blur(15px);
+    border-right: 1px solid var(--glass-border);
+    padding: 40px var(--spacing-md) var(--spacing-md);
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    z-index: 900;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 780px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+      transform: translateX(0);
+    }
+  }
+
+  .nav-group {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .nav-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: var(--spacing-xs);
+    padding-left: 0.8rem;
+  }
+
+  .nav-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.2rem 0.8rem 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    text-align: left;
+    transition: color 0.2s ease;
+  }
+
+  .nav-toggle:hover {
+    color: var(--accent-color);
+  }
+
+  .nav-toggle i {
+    transition: transform 0.2s ease;
+  }
+
+  .nav-toggle[aria-expanded="true"] i {
+    transform: rotate(180deg);
+  }
+
+  .nav-submenu {
+    display: block;
+    transition: max-height 0.25s ease, opacity 0.25s ease;
+    overflow: hidden;
+  }
+
+  .nav-submenu.collapsed {
+    display: none;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 0.8rem;
+    border-radius: 10px;
+    color: var(--text-main);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .nav-item:hover,
+  .nav-item.active {
+    background: rgba(0, 210, 255, 0.1);
+    color: var(--accent-color);
+    transform: translateX(5px);
+  }
+
+  .nav-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+  }
+  .mobile-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 12px;
+    font-size: 1.4rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  @media (max-width: 768px) {
+    .mobile-toggle {
+      display: flex;
+    }
+
+    .top-bar {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  /* Main Content Adjustment */
+  body {
+    padding-top: 64px;
+    padding-left: 200px;
+    /* Offset for sidebar */
+    padding-bottom: 10px;
+    transition: padding-left 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding-left: 0;
+    }
+  }
+
+  /* Desktop: sidebar collapsible via the same toggle button */
+  @media (min-width: 769px) {
+    body.sidebar-collapsed {
+      padding-left: 0;
+    }
+
+    body.sidebar-collapsed .sidebar {
+      transform: translateX(-100%);
+    }
+  }
+
+  .shutdown-item {
+    border-top: 2px solid red; /* red line above */
+    padding-top: 8px;          /* optional: space between line and text */
+    margin-top: 8px;           /* optional: space from previous items */
+    color: red !important;
+  }
+</style>
+
+
+<nav class="top-bar">
+  <div class="d-flex align-items-center">
+    <button class="mobile-toggle me-3" onclick="toggleSidebar()">
+      <i class="bi bi-list"></i>
+    </button>
+    <a href="/" class="brand">
+      <i class="bi bi-soundwave"></i> Tonbox
+    </a>
+  </div>
+
+  <!-- Page Title / Current Context -->
+  <div class="d-none d-md-block">
+    <h4 style="margin:0; font-size: 1.2rem; color: var(--text-muted);">
+      <%= typeof pageInfo !=='undefined' ? pageInfo : 'Dashboard' %>
+    </h4>
+  </div>
+
+  <!-- User / System Actions -->
+  <div class="d-flex align-items-center gap-3">
+      <% if (recording && recording.length > 0) { %>
+          <button 
+              type="button"
+              class="btn-modern btn-danger"
+              style="background: rgba(255, 0, 85, 0.2); border-color: red;"
+              onclick="openRecModal()">
+              <i class="bi bi-record-circle-fill text-danger"></i> REC
+          </button>
+      <% } %>
+      <button type="button" class="btn-modern icon-only" id="fullViewBtn" title="FullView" aria-label="Toggle FullView"><i class="bi bi-arrows-fullscreen"></i></button>
+      <a href="/howto" class="btn-modern icon-only" title="Help"><i class="bi bi-question-circle"></i></a>
+  </div>
+</nav>
+
+
+<aside class="sidebar">
+  <div class="nav-group">
+    <div class="nav-title">Media</div>
+    <a href="/entry?src=radio" class="nav-item"><i class="bi bi-broadcast"></i> Radio</a>
+    <a href="/entry?src=radioFavorites" class="nav-item"><i class="bi bi-broadcast"></i> My Radio</a>
+    <a href="/showMusicWorld?src=Mediatheken" class="nav-item"><i class="bi bi-youtube"></i> Mediathek</a>
+    <% if (settings.myUSB) { %>
+    <a href="/showMusicWorld?src=myUSB" class="nav-item"><i class="bi bi-usb-symbol"></i> myUSB</a>
+    <%}%>
+  </div>
+
+  <div class="nav-group">
+    <button class="nav-toggle" type="button" aria-expanded="false">
+      <span>Library</span>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+    <div class="nav-submenu collapsed">
+      <a href="/entry?src=vinyl" class="nav-item"><i class="bi bi-vinyl"></i> Vinyl / CD</a>
+      <a href="/entry?src=audio" class="nav-item"><i class="bi bi-music-note-beamed"></i> Audio</a>
+      <a href="/entry?src=video" class="nav-item"><i class="bi bi-film"></i> Video</a>
+      <a href="/entry?src=gallery" class="nav-item"><i class="bi bi-images"></i> Gallery</a>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <button class="nav-toggle" type="button" aria-expanded="false">
+      <span>Tools</span>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+    <div class="nav-submenu collapsed">
+      <a href="/entry?src=cdmob" class="nav-item"><i class="bi bi-disc"></i> CD</a>
+      <a href="/entry?src=captureVinyl" class="nav-item"><i class="bi bi-mic"></i> Rec Vinyl</a>
+      <a href="/entry?src=captureTape" class="nav-item"><i class="bi bi-cassette"></i> Rec Tape</a>
+      <a href="/entry?src=captureVideo" class="nav-item"><i class="bi bi-cassette"></i> Rec Video</a>
+      <a href="/entry?src=playAudioCapture" class="nav-item"><i class="bi bi-mic"></i> Play USB</a>
+    </div>
+  </div>
+  <div class="nav-group">
+    <button class="nav-toggle" type="button" aria-expanded="true">
+      <span>System</span>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+    <div class="nav-submenu">
+      <a href="/system" class="nav-item"><i class="bi bi-cpu"></i> System</a>
+      <br>
+      <a href="#" class="nav-item shutdown-item" id="shutdownBtn">
+        <i class="bi bi-power"></i>Shutdown
+      </a>
+    </div>
+  </div>
+</aside>
+
+<div id="marquee-container"></div>
+
+  <!-- Modal -->
+  <div id="recModal" class="rec-modal">
+    <div class="rec-modal-content">
+      <h2>Scheduled Recordings</h2>
+      <div id="recList"></div>
+
+      <div class="modal-footer">
+        <button onclick="closeRecModal()" class="btn-modern">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <script>
+    // const ws = new WebSocket('ws://192.168.2.140:8080');
+
+    // // Optional: Nur melden, wenn Verbindung offen ist
+    // ws.onopen = () => {
+    //   console.log('WebSocket Verbindung hergestellt.');
+    // };
+
+    // ws.onmessage = (event) => {
+    //   // Sicherstellen, dass Daten da sind
+    //   if (event.data) {
+    //     // Verhindert Alerts bei leeren Handshakes oder Ping-Pongs
+    //     if (typeof event.data === 'string' && event.data.trim() !== "") {
+    //      // window.alert(event.data);
+    //     }
+    //     console.log('Nachricht:', event.data);
+    //   }
+    // };
+
+    // ws.onerror = (error) => {
+    //   console.error('WebSocket Fehler:', error);
+    // };      
+
+    const scheduledRadioRecJobs = <%- JSON.stringify(recording || []) %>;
+
+      async function openRecModal() {
+        console.log("openRecModal")
+
+        const modal = document.getElementById("recModal");
+        modal.style.display = "flex";
+        const list = document.getElementById("recList");
+        list.innerHTML = "";
+        if (!scheduledRadioRecJobs || scheduledRadioRecJobs.length === 0) {
+            list.innerHTML = "<p>No scheduled recordings</p>";
+        } else {
+          scheduledRadioRecJobs.forEach(job => {
+              const div = document.createElement("div");
+                div.className = "rec-job";
+              const start = new Date(Number(job.startTime)).toLocaleString();
+              const stop  = new Date(Number(job.stopTime)).toLocaleString();
+              div.innerHTML = `
+                  <strong>${job.radioUrl}</strong><br>
+                  <small>Start:</small> ${start}<br>
+                  <small>Stop:</small> ${stop}<br>
+                  <button onclick="stopJob('${job.jobId}')">
+                      Stop Recording
+                  </button>
+              `;
+              list.appendChild(div);
+          });
+        }
+        document.getElementById("recModal").style.display = "flex";
+      }
+
+      function closeRecModal() {
+          document.getElementById("recModal").style.display = "none";
+      }
+
+      async function stopJob(jobId) {
+        fetch('/radioFavorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stoprec: jobId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          location.reload(true) //refresh page thru server
+          if (data.success) {
+              openRecModal(); // reload list
+          }
+        })
+        .catch(err => console.error("Reverb error:", err));
+
+          // const res = await fetch(`/stoprec?jobId=${jobId}`);
+          // const data = await res.json();
+
+          // if (data.success) {
+          //     openRecModal(); // reload list
+          // }
+      }        
+
+      function toggleSidebar() {
+        if (window.innerWidth <= 768) {
+          document.querySelector(".sidebar").classList.toggle("active");
+          return;
+        }
+        const collapsed = document.body.classList.toggle("sidebar-collapsed");
+        try {
+          localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
+        } catch (e) {}
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.getElementById("recModal");
+        if (modal) modal.style.display = "none";
+
+        const sidebar = document.querySelector(".sidebar");
+        const syncSidebarState = () => {
+          if (window.innerWidth <= 768) {
+            sidebar.classList.remove("active");
+          } else {
+            sidebar.classList.add("active");
+          }
+        };
+
+        syncSidebarState();
+        window.addEventListener("resize", syncSidebarState);
+
+        document.querySelectorAll(".nav-toggle").forEach((button) => {
+          button.addEventListener("click", () => {
+            const submenu = button.nextElementSibling;
+            if (!submenu || !submenu.classList.contains("nav-submenu")) return;
+
+            const isExpanded = button.getAttribute("aria-expanded") === "true";
+            button.setAttribute("aria-expanded", String(!isExpanded));
+            submenu.classList.toggle("collapsed", isExpanded);
+          });
+        });
+      });
+
+      document.addEventListener("click", function (event) {
+        const sidebar = document.querySelector(".sidebar");
+        const toggleBtn = document.querySelector(".mobile-toggle");
+
+        // Nur auf Mobile relevant
+        if (window.innerWidth > 768) return;
+
+        const isClickInsideSidebar = sidebar.contains(event.target);
+        const isClickOnToggle = toggleBtn.contains(event.target);
+
+        if (!isClickInsideSidebar && !isClickOnToggle) {
+          sidebar.classList.remove("active");
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+          const fullViewBtn = document.getElementById("fullViewBtn");
+
+          function isFullView() {
+              return !!(document.fullscreenElement || document.webkitFullscreenElement);
+          }
+
+          function updateFullViewBtn() {
+              if (!fullViewBtn) return;
+              fullViewBtn.innerHTML = isFullView()
+                  ? '<i class="bi bi-fullscreen-exit"></i>'
+                  : '<i class="bi bi-arrows-fullscreen"></i>';
+          }
+
+          if (fullViewBtn) {
+              fullViewBtn.addEventListener("click", (event) => {
+                  event.preventDefault();
+                  const el = document.documentElement;
+                  if (!isFullView()) {
+                      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+                      if (req) req.call(el);
+                  } else {
+                      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                      if (exit) exit.call(document);
+                  }
+              });
+
+              document.addEventListener("fullscreenchange", updateFullViewBtn);
+              document.addEventListener("webkitfullscreenchange", updateFullViewBtn);
+          }
+
+          //this app reloads a full page on every navigation, which normally
+          //exits FullView; re-requesting it in the same click as the actual
+          //navigation trigger is the only way browsers allow FullView to
+          //carry over, since it needs a live user gesture
+          document.addEventListener("click", function (event) {
+              if (!isFullView()) return;
+              var target = event.target.closest('a[href], button[type="submit"], input[type="submit"]');
+              if (!target) return;
+              if (target.tagName === "A") {
+                  var href = target.getAttribute("href");
+                  if (!href || href === "#" || href.indexOf("javascript:") === 0) return;
+              }
+              try {
+                  var el = document.documentElement;
+                  var req = el.requestFullscreen || el.webkitRequestFullscreen;
+                  if (req) req.call(el);
+              } catch (e) {}
+          }, true);
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+          const btn = document.getElementById("shutdownBtn");
+
+          btn.addEventListener("click", (event) => {
+              event.preventDefault();
+
+              // UI anzeigen
+              document.body.innerHTML = `
+                  <div style="
+                      background:#000;
+                      color:#ff4d4d;
+                      display:flex;
+                      justify-content:center;
+                      align-items:center;
+                      height:100vh;
+                      font-size:2rem;
+                      font-family:sans-serif;
+                      flex-direction:column;
+                      text-align:center;
+                  ">
+                      <div>Shutting down...</div>
+                      <div style="margin-top:20px; font-size:1.5rem;">
+                          Turn power off after 5 seconds
+                      </div>
+                  </div>
+              `;
+
+              // Jetzt bewusst verzögert den Request senden
+              setTimeout(() => {
+                  window.location.href = "/entry?src=shutdown";
+              }, 1500); // leicht erhöht, damit UI sichtbar ist
+          });
+      });
+</script>
+

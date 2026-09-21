@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+    
+<body class="my-body">
+
+        <h1>Newsfeed search </h2><br>
+        <form action='../rssfeed', method='POST', content-type="text/javascript">
+            <div class="input-group mb-3">
+                <button type="submit" name='Back' value="Back" class="btn btn-success mb-3">Back</button> 
+            </div>
+            <div class="input-group mb-3">
+                <label for="id1" class="visually-hidden-focusable">Type your search terms, separated by a space and wait a bit</label>
+                &nbsp;
+                <input type="text" class="form-control" name="rssfeed" aria-label="RSS Feed" id="id1"><br>
+                <button type="submit" name='Submit' value="Submit" class="btn btn-success mb-3">Enter</button> 
+            </div>
+        </form>
+    </div>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

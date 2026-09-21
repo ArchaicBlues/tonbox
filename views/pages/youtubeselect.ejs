@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<style>
+iframe {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+video {
+  display: block;
+  margin: 0 auto;
+}
+.modal {
+    top: 5%;
+    right: 50%;
+    outline: none;
+    overflow: hidden;
+}
+</style>
+
+    
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        //define page contents
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        let currentReverb = "<%= settings.reverb %>";
+        dirType = "video"//audio"
+        // if (!settings.mediaOut.match("HTTP")){
+        //     modalWin = true
+        //     audioTag = true
+        // }
+        // else {
+        modalWin = false
+        audioTag = true
+        // }
+        volumeSliderPos = 0
+        currentFilterNum=4 // entspricht MyEQ.txt on rpi
+        oldCurrentFilterNum = -1
+        audioPlaying = false
+        changedEQ = false
+        console.log("pState.text= " + JSON.stringify("<%- pState.text %>"))
+    </script> 
+
+    <main class="container">
+    <form action='../youtubeselect' method='POST'>
+
+    <!-- Top Controls: Volume & EQ -->
+    <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <button id="back" class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back</button>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label
+                style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                    class="bi bi-volume-up"></i> Volume</label>
+            <!-- Check for settings.mediaOut existence -->
+            <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50" style="width: 100%;">
+            <% } else { %>
+                <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                    value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="width: 100%;">
+            <% } %>
+        </div>
+        <button type="button" class="btn-modern"
+            onclick="openEq()">
+            Eq
+        </button>
+    </div>
+    <br>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 90%; margin: 0 auto; text-align: center;">
+            <input type="text" name='ytsearch' value="" aria-label="Search Item" placeholder="<%= searchYouTube %>" style="flex: 1; width: auto; max-width: 400px;">
+            <button class="rect-btn" type="submit" name='Submit' value="Submit" style="flex: none;">YouTube Search</button>
+        </div>
+        
+        <div id="iframe"></div>
+        <p id="rename"></p>
+        <p id="convert"></p>
+        <p id="delete"></p>
+
+        <!-- EQ Modal  -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <div style="text-align:left">
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==='0')
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==='1')
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==='2')
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==='3')
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==='4')
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Fetch Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <script>
+            function toggleReverb() {
+                const newValue = currentReverb === "off" ? "on" : "off";
+                fetch('/reverb', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reverb: newValue })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    currentReverb = data.reverb;   // 🔥 update JS state
+                    if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                        applyReverbRouting(currentReverb === "on");
+                    }
+                    const reverbBtn = document.getElementById('reverbButton');
+                    if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+                    document.getElementById('eqModel').style.display = 'none';
+                })
+                .catch(err => console.error("Reverb error:", err));
+            }
+        </script>
+
+        <div style="width: 90%; margin: 0 auto; text-align: center;">found <%- ytFound %></div>
+
+        <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+        <% for (var i=0; i<yttitle.length; i++) { %>
+            <button type="button" class="btn-modern" name='video' id='yt<%- i %>' value='<%- i %>' onclick="setYTsrc('<%- i %>','<%- ytVideoId[i] %>')">
+                <%- yttitle[i] %>
+            </button><br> 
+            <% if (settings.admin==1){%>
+            <button id ="dl" type="submit" name='download' style="font-size:8px; background:red;color:black;" value='<%- i %>,<%- yttitle[i] %>'>
+                Download to Video
+            </button>
+            <%}%>
+            <br>
+        <% } %>
+        </div>
+    </form>
+    <br>
+    <hr style="background-color:black">
+    <br>
+    <form id='formName' name='formName' onsubmit='redirect();return false;'>
+        <div style="width: 90%; margin: 0 auto; text-align: center;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <input type="text" id='userInput' name='mediatheksearch' value=""  aria-label="Search Item" placeholder="Rockpalast" style="flex: 1; width: auto; max-width: 400px;">
+                <button class="rect-btn" type="submit" name='Submit' value="Submit" style="flex: none;">Mediathek Search</button>
+            </div>
+            <span style=font-size:12px>Copy the URL within the Mediathek page and paste it below to download</span>
+        </div>
+    <br>
+    </form>
+    <hr style="background-color:black">
+    <form action='../youtubeselect', method='POST', content-type="text/javascript">
+            <div style="width: 90%; margin: 0 auto; text-align: center;">
+            <label for="url">Url, http(s):</label>
+            <input type="text" name='url' size="20" id="url" placeholder="https://www.ardmediathek.de/Video/rockpalast/swing-in-mit-b-b-king-1968/wdr/...">
+            <label for="title">Filename:</label>
+            <input type="text" name='title' id="url" size="20" placeholder="Filename"><br>
+            <button type="submit" name='dlMP4' style="font-size:12px; background:rgb(145, 92, 92);color:black;" value='dlMP4'>
+                Download / Convert Video
+            </button>
+            <button type="submit" name='dlMP3' style="font-size:12px; background:rgb(134, 91, 91);color:black;" value='dlMP3'>
+                Download Audio
+            </button>
+        </div>
+    <br><br>
+    </form>
+<script src="/scripts/audioWeb.js" defer></script>
+
+</div>
+
+<script>
+    playTitle = JSON.stringify('<%- play %>')
+    console.log("playTitle:"+playTitle)
+    ytView=false; remHTML =""; ytB =""; ytB_old="";
+    dlVideo=false
+
+    //"Download to Video" response from server which renders the same page with different content of "play" variable
+    if (playTitle.match(".mp4")){
+        //load div: insert video tag 
+        dl = document.getElementById("iframe")
+        dl.innerHTML = '<video width="40%" controls autoplay src="<%- play %>" id="myVideo" type="video/mp4"</video>'
+        console.log("video playing...")
+        dlVideo = true
+    }else{
+        //stop video
+        document.getElementById("iframe").innerHTML = '<br><br><iframe src="https://www.youtube.com/embed/" frameborder="5" allow="fullscreen"></iframe>'
+    }
+
+    //call from YT Title Button
+    function setYTsrc(i,id){
+        id_i = i; id_old = id;
+        console.log("setYTsrc("+i+","+id+")")
+        if (!ytView){
+            if (ytB_old) ytB_old.style.backgroundColor = 'black';
+            let url = "https://www.youtube.com/embed/"+id+"?v="+id
+            console.log(url)
+            dl = document.getElementById("iframe")
+            dl.innerHTML = "<br><br><iframe src='https://www.youtube.com/embed/"+id+"?v="+id+"' frameborder='5' allow='fullscreen' id='yt'></iframe>"
+            ytB = document.getElementById("yt"+i)
+            ytB_old = ytB
+            ytB.style.backgroundColor = 'green';
+            console.log("ytView true")
+            ytView = true
+            //start mpv (nicht synchronisiert mit Video)
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/mpv='+id, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send();
+
+        }else{
+            //stop video
+            document.getElementById("iframe").innerHTML = "<br><br><iframe src='https://www.youtube.com/embed/' frameborder='5' allow='fullscreen'></iframe>"
+            ytView = false
+            console.log("ytView false")
+            if (ytB_old) ytB_old.style.backgroundColor = 'black';
+            dlVideo = false
+            //stop mpv
+            //start mpv (nicht synchronisiert mit Video)
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/mpv=stop', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send();
+        }
+    }
+
+    // All "Download to Video" Buttons
+    // The Button is a submit type, it sends a POST message to the server which in return renders the same page:
+    dlBs = document.querySelectorAll("#dl")
+    dlBs.forEach(button => {
+        button.addEventListener('click', () => {
+            console.log("value="+button.value)
+            if (dlVideo){
+                console.log("Download to Video: back & render again")
+                let back = document.getElementById("back")
+                back.value = "youtube"
+                back.click()
+                dlVideo = false
+            }
+            else{
+                if (ytB_old) ytB_old.style.backgroundColor = 'black';
+                console.log("Download to Video: loading")
+                button.style.backgroundColor="green"
+                button.innerHTML = "wait..."
+            }
+        });
+    })
+
+    function redirect() {
+        let input = document.getElementById('userInput').value;
+        if (!input) input="Rockpalast"
+        let link = "https://mediathekviewweb.de/#query="+input;
+        console.log(link)
+        window.location.replace(link);
+    }
+
+
+    document.addEventListener('click', function (event) {
+    const menuToggle = document.getElementById('menu-toggle');
+    const mainMenu = document.getElementById('main-menu-bar');
+    // Stop immediately if elements don't exist on this page
+    if (!menuToggle || !mainMenu) return;
+
+    if (menuToggle.checked) {
+        // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+        // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+        if (!mainMenu.contains(event.target)) {
+        menuToggle.checked = false;
+        }
+    }
+    });
+
+</script>
+</main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

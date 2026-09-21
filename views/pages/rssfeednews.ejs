@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+    
+<body class="my-body">
+
+        <h1>Newsfeed</h2>
+        <h4>found <%- newsf %></h4>
+        <form action='../rssfeednews', method='POST', content-type="text/javascript">
+            <button type="submit" class="btn btn-primary mb-3" value="Submit">OK</button><br>
+            <label class="visually-hidden-focusable">Type your search terms, separated by a space </label>            
+            <input type="text" class="form-control" name="rssfeed" aria-label="RSS Feed">
+
+            <% if (newsf != 0) {
+                for( var i=0; i<newsf; i++) {%>
+                    <%- newsD[i] %> &nbsp; 
+                    <a href="<%- newsU[i] %>" target="blank"><img src="<%- newsI[i] %>" alt="image not available, click here"></a>
+                    <nobreak><br><%- news[i] %><br><br></nobreak>
+                <%}%>
+            <%}%>
+        </form>
+    </div>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

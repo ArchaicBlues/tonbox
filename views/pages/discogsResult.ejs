@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" type="text/css" href="views/css/style.css">
+
+    <!-- Aktualisiere den Manifest-Link mit einem Query-Parameter wie ?v=2 -->
+    <link rel="manifest" href="views/manifest/manifest.json?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+<body>
+<%- include('../partials/header'); %>
+
+<main class="container animate-in">
+<form action="../discogsResult" method="POST">
+<div class="glass-panel" style="padding: var(--spacing-lg);">
+    <!-- Header -->
+    <div class="flex-between" style="margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: 1rem;">
+        <div class="flex-center" style="gap: 0.6rem; flex-wrap: wrap;">
+        <button class="btn-modern btn-primary" type="submit" name="ok" value="ok">
+            ✔ OK
+        </button>
+        <button class="btn-modern" 
+                    style="border-color: var(--danger-color); color: var(--danger-color);" 
+                    type="submit" name="nok" value="nok">
+                ✖ NOK
+        </button>
+        <button class="btn-modern" 
+                   style="border-color: var(--accent-color);" 
+                    type="submit" name="upload" value="upload">
+                ✎ Edit
+        </button>
+    </div>
+</div>
+
+<!-- Release Info -->
+<div class="glass-card" style="margin-bottom: var(--spacing-xl); text-align:center;">
+    <h3 style="color: var(--accent-color); margin-bottom: 0.5rem;">
+        Release Info
+    </h3>
+    <p style="color: var(--text-muted);">
+        <%= discogs.info %>
+    </p>
+</div>
+
+<!-- Tracklist -->
+<!-- <h2 class="section-title">Tracklist</h2> -->
+<div class="grid-auto">
+<% 
+    const sides = ['A','B','C','D','E','F'];
+    sides.forEach(side => {
+        let currentSide = discogs['side' + side];
+        if (!currentSide || Object.keys(currentSide).length === 0) return;
+        let tracks = Object.values(currentSide);
+    %>
+        <div class="glass-card">
+            <h3 style="color: var(--accent-color); text-align:center;">
+                Side <%= side %>
+            </h3>
+            <ul>
+                <% tracks.forEach(track => { %>
+                    <li><%= track %></li>
+                <% }) %>
+            </ul>
+        </div>
+<% }) %>
+</div>
+    <!-- Images -->
+    <!-- <h2 class="section-title">Images</h2> -->
+    <div class="grid-auto">
+        <div class="glass-card">
+            <img src="/images/image1.jpg" style="width:100%; border-radius:12px;">
+        </div>
+        <div class="glass-card">
+            <img src="/images/image2.jpg" style="width:100%; border-radius:12px;">
+        </div>
+        <div class="glass-card">
+            <img src="/images/image3.jpg" style="width:100%; border-radius:12px;">
+        </div>
+        <div class="glass-card">
+            <img src="/images/image4.jpg" style="width:100%; border-radius:12px;">
+        </div>
+    </div>
+</div>
+</form>
+</main>
+
+
+<%- include('../partials/footer'); %>
+    <script>
+        document.addEventListener('click', function (event) {
+        const menuToggle = document.getElementById('menu-toggle');
+        const mainMenu = document.getElementById('main-menu-bar');
+
+        if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+        if (menuToggle.checked) {
+            // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+            // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+            if (!mainMenu.contains(event.target)) {
+            menuToggle.checked = false;
+            }
+        }
+        });    
+</script>
+
+</body>
+</html>

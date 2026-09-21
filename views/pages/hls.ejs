@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+        <form action='../hls', method='POST', content-type="text/javascript">
+            <button class="rect-btn" type="submit" name="Back" value="Back" >Back</button>
+        </form>
+        <h1>HTTP Live Stream Test</h1>
+
+        <!-- <video id="my_video_1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="268" data-setup='{}'></video> -->
+        <video id="myvid" class="video-js vjs-default-skin" controls autoplay data-setup='{}'></video>
+      
+        <script src="https://unpkg.com/video.js/dist/video.js"></script>
+        <script src="https://unpkg.com/videojs-contrib-hls/dist/videojs-contrib-hls.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.4.0/videojs-contrib-hls.min.js"></script>
+        <script>
+          const player = videojs('myvid');
+          player.src({
+            src: '0.m3u8',
+            type: 'application/x-mpegURL'
+          });
+        </script>
+        <script>
+            // Get the current player's AudioTrackList object.
+            var audioTrackList = player.audioTracks();
+
+            // Listen to the "change" event.
+            audioTrackList.addEventListener('change', function() {
+
+            // Log the currently enabled AudioTrack label.
+            for (var i = 0; i < audioTrackList.length; i++) {
+                var track = audioTrackList[i];
+
+                if (track.enabled) {
+                videojs.log(track.label);
+                return;
+                }
+            }
+            });                    
+        </script>        
+</main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

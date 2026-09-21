@@ -1,0 +1,13 @@
+[Unit]
+Description=Bluetooth Headless Agent
+After=bluetooth.service
+Wants=bluetooth.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/bt-agent.sh
+Restart=always
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" type="text/css" href="views/css/style.css">
+
+    <!-- Aktualisiere den Manifest-Link mit einem Query-Parameter wie ?v=2 -->
+    <link rel="manifest" href="views/manifest/manifest.json?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+	<main>
+    <form action='../equalizer', method='POST', content-type='text/html; text/javascript; multipart/form-data; application/json'>
+	<button type="submit" name='Back' value="Back" >Back</button> 
+	
+	<% if (!audioOut.match("HTTP")){%>
+		Lautstärke
+		<div class="slidecontainer">
+			-<input type="range" min="50" max="100" value="<%- vol %>"  class="slider" id="range">+
+			<br><br>
+			<div class="button-container">
+				<button class="control-btn" type="submit" name="killPlay" value="killPlay"  class="button buttonCircle" >Stop
+			</div>
+		</div>
+		<script>
+			var dummy
+			var slider = document.getElementById("range");
+			var x = document.getElementById("range").defaultValue;
+			document.getElementById("range").innerHTML = x;
+			let updateL = () => dummy = slider.value;
+			slider.addEventListener('input', updateL);
+			slider.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/volume="+slider.value, true);
+				xhr.send();
+			}
+		</script>
+		<br>
+
+
+
+	<!-- <b><label for="equalizer">Wähle Filter Typ:</label><br> </b> -->
+	<select name="equalizer" id="equalizer"> 
+      <% for (i in filtername) {%>
+			<option value="<%- filtername[i] %>"><%- filtername[i] %></option> 
+      <%}%>
+    </select>
+    <input type="submit" value="Submit" name="Set">
+	<br><br>
+	<!-- -20dB &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
+	<!-- <%- filtergraph.graph[0].Fc %> Hz  -->
+	<!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +20dB -->
+	<!-- <br> -->
+	<!-- <div class="verticalLinie"></div> -->
+	<b>Gain&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b><br>
+	<div class="slidecontainer">
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[0].Gain %>" class="slider" id="eq1">
+			<% if (filtergraph.graph[0].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[0].Fc %>Hz
+				<%}else if (filtergraph.graph[0].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[0].Fc %>Hz
+				<%}else if (filtergraph.graph[0].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[0].Fc %>Hz
+				<%}else if (filtergraph.graph[0].Fc.length == 5) {%><%- filtergraph.graph[0].Fc %>Hz<%}%>
+			<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[1].Gain %>" class="slider" id="eq2">
+			<% if (filtergraph.graph[1].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[1].Fc %>Hz
+				<%}else if (filtergraph.graph[1].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[1].Fc %>Hz
+				<%}else if (filtergraph.graph[1].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[1].Fc %>Hz
+				<%}else if (filtergraph.graph[1].Fc.length == 5) {%><%- filtergraph.graph[1].Fc %>Hz<%}%>
+			<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[2].Gain %>" class="slider" id="eq3">
+			<% if (filtergraph.graph[2].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[2].Fc %>Hz
+				<%}else if (filtergraph.graph[2].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[2].Fc %>Hz
+				<%}else if (filtergraph.graph[2].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[2].Fc %>Hz
+				<%}else if (filtergraph.graph[2].Fc.length == 5) {%><%- filtergraph.graph[2].Fc %>Hz<%}%>
+			<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[3].Gain %>" class="slider" id="eq4">
+			<% if (filtergraph.graph[3].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[3].Fc %>Hz
+				<%}else if (filtergraph.graph[3].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[3].Fc %>Hz
+				<%}else if (filtergraph.graph[3].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[3].Fc %>Hz
+				<%}else if (filtergraph.graph[3].Fc.length == 5) {%><%- filtergraph.graph[3].Fc %>Hz<%}%>
+			<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[4].Gain %>" class="slider" id="eq5">
+			<% if (filtergraph.graph[4].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[4].Fc %>Hz
+				<%}else if (filtergraph.graph[4].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[4].Fc %>Hz
+				<%}else if (filtergraph.graph[4].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[4].Fc %>Hz
+				<%}else if (filtergraph.graph[4].Fc.length == 5) {%><%- filtergraph.graph[4].Fc %>Hz<%}%>
+			<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[5].Gain %>" class="slider" id="eq6">
+			<% if (filtergraph.graph[5].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[5].Fc %>Hz
+				<%}else if (filtergraph.graph[5].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[5].Fc %>Hz
+				<%}else if (filtergraph.graph[5].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[5].Fc %>Hz
+				<%}else if (filtergraph.graph[5].Fc.length == 5) {%><%- filtergraph.graph[5].Fc %>Hz<%}%>
+				<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[6].Gain %>" class="slider" id="eq7">
+			<% if (filtergraph.graph[6].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[6].Fc %>Hz
+				<%}else if (filtergraph.graph[6].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[6].Fc %>Hz
+				<%}else if (filtergraph.graph[6].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[6].Fc %>Hz
+				<%}else if (filtergraph.graph[6].Fc.length == 5) {%><%- filtergraph.graph[6].Fc %>Hz<%}%>
+				<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[7].Gain %>" class="slider" id="eq8">
+			<% if (filtergraph.graph[7].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[7].Fc %>Hz
+				<%}else if (filtergraph.graph[7].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[7].Fc %>Hz
+				<%}else if (filtergraph.graph[7].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[7].Fc %>Hz
+				<%}else if (filtergraph.graph[7].Fc.length == 5) {%><%- filtergraph.graph[7].Fc %>Hz<%}%>
+				<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[8].Gain %>" class="slider" id="eq9">
+			<% if (filtergraph.graph[8].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[8].Fc %>Hz
+				<%}else if (filtergraph.graph[8].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[8].Fc %>Hz
+				<%}else if (filtergraph.graph[8].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[8].Fc %>Hz
+				<%}else if (filtergraph.graph[8].Fc.length == 5) {%><%- filtergraph.graph[8].Fc %>Hz<%}%>
+				<br>
+			<input type="range" min="-200" max="200" value="<%- filtergraph.graph[9].Gain %>" class="slider" id="eq10">
+			<% if (filtergraph.graph[9].Fc.length < 3) {%>&nbsp;&nbsp;&nbsp;<%- filtergraph.graph[9].Fc %>Hz
+				<%}else if (filtergraph.graph[9].Fc.length == 3) {%>&nbsp;&nbsp;<%- filtergraph.graph[9].Fc %>Hz
+				<%}else if (filtergraph.graph[9].Fc.length == 4) {%>&nbsp;<%- filtergraph.graph[9].Fc %>Hz
+				<%}else if (filtergraph.graph[9].Fc.length == 5) {%><%- filtergraph.graph[9].Fc %>Hz<%}%>
+			<br>
+			</div>
+		<script>
+			var dummy
+		var slider1 = document.getElementById("eq1");
+			var x = document.getElementById("eq1").defaultValue;
+			document.getElementById("eq1").innerHTML = x;
+			let update = () => dummy = slider1.value;
+			slider1.addEventListener('input', update);
+			slider1.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq1="+slider1.value, true);
+				xhr.send();
+			}
+
+      	var slider2 = document.getElementById("eq2");
+			x = document.getElementById("eq2").defaultValue;
+			document.getElementById("eq2").innerHTML = x;
+			update = () => dummy = slider2.value;
+			slider2.addEventListener('input', update);
+			slider2.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq2="+slider2.value, true);
+				xhr.send();
+			}
+
+      var slider3 = document.getElementById("eq3");
+			x = document.getElementById("eq3").defaultValue;
+			document.getElementById("eq3").innerHTML = x;
+			update = () => dummy = slider3.value;
+			slider3.addEventListener('input', update);
+			slider3.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq3="+slider3.value, true);
+				xhr.send();
+			}
+
+      var slider4 = document.getElementById("eq4");
+			x = document.getElementById("eq4").defaultValue;
+			document.getElementById("eq4").innerHTML = x;
+			update = () => dummy = slider4.value;
+			slider4.addEventListener('input', update);
+			slider4.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq4="+slider4.value, true);
+				xhr.send();
+			}
+
+      var slider5 = document.getElementById("eq5");
+			x = document.getElementById("eq5").defaultValue;
+			document.getElementById("eq5").innerHTML = x;
+			update = () => dummy = slider5.value;
+			slider5.addEventListener('input', update);
+			slider5.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq5="+slider5.value, true);
+				xhr.send();
+			}
+
+      var slider6 = document.getElementById("eq6");
+			x = document.getElementById("eq6").defaultValue;
+			document.getElementById("eq6").innerHTML = x;
+			update = () => dummy = slider6.value;
+			slider6.addEventListener('input', update);
+			slider6.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq6="+slider6.value, true);
+				xhr.send();
+			}
+
+      var slider7 = document.getElementById("eq7");
+			x = document.getElementById("eq7").defaultValue;
+			document.getElementById("eq7").innerHTML = x;
+			update = () => dummy = slider7.value;
+			slider7.addEventListener('input', update);
+			slider7.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq7="+slider7.value, true);
+				xhr.send();
+			}
+
+      var slider8 = document.getElementById("eq8");
+			x = document.getElementById("eq8").defaultValue;
+			document.getElementById("eq8").innerHTML = x;
+			update = () => dummy = slider8.value;
+			slider8.addEventListener('input', update);
+			slider8.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq8="+slider8.value, true);
+				xhr.send();
+			}
+
+      var slider9 = document.getElementById("eq9");
+			x = document.getElementById("eq9").defaultValue;
+			document.getElementById("eq9").innerHTML = x;
+			update = () => dummy = slider9.value;
+			slider9.addEventListener('input', update);
+			slider9.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq9="+slider9.value, true);
+				xhr.send();
+			}
+
+      var slider10 = document.getElementById("eq10");
+			x = document.getElementById("eq10").defaultValue;
+			document.getElementById("eq10").innerHTML = x;
+			update = () => dummy = slider10.value;
+			slider10.addEventListener('input', update);
+			slider10.onchange = function(event){
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "/eq10="+slider10.value, true);
+				xhr.send();
+			}
+
+    </script>                        
+        <br><br>	
+        <button class="control-btn" type="submit" name='SaveFilter' value="SaveFilter" >save My-'FilterTyp'</button>&nbsp;&nbsp;
+        <!-- <button class="control-btn" type="submit" name='TestFilter' value="TestFilter" >Test</button> &nbsp;&nbsp; -->
+        <br>
+	<%}else{%>
+		<h1><b>Konfiguriere Line-Out </b></h1>
+		<h1><b>für Pipewire Equalizer</b></h1>
+	<%}%>                        
+	</form>
+</main>
+	<%- include('../partials/footer'); %>
+</body>
+</html>

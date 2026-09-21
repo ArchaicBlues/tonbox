@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+        <form action='../storage', method='POST', content-type="text/javascript">
+            <button class="rect-btn" type="submit" name='Back' value="Back">Start</button> 
+            <br>
+            
+                <h3><b>Speicher Zuordnung</b></h3>
+                <!-- <h6>
+                <% if (!SDcardMediaServer) { %>
+                - USB-Speicher mit Basisverzeichnis "mediaServer" wurde <b>nicht</b> gefunden -
+                <%}else{%>
+                    - SD-Speicher mit Basisverzeichnis "mediaServer" wurde gefunden -
+                <%}%>
+                </h6> -->
+                <br>
+                <h5>
+                <b><u>Schallplatten</u></b><br>
+                <%- devADrecords %>/ADrecords<br>
+                Size: <%- storage.ADrecords.size %><br>
+                Use: <%- storage.ADrecords.use %><br>
+
+                <br>
+                <b><u>Musik</u></b><br>
+                <%- devMusic %><br>
+                Size: <%- storage.Music.size %><br>
+                Use: <%- storage.Music.use %><br>
+
+                <br>
+                <b><u>Bilder, Filme</u></b><br>
+                <%- devHome %><br>
+                Size: <%- storage.Home.size %><br>
+                Use: <%- storage.Home.use %><br>
+                
+                <% if (!SDcardMediaServer) { %>
+                    <br>
+                    Kein USB-Speicher mit Verzeichnisstruktur <b>mediaServer</b> gefunden<br>
+                    <%- storeSD %>
+                    <button class="rect-btn" type="submit" style="font-size:18px;background-color:rgb(235, 15, 15); color:rgb(1, 1, 1)" name="createSD" value="mediaServer">init mediaServer auf SD card</button>
+                    <h6>Die SD-Karte wird als Speicher benutzt, wenn kein USB-Speicher mit Hauptverzeichnis <b>mediaServer</b> gefunden wurde!</h6>
+                <%}else{%>
+                <br>
+                <%- usbState.usbmedium1MP %> : <%- usbState.usbmedium1 %><br>
+                <% if (usbState.usbmedium1.search("wrong filesystem") != -1) {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="1 m All">Format, mount, init ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="1 m Home">Format, mount, init Home</button>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="1 m Music">Format, mount, init Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="1 m ADrecords">Format, mount, init ADrecords</button>
+                    <%}%>
+                    <br>
+                <%}else%>
+                <% if (usbState.usbmedium1 == "empty") {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="1 c All">init ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="1 c Home">init Home</button>                            <%} if (devMusic === "nok") {%>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="1 c Music">init Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="1 c ADrecords">init ADrecords</button>
+                    <%}%>
+                    <br>
+                    <%}else%>
+                    <% if (usbState.usbmedium1 == "data") {%>
+                        <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                            <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Overwrite" value="1 c All">overwrite & create ALL</button>
+                        <%} if (devHome === "nok") {%>
+                            <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Overwrite" value="1 c Home">overwrite & create Home</button>                            <%} if (devMusic === "nok") {%>
+                        <%} if (devMusic === "nok") {%>
+                            <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Overwrite" value="1 c Music">overwrite & create Music</button>
+                        <%} if (devADrecords === "nok") {%>
+                            <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Overwrite" value="1 c ADrecords">overwrite & create ADrecords</button>
+                        <%}%>
+                        <br>
+                    <%}%>
+
+
+
+                    <%- usbState.usbmedium2MP %> : <%- usbState.usbmedium2  %><br>
+                <% if (usbState.usbmedium2 .search("wrong filesystem") != -1) {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="2 m All">Format, mount, create ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="2 m Home">Format, mount, create Home</button>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="2 m Music">Format, mount, create Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="2 m ADrecords">Format, mount, create ADrecords</button>
+                    <%}%>
+                    <br>
+                <%}else%>
+                <% if (usbState.usbmedium2 == "empty") {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="2 c All">init ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="2 c Home">init Home</button>                            <%} if (devMusic === "nok") {%>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="2 c Music">init Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="2 c ADrecords">init ADrecords</button>
+                    <%}%>
+                    <br>
+                <%}%>
+                <%- usbState.usbmedium3MP %> : <%- usbState.usbmedium3 %><br>
+                <% if (usbState.usbmedium3.search("wrong filesystem") != -1) {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="3 m All">Format, mount, create ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="3 m Home">Format, mount, create Home</button>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="3 m Music">Format, mount, create Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Mount" value="3 m ADrecords">Format, mount, create ADrecords</button>
+                    <%}%>
+                    <br>
+                <%}else%>
+                <% if (usbState.usbmedium3 == "empty") {%>
+                    <% if ((devHome === "nok") && (devMusic === "nok") && (devADrecords === "nok")) {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="3 c All">init ALL</button>
+                    <%} if (devHome === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="3 c Home">init Home</button>                            <%} if (devMusic === "nok") {%>
+                    <%} if (devMusic === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="3 c Music">init Music</button>
+                    <%} if (devADrecords === "nok") {%>
+                        <button class="rect-btn" type="submit" style="font-size:18px;background-color:black; color:white" name="Create" value="3 c ADrecords">init ADrecords</button>
+                    <%}%>
+                    <br><br>
+                <%}}%>
+                <br>
+                <% if (SDcardMediaServer) { %>
+                    <button class="rect-btn" type="submit" name="SDcard" value="SDcard">mediaServer SDcard</button> 
+                    <br><br>
+                <%}%>
+                
+            </h5>
+            <hr style="background-color:black">
+            <b>Verzeichnisbaum:</b>
+            <% if (treeH) var i=0; for (i in treeH) {%> <%- treeH[i] %><br> <%}%><br>
+            <% if (treeM) var i=0; for (i in treeM) {%> <%- treeM[i] %><br> <%}%><br>
+            <% if (treeA) var i=0; for (i in treeA) {%> <%- treeA[i] %><br> <%}%><br>
+        
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

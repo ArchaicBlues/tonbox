@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+
+    <style>
+        .myDIV {
+            border: 1px solid black;
+        }
+    </style>
+
+    <!-- Fortschrittsanzeige des Video Convert Prozesses benutzt SSE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/event-source-polyfill/0.0.9/eventsource.min.js"></script>
+    <script>
+    //For starting a new connection. The client creates a new instance of  EventSource. 
+    //It will send a new HTTP GET request to the server...
+    const es = new EventSource("http://" + "<%- ip %>" + ":8000" + "<%- sysdir %>" + "/ArchaicNodeEJS/funcSSE");
+
+    const listener = function (event) {
+        //See window console "Network" and than "Logs" in Firefox Developer tools
+        console.log("Event from " + es.url + " Text: " + event.data + ", Type:" + event.type);
+        var x = document.getElementById("myDIV");
+        //x.querySelector(".content").innerHTML = event.data
+        x.innerHTML = event.data
+        counter++;
+
+        var y = document.getElementById("br");
+        y.innerHTML = "counter="+counter
+
+        //window.console.log(`${type}: ${event.data || es.url}`);
+        if (event.type === 'result') {
+            es.close();
+            console.log("SSE closed")
+        }else
+        if (event.type === 'error') {
+            console.log("SSE error")
+        }
+        if (event.type === 'open') {
+            counter = 0
+            console.log("SSE open")
+        }
+    };
+
+    //https://developer.mozilla.org/en-US/docs/Web/API/EventSource
+    es.addEventListener('open', listener);//Fired when a connection to an event source has opened.
+    es.addEventListener('message', listener);//Fired when data is received from an event source
+    es.addEventListener('error', listener);//Fired when a connection to an event source failed to open.
+    es.addEventListener('result', listener);//Fired if connection should be close
+  </script>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+
+    <script>
+        window.counter = 0
+    </script>
+    <main>
+        <form action='../videoConvertProgress', method='POST', content-type="text/javascript">
+            <button class="rect-btn" type="submit" name="Back" value="Back" >Back (exits process)</button>&nbsp;&nbsp;
+            <br>
+            <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                <h6>Fortschritt Video Convert</h6>
+            </div>
+            <p id="myDIV"></p>
+            <p id="br"></p>
+            <!-- <div id="myDIV">
+                <h6 class="content">wait...&#13;&#10;</h6>
+            </div>    -->
+            <br>
+        </form>
+    </main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

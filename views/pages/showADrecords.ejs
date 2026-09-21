@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+.group-img-center {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;  /* centers each row */
+    gap: 20px;
+}
+
+.group-img-center img {
+    width: 250px;   /* or whatever size you want */
+    transition: 0.3s ease;
+}
+
+.group-img-center img:hover {
+    transform: scale(3.0);
+}    
+#allImgContainer img {
+    width: clamp(140px, 30vw, 260px);
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+#allImgContainer img:hover {
+    transform: scale(1.7);
+    z-index: 10;
+}
+
+#coversContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.cover-button {
+    display: inline-flex;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.cover-button span {
+    width: 100%;
+    height: 100%;
+}
+
+.cover-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ad-filter-wrap {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ad-filter-control {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.ad-filter-input {
+    width: min(420px, 90vw);
+}
+
+.ad-filter-type {
+    width: auto;
+    min-width: 92px;
+}
+</style>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        console.clear();
+        //define page contents
+        audioOut=JSON.stringify("<%- settings.mediaOut %>");
+        dirType = "ADrecords"
+        // let d = JSON.stringify("<%- dir %>");
+        // if (d){
+        //     modalWin = false
+        //     audioTag = false
+        // }else{
+            modalWin = true
+            audioTag = true
+        // }
+        //btracks = "<%= basetracks %>"
+        //btracks = JSON.stringify("<%- basetracks %>") //this doesn't work!
+        btracks = <%- JSON.stringify(basetracks) %> //this is correct for Array !
+        console.log("indexStart="+"<%- indexStart %>"+ " dir="+"<%- dir %>")
+        let currentReverb = "<%= settings.reverb %>";
+        let vGain = ""
+        let audioCtx = ""
+    </script>
+
+
+    <main class="container">
+    <form id="showADrecordsForm" action="/showADrecords" method="POST" enctype="multipart/form-data">
+
+            <!-- Top Controls: Volume & EQ -->
+        <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                <% if (dir) {%> 
+                    <button class="btn-modern" type="submit" name="DirBack" value="Back"><i class="bi bi-arrow-left"></i> Back</button>
+                <% } else{ %>
+                    <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back</button>
+                <% } %>
+                </div>
+
+                <div style="flex: 1;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                            class="bi bi-volume-up"></i> Volume</label>
+                    <!-- Check for settings.mediaOut existence -->
+                    <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                        <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50"
+                            style="flex: 1;">
+                    <% } else { %>
+                            <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                                value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="flex: 1;">
+                    <% } %>
+                </div>
+
+                <button type="button" class="btn-modern"
+                    onclick="openEq()">
+                    Eq
+                </button>
+        </div>
+
+        <!-- EQ Modal  -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <div>
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==='0')
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==='1')
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==='2')
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==='3')
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==='4')
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Fetch Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </div>
+                <script>
+                    function toggleReverb() {
+                        const newValue = currentReverb === "off" ? "on" : "off";
+                        fetch('/reverb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reverb: newValue })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            currentReverb = data.reverb;   // 🔥 update JS state
+                            if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                applyReverbRouting(currentReverb === "on");
+                            }
+                            const reverbBtn = document.getElementById('reverbButton');
+                            if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+                            document.getElementById('eqModel').style.display = 'none';
+                        })
+                        .catch(err => console.error("Reverb error:", err));
+                    }
+                </script>
+
+            </div>
+        </div>
+
+    <% if (dir) {%>
+        <br>
+        <!-- Search Bar -->
+        <div class="ad-filter-wrap">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search ..."
+                class="ad-filter-control ad-filter-input"
+                oninput="filterCovers()"
+            >
+            <select
+                id="typeFilter"
+                class="ad-filter-control ad-filter-type"
+                onchange="filterCovers()"
+            >
+                <option value="All">show All</option>
+                <option value="33rpm">show 33rpm</option>
+                <option value="45rpm">show 45rpm</option>
+                <option value="78rpm">show 78rpm</option>
+                <option value="CD">show CD</option>
+            </select>
+        </div>
+
+        <div id="coversContainer">
+            <% if (basetracks.length >= 1) { %>
+                <% for (var j = 0; j < basetracks.length; j++) { %>
+                    <button 
+                        type="submit" 
+                        name="check" 
+                        value="<%- basetracks[j] %>" 
+                        style="padding: 0px 0px"
+                        class="cover-button"
+                        data-trackname="<%- basetracks[j] %>"
+                        data-tracktype="<%- (recordItems && recordItems[j] && recordItems[j].type) ? recordItems[j].type : '33rpm' %>"
+                    >
+                        <span>
+                            <img id="coverImg<%- j %>">
+                        </span>
+                    </button>
+                <% } %>
+            <% } %>
+        </div>
+
+        <script>
+            const TYPE_FILTER_STORAGE_KEY = 'showADrecords.typeFilter';
+
+            function setCover(num){
+                var tag = document.getElementById('coverImg' + num)
+                if (!tag) return;
+                tag.setAttribute("src", "/coverImg" + num)
+                tag.setAttribute("width", "100%")
+                tag.setAttribute("height", "100%")
+            }
+            var length = Number("<%- basetracks.length %>")
+            console.log("Anzahl Platten=" + length)
+            for (var i = 0; i < length; i++){
+                setCover(i)
+            }
+
+            // Search/Filter Funktionen
+            function filterCovers() {
+                const searchInput = document.getElementById('searchInput');
+                if (!searchInput) return;
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const typeFilterTag = document.getElementById('typeFilter');
+                const typeFilter = typeFilterTag ? typeFilterTag.value : 'All';
+                const coverButtons = document.querySelectorAll('.cover-button');
+
+                try {
+                    localStorage.setItem(TYPE_FILTER_STORAGE_KEY, typeFilter);
+                } catch (e) {
+                    console.log('Type filter storage unavailable');
+                }
+
+                coverButtons.forEach(button => {
+                    const trackName = button.getAttribute('data-trackname').toLowerCase();
+                    const trackType = button.getAttribute('data-tracktype');
+                    const matchesType = typeFilter === 'All' || trackType === typeFilter;
+                    
+                    if ((searchTerm === '' || trackName.includes(searchTerm)) && matchesType) {
+                        button.style.display = 'inline-flex';
+                    } else {
+                        button.style.display = 'none';
+                    }
+                });
+            }
+
+            function resetSearch() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('typeFilter').value = 'All';
+                filterCovers();
+                document.getElementById('searchInput').focus();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const typeFilterTag = document.getElementById('typeFilter');
+                if (!typeFilterTag) return;
+
+                try {
+                    const savedType = localStorage.getItem(TYPE_FILTER_STORAGE_KEY);
+                    if (savedType && Array.from(typeFilterTag.options).some(o => o.value === savedType)) {
+                        typeFilterTag.value = savedType;
+                    }
+                } catch (e) {
+                    console.log('Type filter restore unavailable');
+                }
+
+                filterCovers();
+            });
+        </script>
+    <%}else{%>
+        <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+            <canvas class="visualizer"></canvas>
+        </div>
+        <audio id="myAudio" crossorigin="anonymous"></audio>
+
+        <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+            <div class="progress-wrapper">
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+                <input type="range" id="progress" class="eq-slider">
+            </div>
+        <%}%>
+        <p id="Station"></p>
+        <% if (indexStart >= basetracks.length-1) indexStart = 1 %>
+        <% for(i in basetracks) {%>
+            <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP"))  {%>
+            <button class="btn-modern" id='a<%- i %>' type="button" onclick="PlayMusic('a','<%- i %>','<%- basetracks[i] %>','<%- basetracks.length %>', '/showADrecords')">🎵<%- basetracks[i] %></button>&nbsp;
+            <%}else{%>
+                <!-- get rid of some raw filenames e.g. with apostroph ' in filenames -->
+                <button
+                    id="a<%- i %>"
+                    class="btn-modern track-btn"
+                    type="button"
+                    data-prefix="a"
+                    data-index="<%- i %>"
+                    data-track="<%- basetracks[i] %>"
+                    data-length="<%- basetracks.length %>"
+                    data-url="/showADrecords"
+                >                
+                <span class="track-name">🎵<%- basetracks[i] %></span>
+                </button>
+            <%}%>
+        <%}%>
+        </div>
+        <br><br>
+        <div id="allImgContainer"></div>
+        <!-- <div class="group-img-center">
+            <img src="/images/helpDB/image1.jpg" alt="unavailable" width="30%" heigth="30%">    
+            <img src="/images/helpDB/image2.jpg" alt="unavailable" width="30%" heigth="30%">
+            <img src="/images/helpDB/image3.jpg" alt="unavailable" width="30%" heigth="30%">     
+            <img src="/images/helpDB/image4.jpg" alt="unavailable" width="30%" heigth="30%">  
+        </div> -->
+        <div class="col-auto">
+            <% if (baseimages.length < 4) {%>
+                <b>Add / upload image</b>
+                <input type="file" name="upfile">
+                <button class="rect-btn" type="submit" name="SubmitImage" value="SubmitImage" class="form-control input-md" style="font-size:18px;background-color:rgb(39, 211, 16); color:rgb(0, 0, 0)">Submit</button>
+            <%}%>
+        </div>
+    <%}%>
+    <script>
+        //Stop injecting raw filenames into inline JavaScript., use data attributes
+        document.addEventListener('DOMContentLoaded', function () {
+            // If this page was opened from CD modal close via GET, jump once to the library POST view.
+            const typeFilterTag = document.getElementById('typeFilter');
+            if (typeFilterTag) return;
+
+            const form = document.getElementById('showADrecordsForm');
+            if (!form) return;
+
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('t')) return;
+
+            let savedType = '';
+            try {
+                savedType = localStorage.getItem('showADrecords.typeFilter') || '';
+            } catch (e) {
+                console.log('Type filter read unavailable');
+            }
+
+            if (savedType !== 'CD') return;
+
+            const backInput = document.createElement('input');
+            backInput.type = 'hidden';
+            backInput.name = 'Back';
+            backInput.value = 'Back';
+            form.appendChild(backInput);
+            form.submit();
+        });
+
+        document.querySelectorAll('.track-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                PlayBars(
+                    this.dataset.prefix,
+                    this.dataset.index,
+                    this.dataset.track,
+                    this.dataset.length,
+                    this.dataset.url
+                );
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var c = document.querySelector("#allImgContainer");
+            if (!c) {
+                return;
+            }
+
+            console.log("Height:", c.offsetHeight);
+            console.log("Width:", c.offsetWidth);
+
+            var baseImages = <%- JSON.stringify(baseimages || []) %>;
+            if (!Array.isArray(baseImages)) baseImages = [];
+            var length = baseImages.length;
+            console.log("Anzahl Images=" + length);
+
+            for (let i = 0; i < length; i++) {
+                let img = document.createElement("img");
+                let filename = baseImages[i] || "image" + (i + 1) + ".jpg";
+                img.src = "/images/helpDB/" + encodeURIComponent(filename);
+                img.alt = "AD record image " + (i + 1);
+                img.style.margin = "8px";
+                img.onerror = function () {
+                    console.error("Image load failed:", this.src);
+                };
+                c.appendChild(img);
+            }
+        })
+    </script>
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script src="/scripts/audioWeb.js"></script>
+</body>
+</html>

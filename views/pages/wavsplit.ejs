@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+    html, body {
+    margin: 0;
+    height: 100%;             /* need for iframe height 100% to work */
+    }
+    #myDIV {
+        iframe {
+            box-sizing: border-box;   /* make the border size be included in the height */
+            display: block;           /* make them block to fix white space margin */
+            width: 100%;
+        }
+            iframe:nth-child(1) {
+            height: 400px;
+        }
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+    <form action='../wavsplit', method='POST', content-type='text/html; text/javascript; multipart/form-data; application/json'>
+	<button type="submit" name='Back' value="Back" >Back</button> 
+	
+		<br><br>
+		<div id="myDIV"> 
+			<iframe style="position: absolute; height: 50%; border: none" src="https://audiomass.co"></iframe>
+		</div>
+		<br><br><br><br><br><br><br><br>
+		<br><br><br><br><br><br><br><br>
+		<br><br><br><br><br><br><br><br>
+		<button class="rect-btn" type="submit" name='Edit' value="Edit" >Edit Tracksplitting</button> 
+    </form>
+    </main>
+	<%- include('../partials/footer'); %>
+</body>
+</html>

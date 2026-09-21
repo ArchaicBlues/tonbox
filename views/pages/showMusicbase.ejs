@@ -1,0 +1,273 @@
+<!-- 
+    1 zeige alle Verzeichnisse per Button
+    2 wenn "klick" auf Verzeichnis dann Covers zeigen und Abspielbutton
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+        <form action='../showMusicbase', method='POST', content-type="text/javascript"  enctype="multipart/form-data">
+        <div class="jumbotron">
+            <% if (dir) {%> 
+                <button class="rect-btn" type="submit" name="DirBack" value="DirBack" class="btn btn-primary btn-lg btn-block">Back</button>
+            <% } else{ %>
+                <button class="rect-btn" type="submit" name="Back" value="Back" class="btn btn-primary btn-lg btn-block">Back</button>
+            <% } %>
+            <br>
+            <h1>Analog Recording Database</h1>
+            <br>
+        
+            <h3>
+            <% if (dir) {%> 
+                <script>
+                    //var num=0
+                    var tag=""
+                    function setCover(num){
+                        var tag = document.getElementById(num)
+                        tag.setAttribute("src", "coverImg"+num)
+                        tag.setAttribute("type", "image/jpg")
+                        tag.setAttribute("alt", "")
+                        tag.setAttribute("width", "4%")
+                        tag.setAttribute("height", "4%")
+                        document.append(tag)
+                        console.log("append " + num)
+                        //num++
+                    }
+                </script>
+
+                <% for(var i=0;i<basetracks.length;i++) {%>
+                        <img id="<%- indexStart++ %>">
+                        <button class="rect-btn" type="submit" name="check" value="<%- basetracks[i] %>"><%- basetracks[i] %></button>
+                    <br>
+                <% } %>
+                <script>
+                    var length = "<%- JSON.stringify(basetracks.length) %>"
+
+                    for (var i=0; i<length; i++){
+                        console.log("i="+i)
+                        setTimeout(setCover,100,i)
+                    }
+                </script>
+                <% }else{ %>
+                <% if (indexStart > 0) {%>
+                
+                     <p id="song">:</p>
+                    <script>
+                        document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[indexStart-1] %>");
+                    </script>
+                    <audio id="s1" controls autoplay>
+                        <source src="a1" type="audio/wav">
+                        <source src="a1" type="audio/mp3" >
+                        <source src="a1" type="audio/ogg">
+                        Your browser does not support the audio element.
+                    </audio>
+                 
+                <%}%>
+                <% for(i=0;i<basetracks.length;i++) {%>
+                    <button class="rect-btn" type="submit" name="check" value="<%- basetracks[i] %>"><%- basetracks[i] %></button>
+            <% }} %>
+
+
+            <%if (audioOut != "HTTP live streaming") {%>
+                <div class="group-img-center">
+                <div class="media-controls">
+                <%if (settings.mediaOut.match("HTTP")) {%>
+                <div class="volume-control" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                    <label>Volume WEB</label>
+                    <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50" class="eq-slider">
+                </div>
+                <%}else{%>
+                <div class="volume-control" style="text-align: center;">
+                    <!-- <label>Volume LineOut</label> -->
+                    <input onchange="volumeRPI(this.value)" type="range" min="75" max="100" value="<%- vol %>" class="eq-slider" id="vol"></input>
+                </div>
+                <%}%>
+                </div>
+                </div>
+                <script>
+                    var dummy
+                    var slider = document.getElementById("range");
+                    slider.value = JSON.stringify("<- vol %>")
+
+                    let update = () => dummy = slider.value;
+                    slider.addEventListener('input', update);
+                    slider.onchange = function(event){
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("GET", "/volume="+slider.value, true);
+                        xhr.send();
+                    }
+                </script>                        
+                <br>
+                <button class="rect-btn" type="submit" name="StopPlayx" value="StopPlayx"   >Stop
+                <br><br>
+            </h3>
+            <%}else if (indexStart > 0) {%>
+
+                <!-- <script type="text/javascript" src="audioScript"></script> -->
+
+
+                <script>
+                var audiotag;
+                function playAudio(myId){
+                    audiotag = document.createElement("audio")
+                    audiotag.setAttribute("src", "a"+myId+1)
+                    //console.log("a")
+                    audiotag.setAttribute("id", myId)
+                    //console.log("b")
+                    audiotag.setAttribute("type", "audio/wav")
+                    audiotag.setAttribute("type", "audio/mp3")
+                    audiotag.setAttribute("type", "audio/ogg")
+                    document.body.appendChild(audiotag)
+                    setTimeout(audiotag.play(),1000);
+                    console.log("append " + myId)
+                }
+
+
+                function Next(myId){
+                    console.log("create next")
+                    document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[indexStart-1] %>");
+                    playAudio(myId)
+                }
+
+                var song1 = document.getElementById("s1");
+                var myId = 1
+                song1.onended = function() {//1
+                    console.log("end song1")
+                    song1.remove()
+                    document.getElementById("song").innerHTML=JSON.stringify("<%- basetracks[++indexStart-1] %>");
+                    playAudio(myId)
+                    var old = document.getElementById(myId);
+                    old.onended = function() {//2
+                        old.remove(); Next(++myId)
+                        old = document.getElementById(myId);
+                        old.onended = function() {//3
+                            old.remove(); Next(++myId)
+                            old = document.getElementById(myId);
+                            old.onended = function() {//4
+                                old.remove(); Next(++myId)
+                                old = document.getElementById(myId);
+                                old.onended = function() {//5
+                                    old.remove();  Next(++myId)
+                                    old = document.getElementById(myId);
+                                    old.onended = function() {//6
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//7
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//8
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//9
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//10
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//11
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//12
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//13
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//14
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//15
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//16
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//17
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//18
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//19
+                                        old.remove();  Next(++myId)
+                                        old = document.getElementById(myId);
+                                    old.onended = function() {//20
+                                        old.remove();  Next(++myId)
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                }
+                            }
+                        }
+                        }
+                    }
+                </script> 
+                <%}%>
+            <br><br>
+            <%if (!dir) {%>
+                <img src="/images/image1.jpg" alt="images not available" width="100%" height="100%" class="center">    
+                <img src="/images/image2.jpg" alt="" width="100%" height="100%" class="center">    
+                <img src="/images/image3.jpg" alt="" width="100%" height="100%" class="center">    
+                <img src="/images/image4.jpg" alt="" width="100%" height="100%" class="center"> 
+                <div class="col-auto">
+                    <% if (baseimages.length < 5) {%>
+                    
+                        <b>Add / upload image</b>
+                        <input type="file" name="upfile">
+                        <button class="rect-btn" type="submit" name="SubmitImage" value="SubmitImage" class="form-control input-md" style="font-size:18px;background-color:rgb(39, 211, 16); color:rgb(0, 0, 0)">Enter</button>
+                    
+                    <%}%>
+                </div>
+            <%}%>
+        </div>
+        </form>
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

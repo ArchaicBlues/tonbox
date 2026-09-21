@@ -1,0 +1,23 @@
+[Unit]
+Description=Tonbox Service (Node.js Bluetooth Speaker)
+After=network-online.target pipewire.service wireplumber.service bt-a2dp-monitor.service
+Wants=network-online.target pipewire.service wireplumber.service bt-a2dp-monitor.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/ArchaicNodeEJS
+
+ExecStart=/home/pi/.nvm/versions/node/v21.6.1/bin/node /home/pi/ArchaicNodeEJS/server.js
+
+Restart=always
+RestartSec=5
+
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=Tonbox
+
+[Install]
+WantedBy=default.target

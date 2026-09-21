@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+
+
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+        .create-dir-row {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1.25rem 0 1.5rem;
+        }
+        .create-dir-row input {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .create-dir-row .rect-btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+            .create-dir-row {
+                flex-wrap: wrap;
+            }
+            .create-dir-row input {
+                flex: 1 1 100%;
+            }
+        }
+
+        .dir-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.6rem;
+        }
+        .dir-grid .dir-btn {
+            width: 100%;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.9rem;
+        }
+        .dir-grid .dir-btn i {
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../picvids', method='POST', content-type="text/javascript" enctype="multipart/form-data">
+        <div class="d-flex align-items-center gap-3">
+                <button class="btn-modern" type="submit" name="DirBack" value="Back"><i class="bi bi-arrow-left"></i> Back</button>
+        </div>
+
+        <div class="create-dir-row">
+            <!-- <label for="id3" class="visually-hidden">New directory name</label> -->
+            <input type="text" name="Create" id="id3" placeholder="new directory">
+            <button class="rect-btn" type="submit" name="Submit" value="Create"><i class="bi bi-folder-plus"></i> Create</button>
+        </div>
+        <br><br>
+
+        <p id="dirs"></p>
+        <div class="dir-grid">
+            <% for (var i=0; i<dirs.length; i++) { %>
+                <button class="dir-btn" type="submit" name="show" value='<%- dirs[i] %>'><i class="bi bi-folder-fill"></i> <%- dirs[i] %></button>
+            <% } %>
+        </div>
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script>
+        //define page contents
+        audioOut=JSON.stringify("<%- settings.mediaOut %>");
+        dirType = "none"//needed for showMusicWorld.ejs
+        modalWin = false
+        audioTag = false
+    </script>
+
+    <script src="/scripts/audioWeb.js"></script>
+
+</body>
+</html>

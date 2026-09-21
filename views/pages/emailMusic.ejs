@@ -1,0 +1,42 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+<body>
+    <%- include('../partials/header'); %>
+<main>
+        <form action='../emailMusic', method='POST', content-type="text/javascript">
+            <button class="rect-btn" type="submit" name="Back" value="Back" >Back</button>
+            <br>
+            
+            
+            <h3>Send MP3 Music</h3><br>
+            <h4>
+            <%- target %><br>
+            <div class="input-group mb-3">
+               <label for="id1" style="background-color:rgb(169, 182, 169);" class="visually-hidden">Email: </label>
+               <input type="text" class="form-control" name="email" aria-label="Email" id="id1">
+            </div>
+            <button class="rect-btn" type="submit" name="Send" value="<%- target %>" >Enter</button>
+            </h4>
+            
+    </form>
+</main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

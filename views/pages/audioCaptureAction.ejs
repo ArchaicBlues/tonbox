@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body class="container">
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<style>
+    body {
+        background-image: url('/images/milky-way-5295160_960_720.jpg');
+    }
+</style>
+    
+<body class="my-body">
+    <div class="jumbotron">
+        <h1>Anolog/Digital process running...</h1><br>
+        <h4>
+            You may STOP the process at any time or just wait and press F5 to update process state <br><br>
+            <!-- <%- progressInfo %> -->
+            <% for (var i in progressInfo) {%>
+            <%- progressInfo[i] %><br>
+            <%}%>
+            <br>
+        </h4>
+        <form action='../audioCaptureAction', method='POST', content-type="text/javascript">
+            <div class="input-group mb-3">
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Stop conversion</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

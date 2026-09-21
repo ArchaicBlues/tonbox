@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+    
+<body class="my-body">
+        <form action='../dlna', method='POST', content-type="text/javascript">
+            <button type="submit" class="btn btn-primary mb-3 btn-lg btn-block">OK</button>
+        </form>
+        <h1>DLNA server for your TV is running </h2><br>
+        <h4>Make sure your TV is connectet to your LAN, than:</h4>
+        <h4>Turn your TV on, select TV App "Mulimedia" and select</h4>
+        <h4>Fotos-->ArchaicRPi3-->yourFolders</h4>
+        <h4>Videos-->ArchaicRPi3 or</h4>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

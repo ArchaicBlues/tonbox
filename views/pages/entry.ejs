@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+</head>
+
+<script>
+        //define page contents
+        audioOut=JSON.stringify("<%- settings.mediaOut %>");
+        dirType = "none"//needed for showMusicWorld.ejs
+        modalWin = false
+        audioTag = false
+
+        contextClass = (window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext || window.msAudioContext);
+        if (contextClass) {
+            console.log("Web Audio API supported");
+        } else {
+            console.log("Web Audio API not supported");
+        }
+</script>
+
+<body>
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../entry', method='POST', content-type='text/html; text/javascript; multipart/form-data; application/json'>
+    <br>
+    <!-- <div class="group-img-center">
+            <img class="middleImg" src="images/SchallplattenStack.jpg"  width="8%" alt="">&nbsp;&nbsp;
+            <img class="middleImg" src="images/radio.png"  width="8%"  alt="">&nbsp;&nbsp;
+            <img class="middleImg" src="images/media.jpg"  width="10%"  alt=""><br><br>
+    </div> -->
+    <!-- <div class="group-img-center">
+        <%if (!settings.mediaOut.match("HTTP")) {%>
+        <div class="volume-control" style="text-align: center;">
+            <label>Volume LineOut</label>
+            <input onchange="volumeRPI(this.value)" type="range" min="75" max="100" value="<%- vol %>" class="eq-slider" id="vol"></input>
+        </div>
+        <br>
+        <%}%>
+    </div> -->
+    
+    <!-- <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+        <button class="rect-btn" type="submit" name="Music">
+        Radio Audio Video Media</button>&nbsp;
+    </div>
+    <br>
+    <div class="button-container">
+        <button class="rect-btn" type="submit" name="Vinyl">
+        Vinyl</button>
+    </div>
+    <br><br>
+    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+        <button class="rect-btn" type="submit" name="PicVids">
+        Galery</button>&nbsp;
+    </div>
+    <br>
+    <div class="group-img-center">
+        <button  type="submit" name="Capture Vinyl">Capture Vinyl</button>&nbsp;&nbsp;        
+        <button  type="submit" name="Capture Tape">Capture Tape</button>
+    </div> -->
+    <br><br>
+
+    <div class="button-container">
+        <button class="rect-btn" type="submit" name="Radio">
+        Radio</button>
+    </div>
+    <br><br><br>
+    <div class="button-container">
+        <button class="rect-btn" type="submit" name="CD">
+        CD</button>
+    </div>
+    <br><br><br>
+    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+        <button class="rect-btn" type="submit" name="Web-Links">
+        Web-Links</button>     
+    </div>
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+
+    <script>
+        // Add modern interactions
+        document.querySelectorAll('.rect-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.add('clicked');
+                setTimeout(() => button.classList.remove('clicked'), 200);
+            });
+        });
+    </script>
+
+    <!-- <script src="/scripts/audioWeb.js"></script> -->
+<script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  // Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

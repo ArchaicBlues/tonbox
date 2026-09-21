@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="button.css">
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+        .visualizer {
+            display: block;
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        audioTag = true;
+        modalWin = true;
+        let currentReverb = "<%= settings.reverb %>";
+    </script>
+
+    <main class="container">
+    <form action='../playAudioCapture', method='POST', content-type="text/javascript">
+
+    <!-- Top Controls: Volume & EQ -->
+    <div class="glass-panel top-controls">
+        <div class="d-flex align-items-center gap-3">
+            <button id="back" class="btn-modern" type="submit" name="Back" value="track" ><i class="bi bi-arrow-left"></i>Back</button> 
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label
+                style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                    class="bi bi-volume-up"></i> Volume</label>
+            <!-- Check for settings.mediaOut existence -->
+            <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50" style="width: 100%;">
+            <% } else { %>
+                    <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                        value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="width: 100%;">
+            <% } %>
+        </div>
+        <button type="button" class="btn-modern"
+            onclick="openEq()">
+            Eq
+        </button>
+    </div>
+    <br><br>
+    <div class="group-img-center">
+        <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+            <div style="max-height: 400px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                <!-- frequency bars -->
+                <canvas class="visualizer"></canvas>
+            </div>
+            <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+        <% } %>
+
+        <!-- EQ Modal  -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <form onsubmit="return false;">
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==='0')
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==='1')
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==='2')
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==='3')
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==='4')
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Fetch Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </form>
+                <script>
+                    function toggleReverb() {
+                        const newValue = currentReverb === "off" ? "on" : "off";
+                        fetch('/reverb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reverb: newValue })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            currentReverb = data.reverb;   // 🔥 update JS state
+                            if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                applyReverbRouting(currentReverb === "on");
+                            }
+                            const reverbBtn = document.getElementById('reverbButton');
+                            if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+                            document.getElementById('eqModel').style.display = 'none';
+                        })
+                        .catch(err => console.error("Reverb error:", err));
+                    }
+                </script>
+
+            </div>
+        </div>
+    </div>
+    <div style="max-height: 600px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+    
+
+</main>
+    <%- include('../partials/footer'); %>
+
+    <script src="/scripts/audioWeb.js"></script>
+
+    <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+    <script>
+        // Zusätzlich zur lokalen Ausgabe (pw-loopback -> Hardware) das Capture-Signal
+        // per HTTP an den Browser streamen, damit volumeWEB()/die Web-Audio-EQ/Reverb-Kette
+        // hier greifen (genau wie beim Internet-Radio-Streaming).
+        mediaElement.crossOrigin = "anonymous";
+        mediaElement.setAttribute('src', '/captureStream');
+        mediaElement.load();
+        mediaElement.play().then(() => {
+            // Zeichenfläche (Pixelpuffer) an die tatsächliche Anzeigegröße anpassen,
+            // sonst bleibt sie auf dem festen 300px-Default aus initAudio() stehen.
+            const vizCanvas = document.querySelector('.visualizer');
+            if (vizCanvas) {
+                vizCanvas.width = vizCanvas.clientWidth;
+                vizCanvas.height = vizCanvas.clientHeight;
+            }
+            visuBars();
+        }).catch(err => console.log("captureStream autoplay blocked:", err));
+    </script>
+    <% } %>
+
+</body>
+</html>

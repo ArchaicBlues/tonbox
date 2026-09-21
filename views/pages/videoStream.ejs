@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <style>
+    .video-container {
+    position: absolute;
+    top: 25%;
+    bottom: 0;
+    width: 100%;
+    height: 100%; 
+    overflow: hidden;
+    }
+    .video-container video {
+    /* Make video to at least 100% wide and tall */
+    min-width: 100%; 
+    min-height: 100%; 
+
+    /* Setting width & height to auto prevents the browser from stretching or squishing the video */
+    width: 100%;
+    height: auto;
+
+    /* Center the video */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    }    
+    </style>
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        singleVid=true
+        vid = JSON.stringify("<%- vidsrc %>")
+        // console.log("vid="+vid+" singleVid="+singleVid)
+        let currentReverb = "<%= settings.reverb %>";
+     </script>
+    <main>
+    <form action='../showVideo', method='POST', content-type="text/javascript">
+    <button class="rect-btn" type="submit" name="Back" value="Back" >Back</button>            
+    <button type="button" class="btn-modern"
+        onclick="openEq()">
+        Eq
+    </button>
+    <% if (convert) {%>
+        <br>
+        <p style="color: rgb(240, 233, 233)">Dieses Videofile muß konvertiert werden, da der AudioCodec für HTML5 nicht passt</p>
+        <button class="rect-btn" type="submit" name="ConvertAC3" value="<%- vidsrc %>" >Video im Hintergrund konvertieren</button><br> <br>            
+    <%}%>
+
+    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+    <h1>Video Streaming Test</h1><br>
+        - Lautstärke Web +
+            <input oninput="volumeWEB(this.value)" id="vol" type="range" value="25" step="1" min="0" max="50" class="slider" ></input>
+        <br><br>
+        <video id="myVideo" width="90%" height="auto" controls autoplay poster="images/tv.jpg" text-align="center">
+            <source src="<%- vidsrc %>" type="video/mp4"> 
+            Ihr Browser kann dieses Video nicht wiedergeben.
+        </video>
+    </div>
+            <!-- EQ Modal  -->
+            <div id="eqModel" class="modal"
+                style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+                <div class="modal-content"
+                    style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Equalizer</h5>
+                        <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                            style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                    </div>
+                    <form onsubmit="return false;">
+                        <div class="mb-1 d-flex gap-1">
+                            <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                    ? 'checked' : '' %>> Clear</label>
+                            <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                    ? 'checked' : '' %>> Neutral</label>
+                            <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                    ? 'checked' : '' %>> Warm</label>
+                            <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                    ? 'checked' : '' %>> Bass</label>
+                            <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                    ? 'checked' : '' %>> My</label>
+                        </div>
+                        <div style="max-height:45vh; overflow-y:auto;">
+                            <div class="eq-row">
+                                <span class="eq-label">40  Hz</span>
+                                <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">121 Hz</span>
+                                <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">547 Hz</span>
+                                <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">674 Hz</span>
+                                <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">818 Hz</span>
+                                <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1503Hz</span>
+                                <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1605Hz</span>
+                                <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1722Hz</span>
+                                <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">4160Hz</span>
+                                <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">12 kHz</span>
+                                <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                            </div>
+                        </div>
+
+                        <!-- Reverb Toggle (Form Submit) -->
+                        <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                            Toggle Reverb on/off
+                        </button>
+                    </form>
+                    <script>
+                        function toggleReverb() {
+                            const newValue = currentReverb === "off" ? "on" : "off";
+                            fetch('/reverb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ reverb: newValue })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+
+                                currentReverb = data.reverb;   // 🔥 update JS state
+
+                                document.getElementById('eqModel').style.display = 'none';
+                            })
+                            .catch(err => console.error("Reverb error:", err));
+                        }
+                    </script>
+
+                </div>
+            </div>
+    <br><br><br><br><br><br><br>
+    <script src="views/scripts/videoWeb.js"></script>
+    </form>
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

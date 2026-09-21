@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+<%- include('../partials/header'); %>
+<script>
+    function setValue(id,txt){
+        const elem = document.getElementById(id);
+        elem.value = txt.replace(/"/g,""); 
+    }
+</script>
+<main class="container animate-in">
+
+<form action="../trackImageUpload" method="POST" enctype="multipart/form-data">
+
+<div class="glass-panel" style="padding:2rem; margin-top:2rem;">
+
+    <!-- Top Actions -->
+    <div class="flex-between" style="margin-bottom:2rem;">
+        <button class="btn-modern btn-primary" type="submit" name="Back" value="Back">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+
+
+    <% if (image=="all") { %>
+
+    <!-- Directory Info -->
+    <div class="glass-card" style="margin-bottom:2rem;">
+        <label>Verzeichnis</label>
+        <input type="text" name="info" id="info"
+            value="<%= discogs.info || '' %>">
+
+        <div style="margin-top:1rem;">
+            <button class="btn-modern" type="submit" name="Delete" value="Delete">
+                <i class="fas fa-trash"></i> Delete All
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Dynamic Track Sides -->
+    <div class="grid-auto">
+    <% 
+    const sides = ['A','B','C','D','E','F'];
+    sides.forEach(side => {
+        let currentSide = discogs['side' + side];
+        <!-- if (!currentSide || Object.keys(currentSide).length === 0) return; -->
+        let tracks = Object.values(currentSide);
+    %>
+        <div class="glass-card">
+            <h3 style="text-align:center; color:var(--accent-color);">
+                Side <%= side %>
+            </h3>
+            <% for(let i=0;i<15;i++){ %>
+                <input type="text"
+                    name="<%= side + (i+1) %>"
+                    placeholder="Track <%= i+1 %>"
+                    value="<%= tracks[i] || '' %>"
+                    style="margin-bottom:0.6rem;">
+            <% } %>
+        </div>
+    <% }) %>
+    </div>
+    <% } %>
+
+</form>
+<form action="../trackImageUpload" method="POST" enctype="multipart/form-data">
+
+
+    <!-- Image Upload Section -->
+    <h2 class="section-title">Images</h2>
+    <div class="grid-auto">
+        <% for(let i=1;i<=4;i++){ %>
+            <div class="glass-card flex-center" style="flex-direction:column;">
+                <input type="file" name="images" accept="image/*">
+            </div>
+        <% } %>
+    </div>
+
+
+    <!-- Submit -->
+    <div style="margin-top:2rem; text-align:center;">
+        <% if (image=="all") { %>
+            <button class="btn-modern btn-primary" type="submit" name="Submit" value="Submit">
+                <i class="fas fa-save"></i> Submit
+            </button>
+        <% } else { %>
+            <button class="btn-modern btn-primary" type="submit" name="SubmitImage" value="SubmitImage">
+                <i class="fas fa-save"></i> Submit ALL
+            </button>
+        <% } %>
+    </div>
+</div>
+
+
+</main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

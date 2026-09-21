@@ -1,0 +1,213 @@
+/* Modern Design System - Glassmorphism & Dark Mode */
+
+:root {
+    /* Color Palette - Cyberpunk / Neon / Deep Space */
+    --bg-dark: #0f0c29;
+    --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --glass-blur: 10px;
+
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+
+    --accent-color: #00d2ff;
+    --accent-gradient: linear-gradient(90deg, #00d2ff, #3a7bd5);
+    --accent-glow: 0 0 15px rgba(0, 210, 255, 0.5);
+
+    --success-color: #00ff87;
+    --danger-color: #ff0055;
+
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 4rem;
+
+    /* Transition */
+    --transition-fast: 0.2s ease;
+    --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background: var(--bg-dark);
+    background-image: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+    /* Space for footer player */
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+a:hover {
+    color: #fff;
+    text-shadow: 0 0 8px var(--accent-color);
+}
+
+ul {
+    list-style: none;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: var(--spacing-md);
+    transition: var(--transition-smooth);
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-size: 2.5rem;
+    background: var(--accent-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+/* Layout Utilities */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-sm);
+}
+
+.grid-auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Buttons */
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: var(--glass-bg);
+    color: white;
+    border: 1px solid var(--glass-border);
+    transition: var(--transition-fast);
+}
+
+.btn-modern:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.btn-primary {
+    background: var(--accent-gradient);
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5);
+    background: var(--accent-gradient);
+    /* Override default hover */
+}
+
+/* Forms */
+input,
+select,
+textarea {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    padding: 0.8rem;
+    border-radius: 8px;
+    color: white;
+    width: 100%;
+    outline: none;
+    transition: var(--transition-fast);
+}
+
+input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+
+/* Media Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Header & Sidebar overrides will go here or in header specific css */

@@ -1,0 +1,36 @@
+/home/pi/mediaServer/ADrecords
+├── BlindBlake-1926-30BootlegRumDumBlues
+│   ├── audio
+│   └── image
+├── CharlieSpand-1929-1940TheRemainingTitles
+│   ├── audio
+│   └── image
+├── FrijidPink-TheHouseOfTheRisingSun
+│   ├── audio
+│   └── image
+├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume1--18June1929To29May1930
+│   ├── audio
+│   └── image
+├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume2--5June1930To30January1931
+│   ├── audio
+│   └── image
+├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume330January1931To4February1932
+│   ├── audio
+│   └── image
+├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume41933-1934
+│   ├── audio
+│   └── image
+├── PlasticOnoBand-GivePeaceAChance
+│   ├── audio
+│   └── image
+├── TommyJohnson1928-30
+│   ├── audio
+│   └── image
+├── TommyMcclennan-CrosscutSaw
+│   ├── audio
+│   └── image
+└── TommyMcClennanRobertPetway-CottonPickinBlues
+    ├── audio
+    └── image
+
+34 directories

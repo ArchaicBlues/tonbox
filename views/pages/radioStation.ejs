@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+        <!-- Leaflet & App Specifics -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <link rel="manifest" href="/manifest/manifest.json?v=2">
+        <!-- Legacy Style for map or specific widgets if needed, but trying to override with modern -->
+        <style>
+
+            /* Specific Radio Page Styles */
+
+            /* Map Container */
+            #map {
+                height: 300px;
+                width: 100%;
+                border-radius: 12px;
+                z-index: 1;
+                /*filter: brightness(0.85)*/
+            }
+
+            /* Glass Modal Overrides */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 2000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(5px);
+            }
+
+            .modal-content {
+                background: rgba(20, 20, 40, 0.95);
+                margin: 5% auto;
+                padding: 20px;
+                width: 90%;
+                max-width: 500px;
+                border-radius: 16px;
+                color: white;
+                border: 1px solid var(--glass-border);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            }
+
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 10px;
+            }
+
+            .modal-list-item {
+                width: 100%;
+                padding: 12px 16px;
+                margin: 4px 0;
+                background: rgba(255, 255, 255, 0.05);
+                color: white;
+                border: 1px solid transparent;
+                text-align: left;
+                border-radius: 8px;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .modal-list-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateX(5px);
+            }
+
+            .close {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+
+            .close:hover {
+                color: white;
+            }
+
+            /* Filter Bar */
+            .filter-bar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .filter-btn {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--glass-border);
+                color: white;
+                padding: 0.8rem;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                transition: all 0.2s;
+                font-size: 0.9rem;
+            }
+
+            .filter-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: var(--accent-color);
+            }
+
+            .bitrate-row {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+                color: rgba(255, 255, 255, 0.7);
+                flex-wrap: wrap;
+            }
+
+            .search-inline-btn {
+                margin-left: 0.5rem;
+            }
+
+/* Station List */
+.station-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+gap: 0.6rem;
+margin-top: 1rem;
+max-height: 20vh;
+/* Scrollable area */
+overflow-y: auto;
+padding-right: 5px;
+}
+.station-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 0.7rem;
+
+    display: flex;
+    flex-direction: column;   /* <-- wichtig */
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.station-card small,
+.station-card div[style*="font-size"] {
+    font-size: 0.7rem;
+}
+.station-card.compact {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+}
+
+.station-card.compact .station-name {
+    font-size: 0.8rem;
+}
+
+.station-name {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.play-btn-small {
+    background: var(--accent-color);
+    color: black;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.rec-btn-small {
+    background: transparent;
+    border: 1px solid #ff0055;
+    color: #ff0055;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+            .rec-btn-small:hover {
+                background: #ff0055;
+                color: white;
+            }
+
+.fav-title {
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fav-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.station-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.search-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+
+        </style>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+
+        <!-- <main class="container animate-in"> -->
+            <form action='../radioStation' method='POST' id="mainForm">
+
+                <!-- Pass Server Variables to JS -->
+                <script>
+                    audioOut = JSON.stringify("<%- settings.mediaOut %>");
+                    dirType = "Radio";
+                    modalWin = true;
+                    audioTag = true;
+                    rd =<%- JSON.stringify(rd) %>;
+                    let currentReverb = "<%= settings.reverb %>";
+                    console.log("recording="+JSON.stringify("<%- recording %>"))
+                </script>
+
+                <!-- Top Controls: Volume & EQ -->
+                <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label
+                            style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                                class="bi bi-volume-up"></i> Volume</label>
+                        <%if (settings.mediaOut.match("HTTP")) {%>
+                            <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0"
+                                max="50" style="width:100%">
+                            <%}else{%>
+                                <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                                    value="<%- vol %>" id="vol" style="width:100%">
+                                <%}%>
+                    </div>
+                    <button type="button" class="btn-modern"
+                        onclick="openEq()">
+                        Eq
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="glass-panel p-4 mb-4">
+                    <!-- <h4 class="mb-3">Station Browser</h4> -->
+
+
+                    <div class="filter-bar">
+                        <!-- Country Filter -->
+                        <button type="button" id="countryBtn" class="filter-btn"
+                            onclick="openSelectionModal('country')">
+                            <% if (search.country && search.country.includes(',')) { const
+                                iso=search.country.split(',')[0].trim().toLowerCase(); %>
+                                <img src="https://flagcdn.com/w40/<%= iso %>.png" width="20"
+                                    style="border-radius: 2px;">
+                                <span>
+                                    <%= search.country %>
+                                </span>
+                                <% } else { %>
+                                    <i class="bi bi-globe"></i>
+                                    <%= search.country || 'Select Country' %>
+                                        <% } %>
+                        </button>
+                        <input type="hidden" name="country" id="hiddenCountry" value="<%- search.country %>">
+
+                        <!-- Genre Filter -->
+                        <button type="button" id="genreBtn" class="filter-btn" onclick="openSelectionModal('genre')">
+                            <i class="bi bi-music-note"></i>
+                            <%= search.genre || 'Genre' %>
+                        </button>
+                        <input type="hidden" name="genre" id="hiddenGenre" value="<%- search.genre %>">
+
+                        <!-- Name Filter -->
+                        <input name="station" id="station" value="<%- search.station %>" placeholder="Stationname"
+                            class="form-control"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; padding: 0.7rem;">
+                    </div>
+
+                    <!-- Bitrate Selection -->
+                    <div class="bitrate-row">
+                        <label><input type="radio" name="bitrate" value="all"> All</label>
+                        <label><input type="radio" name="bitrate" value="128" checked> 128k</label>
+                        <label><input type="radio" name="bitrate" value="192"> 192k</label>
+                        <label><input type="radio" name="bitrate" value="320"> 320k</label>
+                        <button id="searchBtn" class="btn-modern btn-primary search-inline-btn" type="submit">
+                            <i class="bi bi-search"></i> 
+                            <span id="btnText">Search Radiostation</span>
+                        </button>
+                    </div>
+
+                    <% const topTotalStations = Number((locals && Object.prototype.hasOwnProperty.call(locals, 'dat')) ? locals.dat : (rd.length || 0)); %>
+                    <% const topComputedNextOffset = rd.length; %>
+                    <% const topHasMoreStationsLocal = (locals && Object.prototype.hasOwnProperty.call(locals, 'hasMoreStations')) ? locals.hasMoreStations : undefined; %>
+                    <% const topCanShowMore = (typeof topHasMoreStationsLocal === 'boolean') ? topHasMoreStationsLocal : (topComputedNextOffset < topTotalStations); %>
+                    <div class="search-actions">
+                        <% if (topCanShowMore) { %>
+                            <button class="btn-modern" type="submit" name="NextStations" value="<%- topComputedNextOffset %>">
+                                Next <%- Math.min(50, Math.max(topTotalStations - topComputedNextOffset, 0)) %> Stations
+                            </button>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Hidden Datalists (preserved for JS logic if needed, though replaced by modals roughly) -->
+        <datalist id="countries">
+            <option value="All">
+            <option value="AF, Afghanistan">
+            <option value="AL, Albania">
+            <option value="DZ, Algeria">
+            <option value="AS, American Samoa">
+            <option value="AD, Andorra">
+            <option value="AO, Angola">
+            <option value="AI, Anguilla">
+            <option value="AQ, Antarctica">
+            <option value="AG, Antigua and Barbuda">
+            <option value="AR, Argentina">
+            <option value="AM, Armenia">
+            <option value="AW, Aruba">
+            <option value="AU, Australia">
+            <option value="AT, Austria">
+            <option value="AZ, Azerbaijan">
+            <option value="BS, Bahamas">
+            <option value="BH, Bahrain">
+            <option value="BD, Bangladesh">
+            <option value="BB, Barbados">
+            <option value="BY, Belarus">
+            <option value="BE, Belgium">
+            <option value="BZ, Belize">
+            <option value="BJ, Benin">
+            <option value="BM, Bermuda">
+            <option value="BT, Bhutan">
+            <option value="BO, Bolivia">
+            <option value="BA, Bosnia and Herzegovina">
+            <option value="BW, Botswana">
+            <option value="BR, Brazil">
+            <option value="BN, Brunei">
+            <option value="BG, Bulgaria">
+            <option value="BF, Burkina Faso">
+            <option value="BI, Burundi">
+            <option value="KH, Cambodia">
+            <option value="CM, Cameroon">
+            <option value="CA, Canada">
+            <option value="CV, Cape Verde">
+            <option value="KY, Cayman Islands">
+            <option value="CF, Central African Republic">
+            <option value="TD, Chad">
+            <option value="CL, Chile">
+            <option value="CN, China">
+            <option value="CO, Colombia">
+            <option value="KM, Comoros">
+            <option value="CG, Congo">
+            <option value="CR, Costa Rica">
+            <option value="HR, Croatia">
+            <option value="CU, Cuba">
+            <option value="CY, Cyprus">
+            <option value="CZ, Czech Republic">
+            <option value="DK, Denmark">
+            <option value="DJ, Djibouti">
+            <option value="DM, Dominica">
+            <option value="DO, Dominican Republic">
+            <option value="EC, Ecuador">
+            <option value="EG, Egypt">
+            <option value="SV, El Salvador">
+            <option value="EE, Estonia">
+            <option value="ET, Ethiopia">
+            <option value="FI, Finland">
+            <option value="FR, France">
+            <option value="GA, Gabon">
+            <option value="GM, Gambia">
+            <option value="GE, Georgia">
+            <option value="DE, Germany">
+            <option value="GH, Ghana">
+            <option value="GR, Greece">
+            <option value="GL, Greenland">
+            <option value="GD, Grenada">
+            <option value="GT, Guatemala">
+            <option value="GN, Guinea">
+            <option value="GY, Guyana">
+            <option value="HT, Haiti">
+            <option value="HN, Honduras">
+            <option value="HU, Hungary">
+            <option value="IS, Iceland">
+            <option value="IN, India">
+            <option value="ID, Indonesia">
+            <option value="IR, Iran">
+            <option value="IQ, Iraq">
+            <option value="IE, Ireland">
+            <option value="IL, Israel">
+            <option value="IT, Italy">
+            <option value="JM, Jamaica">
+            <option value="JP, Japan">
+            <option value="JO, Jordan">
+            <option value="KZ, Kazakhstan">
+            <option value="KE, Kenya">
+            <option value="KW, Kuwait">
+            <option value="KG, Kyrgyzstan">
+            <option value="LA, Laos">
+            <option value="LV, Latvia">
+            <option value="LB, Lebanon">
+            <option value="LS, Lesotho">
+            <option value="LR, Liberia">
+            <option value="LY, Libya">
+            <option value="LI, Liechtenstein">
+            <option value="LT, Lithuania">
+            <option value="LU, Luxembourg">
+            <option value="MG, Madagascar">
+            <option value="MW, Malawi">
+            <option value="MY, Malaysia">
+            <option value="MV, Maldives">
+            <option value="ML, Mali">
+            <option value="MT, Malta">
+            <option value="MX, Mexico">
+            <option value="MD, Moldova">
+            <option value="MC, Monaco">
+            <option value="MN, Mongolia">
+            <option value="ME, Montenegro">
+            <option value="MA, Morocco">
+            <option value="MZ, Mozambique">
+            <option value="MM, Myanmar">
+            <option value="NA, Namibia">
+            <option value="NP, Nepal">
+            <option value="NL, Netherlands">
+            <option value="NZ, New Zealand">
+            <option value="NI, Nicaragua">
+            <option value="NE, Niger">
+            <option value="NG, Nigeria">
+            <option value="KP, North Korea">
+            <option value="NO, Norway">
+            <option value="OM, Oman">
+            <option value="PK, Pakistan">
+            <option value="PA, Panama">
+            <option value="PY, Paraguay">
+            <option value="PE, Peru">
+            <option value="PH, Philippines">
+            <option value="PL, Poland">
+            <option value="PT, Portugal">
+            <option value="QA, Qatar">
+            <option value="RO, Romania">
+            <option value="RU, Russia">
+            <option value="RW, Rwanda">
+            <option value="SA, Saudi Arabia">
+            <option value="SN, Senegal">
+            <option value="RS, Serbia">
+            <option value="SG, Singapore">
+            <option value="SK, Slovakia">
+            <option value="SI, Slovenia">
+            <option value="ZA, South Africa">
+            <option value="KR, South Korea">
+            <option value="ES, Spain">
+            <option value="LK, Sri Lanka">
+            <option value="SE, Sweden">
+            <option value="CH, Switzerland">
+            <option value="TW, Taiwan">
+            <option value="TH, Thailand">
+            <option value="TN, Tunisia">
+            <option value="TR, Turkey">
+            <option value="UA, Ukraine">
+            <option value="AE, United Arab Emirates">
+            <option value="GB, United Kingdom">
+            <option value="US, United States">
+            <option value="UY, Uruguay">
+            <option value="UZ, Uzbekistan">
+            <option value="VE, Venezuela">
+            <option value="VN, Vietnam">
+            <option value="ZM, Zambia">
+            <option value="ZW, Zimbabwe">
+        </datalist>
+        <datalist id="genres">
+            <option value=" ">
+            <option value="ACOUSTIC, Acoustic">
+            <option value="AFROBEAT, Afrobeat">
+            <option value="ALTERNATIVE, Alternative">
+            <option value="AMBIENT, Ambient">
+            <option value="BASS, Bass">
+            <option value="BLUES, Blues">
+            <option value="BOSSA, Bossa Nova">
+            <option value="CHILL, Chill">
+            <option value="CLASSICAL, Classical">
+            <option value="COUNTRY, Country">
+            <option value="DANCE, Dance">
+            <option value="DEEPHOUSE, Deep House">
+            <option value="DISCO, Disco">
+            <option value="DRUMANDBASS, Drum & Bass">
+            <option value="DUB, Dub">
+            <option value="DUBSTEP, Dubstep">
+            <option value="ELECTRONIC, Electronic">
+            <option value="EXPERIMENTAL, Experimental">
+            <option value="FOLK, Folk">
+            <option value="FUNK, Funk">
+            <option value="GARAGE, Garage">
+            <option value="GLITCH, Glitch">
+            <option value="GOSPEL, Gospel">
+            <option value="GRIME, Grime">
+            <option value="HARDCORE, Hardcore">
+            <option value="HARDROCK, Hard Rock">
+            <option value="HIPHOP, Hip Hop">
+            <option value="HOUSE, House">
+            <option value="INDIE, Indie">
+            <option value="INDUSTRIAL, Industrial">
+            <option value="INSTRUMENTAL, Instrumental">
+            <option value="JAZZ, Jazz">
+            <option value="KPOP, K-Pop">
+            <option value="LATIN, Latin">
+            <option value="LOFI, Lo-Fi">
+            <option value="METAL, Metal">
+            <option value="MINIMAL, Minimal">
+            <option value="NEOCLASSICAL, Neo-Classical">
+            <option value="NEWAGE, New Age">
+            <option value="OPERA, Opera">
+            <option value="POP, Pop">
+            <option value="POSTROCK, Post-Rock">
+            <option value="PROGRESSIVE, Progressive">
+            <option value="PSYCHEDELIC, Psychedelic">
+            <option value="PUNK, Punk">
+            <option value="RAP, Rap">
+            <option value="REGGAE, Reggae">
+            <option value="ROCK, Rock">
+            <option value="SINGERSONGWRITER, Singer-Songwriter">
+            <option value="SKA, Ska">
+            <option value="SOUL, Soul">
+            <option value="SOUNDTRACK, Soundtrack">
+            <option value="SYNTHWAVE, Synthwave">
+            <option value="TECHNO, Techno">
+            <option value="TRANCE, Trance">
+            <option value="TRIPHOP, Trip-Hop">
+            <option value="WORLD, World">
+        </datalist>
+
+                <!-- Results Area -->
+        <% const pageOffset = Number((locals && Object.prototype.hasOwnProperty.call(locals, 'stationOffset')) ? locals.stationOffset : 0); %>
+        <% const totalStations = Number((locals && Object.prototype.hasOwnProperty.call(locals, 'dat')) ? locals.dat : (rd.length || 0)); %>
+        <% const computedNextOffset = rd.length; %>
+        <% const hasMoreStationsLocal = (locals && Object.prototype.hasOwnProperty.call(locals, 'hasMoreStations')) ? locals.hasMoreStations : undefined; %>
+        <% const canShowMore = (typeof hasMoreStationsLocal === 'boolean') ? hasMoreStationsLocal : (computedNextOffset < totalStations); %>
+        <div class="glass-panel p-3 mb-4 text-center">
+            Found <%- Math.min(pageOffset + rd.length, totalStations) %> of <%- totalStations %>
+            <!-- <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="m-0">Radiostation(s): <span style="color: var(--accent-color);"><%- rd.length %></span></h5>
+            </div> -->
+
+            <div class="station-grid">
+                <% for (var i=0; i<rd.length; i++) {%>
+                    <% const stationIndex = (typeof rd[i].idx === 'number') ? rd[i].idx : (pageOffset + i); %>
+                    <% if (rd[i].url==="err" ) {%>
+                        <!-- Skip error -->
+                    <%}else{%>
+                    <div class="station-card compact">
+                        <div class="fav-title" title="<%- rd[i].name %>">
+                            <span class="station-name"><%- rd[i].name %>,&nbsp;<%- rd[i].countryCode || rd[i].countrycode || '' %></span>
+                        </div>
+                        <div class="fav-controls">
+                            <%if (!settings.mediaOut.match("HTTP")) {%>
+                                <button type="button" class="play-btn-small" id="s<%- stationIndex %>"
+                                    onclick='highlightCountry(<%= JSON.stringify(rd[i].countryCode || rd[i].countrycode || "") %>,<%= JSON.stringify(rd[i].state || "") %>); PlayRadioBars("s","<%- stationIndex %>",<%= JSON.stringify(rd[i].url || "") %>,<%= JSON.stringify(rd[i].name || "") %>);'>
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                            <%}else{%>
+                                <button type="button" class="play-btn-small" id="s<%- stationIndex %>"
+                                    onclick='highlightCountry(<%= JSON.stringify(rd[i].countryCode || rd[i].countrycode || "") %>,<%= JSON.stringify(rd[i].state || "") %>); PlayRadio("s<%- stationIndex %>",<%= JSON.stringify(rd[i].url || "") %>,<%= JSON.stringify(rd[i].name || "") %>);'>
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                            <%}%>
+
+                            <div class="ms-2">
+                                <button type="submit" name='AddFav' value="<%- stationIndex %>"
+                                    class="btn-modern btn-success">Add My Radio</button>
+                            </div>
+                        </div>
+                    </div>
+                    <%}%>
+                <%}%>
+            </div>
+
+            <div class="station-actions">
+                <input type="hidden" name="currentOffset" value="<%- rd.length %>">
+                <button class="btn-modern" type="submit" name="Favorites" value="Favorites">
+                    <i class="bi bi-star-fill text-warning"></i>My Radio<i class="bi bi-star-fill text-warning"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Map & Visualizer -->
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="glass-panel p-1">
+                    <div id="map"></div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div id="visualizerContainer"
+                    class="glass-panel p-3 text-center h-100 d-flex flex-column justify-content-center">
+                    <h5>Visualizer</h5>
+                    <canvas class="visualizer"></canvas>
+                    <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+                    <p id="Station" class="mt-2 text-info"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <!-- EQ Modal  -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <div id="eqForm">
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Form Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </div>
+                <script>
+                    function toggleReverb() {
+                        const newValue = currentReverb === "off" ? "on" : "off";
+                        fetch('/reverb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reverb: newValue })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+
+                            currentReverb = data.reverb;   // 🔥 update JS state
+
+                            if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                applyReverbRouting(currentReverb === "on");
+                            }
+
+                            const reverbBtn = document.getElementById('reverbButton');
+                            if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+
+                            document.getElementById('eqModel').style.display = 'none';
+                        })
+                        .catch(err => console.error("Reverb error:", err));
+                    }
+                </script>
+            </div>
+        </div>
+        <!-- Selection Modal (Country/Genre) -->
+        <div id="selectionModal" class="modal">
+            <div class="modal-content" style="height: 80vh; display: flex; flex-direction: column;">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Select</h3>
+                    <span class="close-btn" onclick="closeSelectionModal()">&times;</span>
+                </div>
+
+                <input type="text" id="modalSearch" placeholder="Search..." onkeyup="filterModalList()"
+                    class="form-control mb-3"
+                    style="background: rgba(255,255,255,0.1); border:none; color:white;">
+
+                <div id="selectionList" style="flex: 1; overflow-y: auto;"></div>
+
+                <button type="button" class="btn-modern w-100 mt-3" onclick="clearSelection()">Clear
+                    Selection</button>
+            </div>
+        </div>
+
+        </form>
+        <!-- </main> -->
+
+        <script>
+            /* ISO-3166 country centroids (lat/lon) */
+            const COUNTRY_COORDS = {
+            AF:{lat:33.9391,lon:67.7100}, AL:{lat:41.1533,lon:20.1683},
+            DZ:{lat:28.0339,lon:1.6596},  AS:{lat:-14.2710,lon:-170.1322},
+            AD:{lat:42.5063,lon:1.5218},  AO:{lat:-11.2027,lon:17.8739},
+            AI:{lat:18.2206,lon:-63.0686}, AQ:{lat:-75.2509,lon:-0.0714},
+            AG:{lat:17.0608,lon:-61.7964}, AR:{lat:-38.4161,lon:-63.6167},
+            AM:{lat:40.0691,lon:45.0382},  AU:{lat:-25.2744,lon:133.7751},
+            AT:{lat:47.5162,lon:14.5501},  AZ:{lat:40.1431,lon:47.5769},
+            BS:{lat:25.0343,lon:-77.3963}, BH:{lat:26.0667,lon:50.5577},
+            BD:{lat:23.6850,lon:90.3563},  BB:{lat:13.1939,lon:-59.5432},
+            BY:{lat:53.7098,lon:27.9534},  BE:{lat:50.5039,lon:4.4699},
+            BZ:{lat:17.1899,lon:-88.4976}, BJ:{lat:9.3077,lon:2.3158},
+            BO:{lat:-16.2902,lon:-63.5887}, BR:{lat:-14.2350,lon:-51.9253},
+            BG:{lat:42.7339,lon:25.4858},  CA:{lat:56.1304,lon:-106.3468},
+            CH:{lat:46.8182,lon:8.2275},   CL:{lat:-35.6751,lon:-71.5430},
+            CN:{lat:35.8617,lon:104.1954}, CO:{lat:4.5709,lon:-74.2973},
+            CR:{lat:9.7489,lon:-83.7534},  CU:{lat:21.5218,lon:-77.7812},
+            CZ:{lat:49.8175,lon:15.4730},  DE:{lat:51.1657,lon:10.4515},
+            DK:{lat:56.2639,lon:9.5018},   DO:{lat:18.7357,lon:-70.1627},
+            EC:{lat:-1.8312,lon:-78.1834}, EG:{lat:26.8206,lon:30.8025},
+            ES:{lat:40.4637,lon:-3.7492},  EE:{lat:58.5953,lon:25.0136},
+            FI:{lat:61.9241,lon:25.7482},  FR:{lat:46.2276,lon:2.2137},
+            GB:{lat:55.3781,lon:-3.4360},  GR:{lat:39.0742,lon:21.8243},
+            HU:{lat:47.1625,lon:19.5033},  IE:{lat:53.4129,lon:-8.2439},
+            IL:{lat:31.0461,lon:34.8516},  IN:{lat:20.5937,lon:78.9629},
+            IQ:{lat:33.2232,lon:43.6793},  IR:{lat:32.4279,lon:53.6880},
+            IT:{lat:41.8719,lon:12.5674},  JP:{lat:36.2048,lon:138.2529},
+            KR:{lat:35.9078,lon:127.7669}, MX:{lat:23.6345,lon:-102.5528},
+            NL:{lat:52.1326,lon:5.2913},   NO:{lat:60.4720,lon:8.4689},
+            NZ:{lat:-40.9006,lon:174.8860}, PL:{lat:51.9194,lon:19.1451},
+            PT:{lat:39.3999,lon:-8.2245},  RO:{lat:45.9432,lon:24.9668},
+            RU:{lat:61.5240,lon:105.3188}, SE:{lat:60.1282,lon:18.6435},
+            TR:{lat:38.9637,lon:35.2433},  UA:{lat:48.3794,lon:31.1656},
+            US:{lat:37.0902,lon:-95.7129}, ZA:{lat:-30.5595,lon:22.9375}
+            };
+                let activeMarker = null;
+                let pulseInterval = null;
+                let map = null;
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (isIOS()) {
+                        console.log("iOS device detected");
+                        setPlatformDevice("iOS")
+                        //debug2(" - iOS device detected")
+                        map = L.map('map', {
+                            dragging: true,
+                            touchZoom: true,
+                            scrollWheelZoom: false,
+                            tap: true
+                        }).setView([20, 0], 0, { animate: true });
+
+                    } else 
+                    if (isMobile()) {
+                        console.log("Mobile device detected");
+                        setPlatformDevice("Mobile")
+                        //debug2(" - Mobile device detected")
+                        map = L.map('map', {
+                            dragging: true,
+                            touchZoom: true,
+                            scrollWheelZoom: false,
+                            tap: true
+                        }).setView([20, 0], 0,{animate:true});
+                    } else {
+                        console.log("PC detected");
+                        setPlatformDevice("PC")
+                        map = L.map('map', {
+                            zoomControl: true,
+                            dragging: true,
+                            // touchZoom: true,     // pinch zoom INSIDE map
+                            // scrollWheelZoom: false,
+                            // doubleClickZoom: false,
+                            // keyboard: false,
+                            // tap: true
+                        }).setView([20, 0], 0,{animate:true});
+                    }
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap'
+                    }).addTo(map);
+                    // L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    //     attribution: '&copy; OpenStreetMap &copy; CARTO',
+                    //     subdomains: 'abcd',
+                    //     maxZoom: 19
+                    // }).addTo(map);
+                });
+
+                // SELECTION MODAL LOGIC
+                let currentType = '';
+                function isIOS() {
+                    return (
+                        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+                    );
+                }
+                function openSelectionModal(type) {
+                    currentType = type;
+                    const modal = document.getElementById('selectionModal');
+                    const list = document.getElementById('selectionList');
+                    const searchInput = document.getElementById('modalSearch');
+
+                    list.innerHTML = '';
+                    searchInput.value = '';
+                    document.getElementById('modalTitle').innerText = type === 'country' ? 'Select Country' : 'Select Genre';
+
+                    const sourceId = type === 'country' ? 'countries' : 'genres';
+                    const options = document.getElementById(sourceId).options;
+
+                    for (let opt of options) {
+                        let btn = document.createElement('div');
+                        btn.className = 'modal-list-item';
+                        btn.style.display = 'flex';
+                        btn.style.alignItems = 'center';
+                        btn.style.gap = '10px';
+
+                        let visibleText = opt.value;
+                        if (type === 'country' && opt.value.includes(',')) {
+                            const isoCode = opt.value.split(',')[0].trim().toLowerCase();
+                            if (isoCode.length === 2) {
+                                let img = document.createElement('img');
+                                img.src = `https://flagcdn.com/w40/${isoCode}.png`;
+                                img.width = 24;
+                                img.style.borderRadius = "2px";
+                                btn.appendChild(img);
+                            }
+                        }
+
+                        let span = document.createElement('span');
+                        span.innerText = visibleText;
+                        btn.appendChild(span);
+
+                        btn.onclick = () => selectValue(opt.value);
+                        list.appendChild(btn);
+                    }
+                    modal.style.display = 'block';
+                    setTimeout(() => searchInput.focus(), 100);
+                }
+
+                function filterModalList() {
+                    const val = document.getElementById('modalSearch').value.toUpperCase();
+                    const btns = document.getElementById('selectionList').getElementsByClassName('modal-list-item');
+                    for (let b of btns) {
+                        b.style.display = b.innerText.toUpperCase().includes(val) ? 'flex' : 'none';
+                    }
+                }
+
+                function selectValue(val) {
+                    if (currentType === 'country') {
+                        document.getElementById('hiddenCountry').value = val;
+                        const btn = document.getElementById('countryBtn');
+                        if (val && val.includes(',')) {
+                            const iso = val.split(',')[0].trim().toLowerCase();
+                            btn.innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" width="20" style="margin-right: 5px;"> ${val}`;
+                        } else {
+                            btn.innerHTML = '<i class="bi bi-globe"></i> ' + (val || 'Select Country');
+                        }
+                    } else {
+                        document.getElementById('hiddenGenre').value = val;
+                        document.getElementById('genreBtn').innerHTML = '<i class="bi bi-music-note"></i> ' + (val || 'Select Genre');
+                    }
+                    closeSelectionModal();
+                }
+
+                function clearSelection() {
+                    selectValue('');
+                }
+
+                function closeSelectionModal() {
+                    document.getElementById('selectionModal').style.display = 'none';
+                }
+
+                function isMobile() {
+                    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                }
+
+                // Map Highlighting Logic (retained)
+                async function highlightCountry(countryCode, state) {
+                    if (!map || !countryCode) return;
+
+                    const coords = COUNTRY_COORDS[countryCode.toUpperCase()];
+                    if (!coords) {
+                        console.log("No coordinates for", countryCode);
+                        return;
+                    }
+
+                    // Remove previous marker
+                    if (activeMarker) {
+                        map.removeLayer(activeMarker);
+                    }
+
+                    // Move map
+                    map.flyTo([coords.lat, coords.lon], 6, {
+                        animate: true,
+                        duration: 2.5,     // seconds (increase for slower)
+                        easeLinearity: 0.25
+                    });
+                    // Add marker
+                    activeMarker = L.marker([coords.lat, coords.lon])
+                        .addTo(map)
+                        .bindPopup(countryCode)
+                        .openPopup();
+                }
+                
+                document.querySelector("form").addEventListener("submit", () => {
+                const btn = document.getElementById("searchBtn");
+                const text = document.getElementById("btnText");
+
+                btn.disabled = true;
+                text.textContent = "wait ...";
+                });
+
+            </script>
+            <script src="/scripts/audioWeb.js"></script>
+        <%- include('../partials/footer'); %>
+</body>
+
+</html>

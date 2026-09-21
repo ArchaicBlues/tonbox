@@ -1,0 +1,6 @@
+/home/pi/mediaServer/Music
+├── Audio
+├── Radio
+└── Video
+
+4 directories

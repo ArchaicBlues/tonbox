@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Tonbox Media Center – Einrichtung</title>
+<style>
+    body { font-family: Arial; background:#111; color:#eee; padding:40px; }
+    .card { max-width:600px; margin:auto; background:#1e1e1e; padding:30px; border-radius:8px; }
+    h2 { margin-top:0; }
+    label { display:block; margin-top:20px; }
+    input { width:100%; padding:8px; margin-top:5px; border-radius:4px; border:none; }
+    button { margin-top:25px; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; }
+    .primary { background:#4CAF50; color:white; }
+    .test { background:#2196F3; color:white; margin-left:10px; }
+    .notice { font-size:0.9em; color:#bbb; margin-top:10px; }
+    .success { color:#4CAF50; margin-top:15px; }
+    .error { color:#f44336; margin-top:15px; }
+</style>
+</head>
+<body>
+
+<form action='../apiKeySet', id='setupForm' method='POST', content-type="text/javascript">
+    <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i> Back / Submit</button>
+    <br><br>
+
+<div class="card">
+    <h2>Ersteinrichtung – Externe Dienste</h2>
+
+    <p class="notice">
+        Für die Nutzung externer Dienste sind eigene API-Schlüssel erforderlich.
+        Die Nutzung erfolgt gemäß den jeweiligen Nutzungsbedingungen der Anbieter.
+    </p>
+
+    <label>
+        YouTube Data API Key
+        <input type="text" id="youtubeKey" placeholder="AIza..." required>
+    </label>
+
+    <label>
+        Discogs API Key
+        <input type="text" id="discogsKey" placeholder="Discogs Token..." required>
+    </label>
+
+    <label>
+        Song Recognition (songrec)
+        <input type="text" id="songrecHost" placeholder="z.B. http://localhost:8000">
+    </label>
+
+    <button type="submit" class="primary" name="key" value="key">Speichern</button>
+    <button type="button" class="test" onclick="testKeys()">API-Test</button>
+
+    <div id="status"></div>
+</form>
+</div>
+
+<script>
+document.getElementById("setupForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const youtubeKey = document.getElementById("youtubeKey").value.trim();
+    const discogsKey = document.getElementById("discogsKey").value.trim();
+    const songrecHost = document.getElementById("songrecHost").value.trim();
+
+    if(!youtubeKey || !discogsKey){
+        showStatus("Bitte alle Pflichtfelder ausfüllen.", false);
+        return;
+    }
+
+    try {
+        // Optional: an dein Node Backend senden
+        await fetch("/apiKeySet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                youtubeKey,
+                discogsKey,
+                songrecHost
+            })
+        });
+
+        showStatus("Konfiguration erfolgreich gespeichert.", true);
+
+    } catch (err) {
+        showStatus("Fehler beim Speichern.", false);
+    }
+});
+
+async function testKeys(){
+    showStatus("Teste API-Verbindungen...", true);
+
+    try {
+        const response = await fetch("/api/test-config");
+        const result = await response.json();
+
+        if(result.success){
+            showStatus("API-Test erfolgreich.", true);
+        } else {
+            showStatus("API-Test fehlgeschlagen.", false);
+        }
+
+    } catch(err){
+        showStatus("API-Test nicht möglich.", false);
+    }
+}
+
+function showStatus(message, success){
+    const status = document.getElementById("status");
+    status.className = success ? "success" : "error";
+    status.innerText = message;
+}
+</script>
+
+</body>
+</html>

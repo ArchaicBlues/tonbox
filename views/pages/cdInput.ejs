@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"> -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+<body>
+<%- include('../partials/header'); %>
+<script>
+    const maxTitel = Number("<%- maxTitel %>"); 
+    console.log("maxTitel="+maxTitel)
+    // Beispiel PHP:
+    // const maxTitel = <?php echo $maxTitel; ?>;
+</script>
+
+    <main class="container">
+    <form action='../cdInput', method='POST', content-type="text/javascript">
+<div class="container animate-in">
+    <div class="glass-panel" style="padding:2rem; max-width:800px; margin:0 auto;">
+        
+        <h1>Disc Editor</h1>
+
+        <form id="discForm" method="POST" action="/submitDisc" enctype="multipart/form-data">
+
+            <!-- CD Number Selection -->
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <label for="cdNumber">CD number for label needed</label>
+
+                <div class="select-wrapper">
+                    <select id="cdNumber" name="cdNumber" required>
+                        <option value="" disabled selected>Select CD</option>
+                        <option value="1">CD 1</option>
+                        <option value="2">CD 2</option>
+                        <option value="3">CD 3</option>
+                        <option value="4">CD 4</option>
+                        <option value="5">CD 5</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Artist -->
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <label>Artist</label>
+                <input type="text" name="artist" required>
+            </div>
+
+            <!-- Disc Titel -->
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <label>Disc Titel</label>
+                <input type="text" name="discTitle" required>
+            </div>
+
+            <!-- Tracks -->
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <h3 class="section-title">Tracks</h3>
+                <div id="tracksContainer"></div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <h3 class="section-title">Cover Images (max. 4)</h3>
+                <input type="hidden" name="uploadDir" value="help/">
+
+                <input type="file" 
+                       id="images" 
+                       name="images[]" 
+                       accept="image/*" 
+                       multiple>
+
+                <small style="color:var(--text-muted);">
+                    Maximal 4 Bilder erlaubt. Wenn kein Bild (300x300), dann wird eins automatisch generiert.
+                </small>
+
+                <div id="imagePreview" 
+                     class="grid-auto" 
+                     style="margin-top:1rem;">
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex-center">
+                <button type="submit" class="btn-modern btn-primary">
+                    Submit
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+/* Dynamische Trackfelder */
+const container = document.getElementById("tracksContainer");
+
+for (let i = 1; i <= maxTitel; i++) {
+    const wrapper = document.createElement("div");
+    wrapper.style.marginBottom = "0.8rem";
+
+    const label = document.createElement("label");
+    label.textContent = "Titel " + i;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.name = "tracks[]";
+    input.required = true;
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    container.appendChild(wrapper);
+}
+
+
+/* Image Upload Limit + Preview */
+const imageInput = document.getElementById("images");
+const preview = document.getElementById("imagePreview");
+
+imageInput.addEventListener("change", function() {
+
+    preview.innerHTML = "";
+
+    if (this.files.length > 4) {
+        alert("Maximal 4 Bilder erlaubt!");
+        this.value = "";
+        return;
+    }
+
+    Array.from(this.files).forEach(file => {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.style.width = "100%";
+            img.style.borderRadius = "12px";
+            img.style.border = "1px solid rgba(255,255,255,0.1)";
+            preview.appendChild(img);
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+});
+</script>
+
+
+
+
+
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

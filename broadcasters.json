@@ -1,0 +1,535 @@
+[
+ {
+    "id": "ndr",
+    "names": ["ndr"],
+    "countries": ["Germany"],
+    "channels": {
+      "ndr 1": "ndr1",
+      "ndr 2": "ndr2",
+      "ndr kultur": "ndrkultur",
+      "ndr info": "ndrinfo"
+    },
+    "streams": {
+      "ndr1": {
+        "mp3": "https://ndr-ndr1niedersachsen-live.icecastssl.ndr.de/ndr/ndr1niedersachsen/live/mp3/128/stream.mp3"
+      },
+      "ndr2": {
+        "mp3": "https://ndr-ndr2-live.icecastssl.ndr.de/ndr/ndr2/live/mp3/128/stream.mp3"
+      },
+      "ndrkultur": {
+        "mp3": "https://ndr-ndrkultur-live.icecastssl.ndr.de/ndr/ndrkultur/live/mp3/128/stream.mp3"
+      },
+      "ndrinfo": {
+        "mp3": "https://ndr-ndrinfo-live.icecastssl.ndr.de/ndr/ndrinfo/live/mp3/128/stream.mp3"
+      }
+    }
+  },
+
+  {
+    "id": "br",
+    "names": ["br", "bayerischer rundfunk"],
+    "countries": ["Germany"],
+    "channels": {
+      "bayern 1": "bayern1",
+      "bayern 2": "bayern2",
+      "br klassik": "brklassik",
+      "bayern 3": "bayern3"
+    },
+    "streams": {
+      "bayern1": {
+        "mp3": "https://dispatcher.rndfnk.com/br/br1/oberbayern/mp3/low"
+      },
+      "bayern2": {
+        "mp3": "https://dispatcher.rndfnk.com/br/br2/mp3/low"
+      },
+      "brklassik": {
+        "mp3": "https://dispatcher.rndfnk.com/br/brklassik/mp3/low"
+      },
+      "bayern3": {
+        "mp3": "https://dispatcher.rndfnk.com/br/br3/mp3/low"
+      }
+    }
+  },
+
+  {
+    "id": "swr",
+    "names": ["swr"],
+    "countries": ["Germany"],
+    "channels": {
+      "swr1": "swr1",
+      "swr2": "swr2",
+      "swr3": "swr3"
+    },
+    "streams": {
+      "swr1": {
+        "mp3": "https://liveradio.swr.de/sw282p3/swr1bw/play.mp3"
+      },
+      "swr2": {
+        "mp3": "https://liveradio.swr.de/sw282p3/swr2/play.mp3"
+      },
+      "swr3": {
+        "mp3": "https://liveradio.swr.de/sw282p3/swr3/play.mp3"
+      }
+    }
+  },
+
+  {
+    "id": "hr",
+    "names": ["hr", "hessischer rundfunk"],
+    "countries": ["Germany"],
+    "channels": {
+      "hr1": "hr1",
+      "hr2": "hr2",
+      "hr3": "hr3"
+    },
+    "streams": {
+      "hr1": {
+        "mp3": "https://dispatcher.rndfnk.com/hr/hr1/mp3/low"
+      },
+      "hr2": {
+        "mp3": "https://dispatcher.rndfnk.com/hr/hr2/mp3/low"
+      },
+      "hr3": {
+        "mp3": "https://dispatcher.rndfnk.com/hr/hr3/mp3/low"
+      }
+    }
+  },
+  {
+  "id": "wdr",
+  "names": ["wdr"],
+  "countries": ["Germany"],
+  "channels": {
+    "wdr 2": "wdr2",
+    "wdr 3": "wdr3",
+    "wdr 4": "wdr4",
+    "wdr 5": "wdr5",
+    "cosmo": "cosmo"
+  },
+  "streams": {
+    "wdr2": {
+      "mp3": "https://wdr-wdr2-live.icecastssl.wdr.de/wdr/wdr2/live/mp3/128/stream.mp3"
+    },
+    "wdr3": {
+      "mp3": "https://wdr-wdr3-live.icecastssl.wdr.de/wdr/wdr3/live/mp3/128/stream.mp3"
+    },
+    "wdr4": {
+      "mp3": "https://wdr-wdr4-live.icecastssl.wdr.de/wdr/wdr4/live/mp3/128/stream.mp3"
+    },
+    "wdr5": {
+      "mp3": "https://wdr-wdr5-live.icecastssl.wdr.de/wdr/wdr5/live/mp3/128/stream.mp3"
+    },
+    "cosmo": {
+      "mp3": "https://wdr-cosmo-live.icecastssl.wdr.de/wdr/cosmo/live/mp3/128/stream.mp3"
+    }
+  }
+},
+  {
+  "id": "dlf",
+  "names": ["deutschlandfunk", "dlf", "kultur", "debatten", "nova"],
+  "countries": ["Germany"],
+  "channels": {
+    "deutschlandfunk": "dlf",
+    "deutschlandfunk kultur": "kultur",
+    "deutschlandfunk nova": "nova"
+  },
+  "streams": {
+    "dlf": {
+      "mp3": "https://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3?aggregator=web"
+    },
+    "kultur": {
+      "mp3": "https://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3?aggregator=web"
+    },
+    "nova": {
+      "mp3": "https://st03.sslstream.dlf.de/dlf/03/128/mp3/stream.mp3"
+    }
+  }
+},
+
+
+  {
+    "id": "bbc",
+    "names": ["bbc"],
+    "countries": ["United Kingdom"],
+    "channels": {
+      "radio 1": "bbc_radio_one",
+      "radio 2": "bbc_radio_two",
+      "radio 4": "bbc_radio_fourlw",
+      "radio 5": "bbc_radio_five_live"
+    },
+    "streams": {
+      "bbc_radio_one": {
+        "hls": "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one"
+      },
+      "bbc_radio_two": {
+        "hls": "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two"
+      },
+      "bbc_radio_fourlw": {
+        "hls": "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourlw"
+      },
+      "bbc_radio_five_live": {
+        "hls": "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_five_live"
+      }
+    }
+  },
+
+  {
+    "id": "orf",
+    "names": ["orf", "ö1"],
+    "countries": ["Austria"],
+    "channels": {
+      "oe1": "oe1",
+      "fm4": "fm4"
+    },
+    "streams": {
+      "oe1": {
+        "mp3": "https://orf-live.ors-shoutcast.at/oe1-q2a"
+      },
+      "fm4": {
+        "mp3": "https://orf-live.ors-shoutcast.at/fm4-q2a"
+      }
+    }
+  },
+
+  {
+    "id": "sr",
+    "names": ["sveriges radio", "sr"],
+    "countries": ["Sweden"],
+    "channels": {
+      "p1": "sr_p1",
+      "p2": "sr_p2",
+      "p3": "sr_p3"
+    },
+    "streams": {
+      "sr_p1": {
+        "mp3": "https://sverigesradio.se/topsy/direkt/srapi/132.mp3"
+      },
+      "sr_p2": {
+        "mp3": "https://sverigesradio.se/topsy/direkt/srapi/163.mp3"
+      },
+      "sr_p3": {
+        "mp3": "https://sverigesradio.se/topsy/direkt/srapi/164.mp3"
+      }
+    }
+  },
+
+  {
+    "id": "npr",
+    "names": ["npr"],
+    "countries": ["United States"],
+    "channels": {
+      "news": "npr_news"
+    },
+    "streams": {
+      "npr_news": {
+        "mp3": "https://npr-ice.streamguys1.com/live.mp3"
+      }
+    }
+  },
+
+  {
+    "id": "cbc",
+    "names": ["cbc", "radio canada"],
+    "countries": ["Canada"],
+    "channels": {
+      "radio one": "cbc_radio_one"
+    },
+    "streams": {
+      "cbc_radio_one": {
+        "mp3": "https://cbcliveradio-lh.akamaihd.net/i/CBCR1_TOR@384676/master.m3u8"
+      }
+    }
+  },
+
+  {
+    "id": "radio_france",
+    "names": ["radio france", "france inter"],
+    "countries": ["France"],
+    "channels": {
+      "france inter": "france_inter",
+      "france culture": "france_culture"
+    },
+    "streams": {
+      "france_inter": {
+        "mp3": "https://direct.franceinter.fr/live/franceinter-midfi.mp3"
+      },
+      "france_culture": {
+        "mp3": "https://direct.franceculture.fr/live/franceculture-midfi.mp3"
+      }
+    }
+  },
+
+  {
+    "id": "abc",
+    "names": ["abc radio"],
+    "countries": ["Australia"],
+    "channels": {
+      "radio national": "abc_radio_national"
+    },
+    "streams": {
+      "abc_radio_national": {
+        "mp3": "https://live-radio01.mediahubaustralia.com/2RNW/mp3/"
+      }
+    }
+  },
+{
+  "id": "usa_public_radio",
+  "names": ["npr", "public radio usa"],
+  "countries": ["United States"],
+  "channels": {
+    "npr news": "npr_news",
+    "pbs news": "pbs_news"
+  },
+  "streams": {
+    "npr_news": {
+      "mp3": "https://npr-ice.streamguys1.com/live.mp3"
+    },
+    "pbs_news": {
+      "mp3": "https://listen.pbs.org/stream/pbsnews"
+    }
+  }
+},
+{
+  "id": "pacifica",
+  "names": ["pacifica radio"],
+  "countries": ["United States"],
+  "channels": {
+    "kpfa": "kpfa",
+    "kpfk": "kpfk",
+    "wpfw": "wpfw",
+    "kpft": "kpft",
+    "wbai": "wbai"
+  },
+  "streams": {
+    "kpfa": {
+      "mp3": "https://kpfa.streamguys1.com/kpfa_64"
+    },
+    "kpfk": {
+      "mp3": "https://kpfk.streamguys1.com/kpfk_64"
+    },
+    "wpfw": {
+      "mp3": "https://wpfw.streamguys1.com/wpfw_64"
+    },
+    "kpft": {
+      "mp3": "https://kpft.streamguys1.com/kpft_64"
+    },
+    "wbai": {
+      "mp3": "https://wbai.streamguys1.com/wbai_64"
+    }
+  }
+},
+{
+  "id": "cspan_radio",
+  "names": ["c-span radio"],
+  "countries": ["United States"],
+  "channels": {
+    "cspan": "cspan"
+  },
+  "streams": {
+    "cspan": {
+      "mp3": "https://radio.c-span.org/live.mp3"
+    }
+  }
+},
+{
+  "id": "voice_of_america",
+  "names": ["voice of america", "voa"],
+  "countries": ["United States"],
+  "channels": {
+    "english": "voa_english"
+  },
+  "streams": {
+    "voa_english": {
+      "mp3": "https://voa-ice.streamguys1.com/live.mp3"
+    }
+  }
+},
+{
+  "id": "npr_regional",
+  "names": ["npr regional"],
+  "countries": ["United States"],
+  "channels": {
+    "wnyc": "wnyc_ny",
+    "kqed": "kqed_ca",
+    "wamu": "wamu_dc",
+    "mpr": "mpr_mn",
+    "kera": "kera_tx"
+  },
+  "streams": {
+    "wnyc_ny": {
+      "mp3": "https://fm939.wnyc.org/wnycfm"
+    },
+    "kqed_ca": {
+      "mp3": "https://streams.kqed.org/kqedradio"
+    },
+    "wamu_dc": {
+      "mp3": "https://wamu-1.streamguys1.com/live.mp3"
+    },
+    "mpr_mn": {
+      "mp3": "https://live.mpr.org/know"
+    },
+    "kera_tx": {
+      "mp3": "https://kera-ice.streamguys1.com/live"
+    }
+  }
+},
+{
+  "id": "usa_classical",
+  "names": ["classical radio usa"],
+  "countries": ["United States"],
+  "channels": {
+    "wqxr": "wqxr_ny",
+    "classical_kusc": "kusc_ca",
+    "wdav": "wdav_nc"
+  },
+  "streams": {
+    "wqxr_ny": {
+      "mp3": "https://stream.wqxr.org/wqxr"
+    },
+    "kusc_ca": {
+      "mp3": "https://playerservices.streamtheworld.com/api/livestream-redirect/KUSCMP128.mp3"
+    },
+    "wdav_nc": {
+      "mp3": "https://wdav.streamguys1.com/wdav"
+    }
+  }
+},
+{
+  "id": "usa_jazz",
+  "names": ["jazz radio usa"],
+  "countries": ["United States"],
+  "channels": {
+    "wbgo": "wbgo_nj",
+    "kcsn": "kcsn_ca"
+  },
+  "streams": {
+    "wbgo_nj": {
+      "mp3": "https://wbgo.streamguys1.com/wbgo128"
+    },
+    "kcsn_ca": {
+      "mp3": "https://playerservices.streamtheworld.com/api/livestream-redirect/KCSNFMAAC.aac"
+    }
+  }
+},
+{
+  "id": "usa_college_radio",
+  "names": ["college radio usa"],
+  "countries": ["United States"],
+  "channels": {
+    "kexp": "kexp_seattle",
+    "wfmu": "wfmu_nj"
+  },
+  "streams": {
+    "kexp_seattle": {
+      "mp3": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3"
+    },
+    "wfmu_nj": {
+      "mp3": "https://wfmu.org/wfmu.mp3"
+    }
+  }
+},
+{
+  "id": "radio_france",
+  "names": ["radio france", "france inter", "france culture"],
+  "countries": ["France"],
+  "channels": {
+    "inter": "france_inter",
+    "culture": "france_culture",
+    "musique": "france_musique",
+    "info": "france_info"
+  },
+  "streams": {
+    "france_inter": {
+      "mp3": "https://direct.franceinter.fr/live/franceinter-midfi.mp3"
+    },
+    "france_culture": {
+      "mp3": "https://direct.franceculture.fr/live/franceculture-midfi.mp3"
+    },
+    "france_musique": {
+      "mp3": "https://direct.francemusique.fr/live/francemusique-midfi.mp3"
+    },
+    "france_info": {
+      "mp3": "https://direct.franceinfo.fr/live/franceinfo-midfi.mp3"
+    }
+  }
+},
+{
+  "id": "rai_radio",
+  "names": ["rai radio"],
+  "countries": ["Italy"],
+  "channels": {
+    "radio1": "rai_radio_1",
+    "radio2": "rai_radio_2",
+    "radio3": "rai_radio_3"
+  },
+  "streams": {
+    "rai_radio_1": {
+      "mp3": "https://icestreaming.rai.it/1.mp3"
+    },
+    "rai_radio_2": {
+      "mp3": "https://icestreaming.rai.it/2.mp3"
+    },
+    "rai_radio_3": {
+      "mp3": "https://icestreaming.rai.it/3.mp3"
+    }
+  }
+},
+{
+  "id": "rtve",
+  "names": ["rtve", "rne"],
+  "countries": ["Spain"],
+  "channels": {
+    "radio1": "rne_radio_1",
+    "radio3": "rne_radio_3",
+    "radio5": "rne_radio_5"
+  },
+  "streams": {
+    "rne_radio_1": {
+      "mp3": "https://rtvelivestream.akamaized.net/rtveradio/rne/rne_mpe.mp3"
+    },
+    "rne_radio_3": {
+      "mp3": "https://rtvelivestream.akamaized.net/rtveradio/rne3/rne3_mpe.mp3"
+    },
+    "rne_radio_5": {
+      "mp3": "https://rtvelivestream.akamaized.net/rtveradio/rne5/rne5_mpe.mp3"
+    }
+  }
+},
+{
+  "id": "srg_ssr",
+  "names": ["srg", "srf", "rts"],
+  "countries": ["Switzerland"],
+  "channels": {
+    "srf1": "srf_1",
+    "srf2": "srf_2",
+    "rts1": "rts_premiere"
+  },
+  "streams": {
+    "srf_1": {
+      "mp3": "https://stream.srg-ssr.ch/m/drs1/mp3_128"
+    },
+    "srf_2": {
+      "mp3": "https://stream.srg-ssr.ch/m/drs2/mp3_128"
+    },
+    "rts_premiere": {
+      "mp3": "https://stream.srg-ssr.ch/m/la-1ere/mp3_128"
+    }
+  }
+},
+{
+  "id": "yle",
+  "names": ["yle"],
+  "countries": ["Finland"],
+  "channels": {
+    "yle1": "yle_radio_1",
+    "ylex": "ylex"
+  },
+  "streams": {
+    "yle_radio_1": {
+      "mp3": "https://yleradiolive.akamaized.net/hls/live/2027672/radio-suomi/master.m3u8"
+    },
+    "ylex": {
+      "mp3": "https://yleradiolive.akamaized.net/hls/live/2027678/ylex/master.m3u8"
+    }
+  }
+}
+]

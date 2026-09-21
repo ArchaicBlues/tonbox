@@ -1,0 +1,189 @@
+.audioBig-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+
+    background: rgba(0, 210, 255, 0.12);
+    border: 1px solid rgba(0, 210, 255, 0.35);
+
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.audioBig-btn i {
+    font-size: 1.3rem;
+    color: var(--accent-color);
+}
+
+.audioBig-btn:hover {
+    background: rgba(0, 210, 255, 0.25);
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.audioBig-btn:active {
+    transform: scale(0.96);
+}
+
+
+/***************/
+.audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;                 /* was 0.6rem */
+
+    padding: 0.3rem 0.6rem;      /* was 0.6rem 1.1rem */
+    border-radius: 999px;
+
+    background: rgba(0, 210, 255, 0.12);
+    border: 1px solid rgba(0, 210, 255, 0.35);
+
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.45rem;          /* was 0.9rem */
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.audio-btn i {
+    font-size: 0.65rem;          /* was 1.3rem */
+    color: var(--accent-color);
+}
+
+.audio-btn:hover {
+    background: rgba(0, 210, 255, 0.25);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.audio-btn:active {
+    transform: scale(0.96);
+}
+
+/***************/
+
+
+.track-name {
+    white-space: nowrap;
+}
+
+
+
+.rect-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+
+    padding: 0.75rem 1.4rem;
+    border-radius: 8px;   /* ← Rechteckig */
+
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    border: none;
+
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    box-shadow: 0 8px 18px rgba(0, 210, 255, 0.35);
+}
+
+.rect-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0, 210, 255, 0.6);
+}
+
+.rect-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 12px rgba(0, 210, 255, 0.4);
+}
+
+.dir-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    padding: 0.7rem 1.3rem;
+    border-radius: 12px;
+
+    background: rgba(53, 133, 199, 0.15);
+    border: 1px solid rgba(0, 210, 255, 0.25);
+
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.dir-btn i {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    transition: 0.25s ease;
+}
+
+.dir-btn:hover {
+    background: rgba(0, 210, 255, 0.15);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px rgba(73, 150, 79, 0.4);
+    transform: translateY(-2px);
+}
+
+.dir-btn:hover i {
+    transform: scale(1.1);
+}
+
+.dir-btn:active {
+    transform: scale(0.97);
+}
+
+
+.select-rect {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;               /* wie rect-btn */
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 18px rgba(0, 210, 255, 0.35);
+}
+
+.select-rect option {
+    background-color: rgba(58, 123, 213, 0.9); /* blauer Hintergrund */
+    color: #fff;
+}
+
+.select-rect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0, 210, 255, 0.6);
+}
+
+.select-rect:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.7);
+}

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="button.css">
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <style>
+
+.fav-title {
+    display: flex;
+    justify-content: center;   /* horizontal */
+    align-items: center;       /* vertikal (falls Höhe existiert) */
+    text-align: center;
+
+    font-weight: 600;
+    color: white;
+
+    white-space: nowrap;
+    overflow: hidden;
+    
+    text-overflow: ellipsis;
+}
+.fav-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+
+    /* Station List */
+    .station-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 1rem;
+        max-height: 40vh;
+        /* Scrollable area */
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .station-card {
+    background: rgba(228, 54, 54, 0.03);
+    border: 2px solid var(--glass-border);
+    border-radius: 8px;          /* was 12px */
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        padding: 0.7rem;
+        gap: 0.5rem;
+    }
+    .station-card small,
+    .station-card div[style*="font-size"] {
+        font-size: 0.7rem;
+    }
+    .station-card.compact {
+        padding: 0.35rem 0.6rem;
+        border-radius: 6px;
+    }
+
+    .station-card.compact .station-name {
+        font-size: 0.8rem;
+    }
+
+    .play-btn-small {
+        background: var(--accent-color);
+        color: black;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .del-btn-small {
+        background: black;
+        border: 1px solid #ff0055;
+        color: #ff0055;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+    .rec-btn-small {
+        background: transparent
+        border: 1px solid #ff0055;
+        color: #ff0055;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header'); %>
+
+    <script>
+        //define page contents
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        dirType = "Radio/"
+        modalWin = true
+        audioTag = true
+        const rh = <%- JSON.stringify(rh) %>;
+        btracks = <%- JSON.stringify(basetracks) %>; 
+        let currentReverb = "<%= settings.reverb %>";
+        let currentRadioDir = "<%= currentRadioDir %>";
+    </script>
+
+
+    <main class="container">
+    <form action='../radioFavorites', method='POST', content-type="text/javascript">
+
+    <!-- Top Controls: Volume & EQ -->
+    <div class="glass-panel top-controls">
+        <div class="d-flex align-items-center gap-3">
+            <% if (basetracks) {%>
+            <button id="back" class="btn-modern" type="submit" name="Back" value="track" ><i class="bi bi-arrow-left"></i>Back</button> 
+            <%}else{%>
+            <button id="back" class="btn-modern" type="submit" name="Back" value="dir" ><i class="bi bi-arrow-left"></i>Back</button> 
+            <%}%>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+            <label
+                style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                    class="bi bi-volume-up"></i> Volume</label>
+            <!-- Check for settings.mediaOut existence -->
+            <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50" style="width: 100%;">
+            <% } else { %>
+                    <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                        value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="width: 100%;">
+            <% } %>
+        </div>
+        <button type="button" class="btn-modern"
+            onclick="openEq()">
+            Eq
+        </button>
+    </div>
+    <br><br>
+    <div class="group-img-center">
+        <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;"> 
+            <!-- frequency bars -->
+            <canvas class="visualizer"></canvas>
+        </div>
+        <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+        <p style="text-align:center" id="Station"></p>
+
+        <!-- EQ Modal  -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <form onsubmit="return false;">
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==='0')
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==='1')
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==='2')
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==='3')
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==='4')
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+
+                    <!-- Reverb Toggle (Fetch Submit) -->
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </form>
+                <script>
+                    function toggleReverb() {
+                        const newValue = currentReverb === "off" ? "on" : "off";
+                        fetch('/reverb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reverb: newValue })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            currentReverb = data.reverb;   // 🔥 update JS state
+                            if (audioOut && audioOut.match("HTTP") && typeof applyReverbRouting === 'function') {
+                                applyReverbRouting(currentReverb === "on");
+                            }
+                            const reverbBtn = document.getElementById('reverbButton');
+                            if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+                            document.getElementById('eqModel').style.display = 'none';
+                        })
+                        .catch(err => console.error("Reverb error:", err));
+                    }
+                </script>
+
+            </div>
+        </div>
+    </div>
+    <div style="max-height: 600px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+    <form action='../radioFavorites', method='POST', content-type="text/javascript">
+    <div class="glass-panel p-3 mb-4 text-center">
+    <div class="station-grid">
+    <% for (var i=0; i<rh.button.length; i++) {
+        if (rh.button[i].name != "none") {%> 
+        <div class="station-card compact">
+            <div class="fav-title" title="<%- rh.button[i].name %>">
+                <%- rh.button[i].name %>
+            </div>
+
+            <div class="fav-controls">
+                <button type="submit" class="del-btn-small"  name='Remove' value=<%- i %> >Delete</button>&nbsp;&nbsp;&nbsp;
+                <%if (!settings.mediaOut.match("HTTP")) {%>
+                    <button type="button" class="play-btn-small"  id="s<%- i %>"
+                        onclick='PlayRadioBarsFav("s",<%= JSON.stringify(i) %>,<%= JSON.stringify(rh.button[i].url || "") %>,<%= JSON.stringify(rh.button[i].name || "") %>)'>
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                <%}else{%>
+                    <button type="button" class="play-btn-small" id="s<%- i %>"
+                        onclick='PlayRadio("s<%- i %>",<%= JSON.stringify(rh.button[i].url || "") %>,<%= JSON.stringify(rh.button[i].name || "") %>)' >
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                <%}%>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="rec-btn-small" onclick='scheduleRecording(<%= JSON.stringify(rh.button[i].url || "") %>)'>Rec</button>
+            </div>
+        </div>
+        <%}%>
+    <%}%>
+    </div>
+    </div>
+
+
+
+    </div>
+    </form>
+    
+    <h4 class="section-title text-center">Recorded Stations</h3>
+    <form action='../radioFavorites', method='POST', content-type="text/javascript">
+    <% for (var i=0; i<radioDirs.length; i++) {%>
+        <button type="submit" class="btn-primary" name='radioDir' value='<%- radioDirs[i] %>' >'🗀'<%- radioDirs[i] %> </button>
+        &nbsp;
+    <%}%>
+    <br><br><br>
+    <!-- Content of Radiostation Records -->
+    <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+        <div id="button-container"><p id='butt'></p></div>
+    </div>
+    </form>
+
+    <!-- Recording Modal -->
+    <div id="recordModal" class="modal" style="display:none;">
+    <div class="modal-content glass-panel" style="padding:2rem; width:400px; animation:fadeIn 0.4s ease;">
+
+        <!-- <h3 class="section-title" style="text-align: center;">Radio Recording</h3> -->
+
+        <button class="btn-modern btn-primary" onclick="recordNow()">Record now and stop yourself</button>
+        <br><br>
+        <input type="hidden" id="modalRadioUrl"> 
+
+        <div style="margin-bottom:1rem;">
+        <label>Startzeit</label>
+        <input type="datetime-local" id="modalStartTime">
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+        <label>Stopzeit</label>
+        <input type="datetime-local" id="modalStopTime">
+        </div>
+
+        <div class="flex-between">
+        <button class="btn-modern" onclick="closeModal()">Cancel</button>
+        <button class="btn-modern btn-primary" onclick="confirmRecording()">Schedule</button>
+        </div>
+
+        <div id="modalStatus" style="margin-top:1rem; text-align:center;"></div>
+
+    </div>
+    </div>
+
+<script>
+    buttonCon = document.getElementById("button-container") 
+    var clickCount = 0
+    var target = ""
+    var buttonY = ""
+    var oldbuttonY = ""
+    var videoPlaying = false
+    var delItems=[]
+    let lastClickId = "";
+    let lastClickTs = 0;
+    const dblClickWindowMs = 450;
+
+    function updateBackButton() {
+        if (delItems.length > 0) {
+            buttonBack = document.getElementById("back")
+            buttonBack.style = "color:red;"
+            buttonBack.innerHTML = "Back / Delete"
+            if (dirType.match("Video")) buttonBack.value = "DeleteVideo " + delItems
+            else if (dirType.match("Radio/")) buttonBack.value = "DeleteAudio " + delItems
+            else if (dirType.match("Radio")) buttonBack.value = "DeleteRadio " + delItems
+        } else {
+            buttonBack = document.getElementById("back")
+            buttonBack.style = ""
+            buttonBack.innerHTML = "Back"
+            buttonBack.value = "dirMain"
+        }
+
+        console.log("Selected:", delItems)
+    }
+
+    buttonCon.addEventListener("click", function(event) {
+        let button = event.target.closest("button");
+        if (!button) return;
+
+        let name = (button.innerText || button.textContent || "").trim();
+        if (!name) return;
+
+        if (delItems.includes(name)) {
+            // single click on selected item -> unselect
+            button.style = "";
+            delItems = delItems.filter(item => item !== name);
+            lastClickId = "";
+            lastClickTs = 0;
+            updateBackButton();
+            return;
+        }
+
+        const now = Date.now();
+        const isDoubleClick = (lastClickId === button.id) && ((now - lastClickTs) <= dblClickWindowMs);
+        if (isDoubleClick) {
+            button.style = "text-decoration: line-through; color:red;";
+            delItems.push(name);
+            lastClickId = "";
+            lastClickTs = 0;
+            updateBackButton();
+            return;
+        }
+
+        // first click: remember only, no visual change
+        lastClickId = button.id;
+        lastClickTs = now;
+    })
+
+async function recordNow(){
+    const url = document.getElementById("modalRadioUrl").value;
+    let startTime=0, stopTime = Date.now()+3600000;//in 1 hour
+    const res = await fetch("/scheduleRecording", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ radioUrl: url, startTime, stopTime })
+    });
+
+    const data = await res.json();
+    const modal = document.getElementById("recordModal");
+    const status     = document.getElementById("modalStatus");
+    if (data.success) {
+        status.innerText = "Aufnahme gestartet ✔";
+        location.reload(true) //refresh page thru server, update REC sign in header
+
+        setTimeout(() => {
+            modal.style.display = "none";
+            status.innerText = "";
+        }, 3000);
+    } else {
+        status.innerText = "Fehler bei Planung.";
+    }
+}        
+
+async function scheduleRecording(radioUrl) {
+    const modal = document.getElementById("recordModal");
+
+    const startInput = document.getElementById("modalStartTime");
+    const stopInput  = document.getElementById("modalStopTime");
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+    startInput.value = now.toISOString().slice(0, 16);
+
+    const stop = new Date(now)
+    stop.setMinutes(stop.getMinutes() + 5);
+
+    stopInput.value = stop.toISOString().slice(0, 16);
+
+    if (radioUrl) {
+        document.getElementById("modalRadioUrl").value = radioUrl;
+        modal.style.display = "flex";
+        return;
+    }
+    const url = document.getElementById("modalRadioUrl").value;
+    const status     = document.getElementById("modalStatus");
+
+    let startTime = "0";
+    let stopTime="0";
+    if (!startInput || !stopInput) {
+        status.innerText = "No timewindow set. Try to record.";
+    }else{
+        console.log("start="+startInput.value)
+        console.log("stop="+stopInput.value)
+        startTime = new Date(startInput.value).getTime();
+        stopTime  = new Date(stopInput.value).getTime();
+        console.log("s="+startTime+"; e="+stopTime)
+        if (stopTime <= startTime) {
+            status.innerText = "Stopzeit muss nach Startzeit liegen.";
+            return;
+        }
+    }
+    const res = await fetch("/scheduleRecording", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ radioUrl: url, startTime, stopTime })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        status.innerText = "Aufnahme geplant ✔";
+
+        setTimeout(() => {
+            modal.style.display = "none";
+            status.innerText = "";
+        }, 3000);
+
+    } else {
+        status.innerText = "Fehler bei Planung.";
+    }
+}
+
+function closeModal() {
+    document.getElementById("recordModal").style.display = "none";
+    document.getElementById("modalStatus").innerText = "";
+}
+
+async function confirmRecording() {
+    const radioUrl = document.getElementById("modalRadioUrl").value;
+    const startInput = document.getElementById("modalStartTime");
+    const stopInput  = document.getElementById("modalStopTime");
+    const status     = document.getElementById("modalStatus");
+    status.innerText = "";
+
+    // console.log("startInput =", startInput.value);
+    // console.log("[" + startInput.value + "]");
+    // console.log(typeof startInput.value);
+    // console.log("parsed =", new Date(startInput.value));
+    // console.log("ms =", new Date(startInput.value).getTime());
+
+    // 🔎 Basic validation
+    if (!radioUrl) {
+        status.innerText = "No radio URL selected.";
+        return;
+    }
+    let startTime = "0"
+    let stopTime  = "0"
+    const now = Date.now();
+    if (!startInput.value || !stopInput.value) {
+        status.innerText = "Recording will start emmidiatly.";
+    }else{
+        startTime = new Date(startInput.value).getTime();
+        stopTime  = new Date(stopInput.value).getTime();
+        // if (startTime <= now) {
+        //     status.innerText = "Start time must be in the future.";
+        //     return;
+        // }
+        if (stopTime <= now){//startTime) {
+            status.innerText = "Stop time must be in the future.";
+            return;
+        }
+    }
+    try {
+        const response = await fetch("/scheduleRecording", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                radioUrl: radioUrl,
+                startTime: startTime,
+                stopTime: stopTime
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            status.innerText = "Recording successfully scheduled ✔";
+            setTimeout(() => {
+                document.getElementById("recordModal").style.display = "none";
+                status.innerText = "";
+                location.reload(true) //refresh page thru server, update REC sign in header
+            }, 500);
+        } else {
+            status.innerText = "Server error: " + (result.error || "unknown error");
+        }
+    } catch (err) {
+        console.error("Schedule error:", err);
+        status.innerText = "Connection error.";
+    }
+}
+
+//close Modal win if user clicks elsewhere outside
+const rM = document.getElementById("recordModal")
+rM.addEventListener("click", function (event) {
+    console.log("event="+event)
+    if (event.target === rM) {
+        rM.style.display = "none";
+    }
+});
+</script>
+
+</main>
+    <%- include('../partials/footer'); %>
+
+    <script src="/scripts/audioWeb.js"></script>
+
+</body>
+</html>

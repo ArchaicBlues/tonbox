@@ -1,0 +1,226 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<style>
+    .control-row {
+        display: flex;
+        align-items: center;   /* vertikal zentrieren */
+        gap: 10px;             /* Abstand zwischen Button und Slider */
+    }
+
+    #myVideo {
+        width: 50%;
+        height: 50vh;
+        object-fit: contain;
+        background: black;
+        display: block;
+        margin: auto;
+    }
+
+    .fullscreen-media {
+        display: block;
+        width: 360px;
+        height: 288px;
+        object-fit: contain;
+    }
+
+    .video-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .video-actions button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #2c6df6;
+        color: white;
+        cursor: pointer;
+    }
+
+    .video-title-wrap {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .video-title-input {
+        width: min(420px, 90vw);
+        padding: 8px 10px;
+        border: 1px solid #6c757d;
+        border-radius: 6px;
+        background: #fff;
+        color: #111;
+    }
+
+    .video-title-input.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+    }
+
+    .video-title-error {
+        margin-top: 4px;
+        color: #ff8080;
+        font-size: 0.9rem;
+        min-height: 1.2em;
+    }
+</style>
+
+
+<body>
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../captureVideo', method='POST', content-type="text/javascript">
+        <div class="glass-panel p-3 mb-4 d-flex justify-content-start align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                    <button class="btn-modern" id="back" type="submit" name="Back" value="Back"><i
+                            class="bi bi-arrow-left"></i> Back</button>
+        </div>
+        </div>
+        <br>
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div id="touchArea" style="width:100%;background:rgb(3, 3, 3); display:flex; flex-direction:column; align-items:center;">
+        <div
+            style="
+                width: 720px;
+                height: 576px;
+                background: url('images/tv.jpg') center center / cover no-repeat;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            "
+        >
+        <% if (!recording){%>
+            <img
+                src="/video-view-stream"
+                class="fullscreen-media"
+                alt="Video Livebild"
+                width="360"
+                height="288">
+        <%}else{%>
+            <img
+                id="myVideo"
+                src="/video-recording-stream"
+                class="fullscreen-media"
+                alt="VHS Livebild"
+                width="360"
+                height="288">
+        <%}%>
+        </div>
+        <% if (!recording){%>
+        <audio controls autoplay style="margin-top: 12px;">
+            <source src="/video-audio" type="audio/mpeg">
+        </audio>
+        <div class="video-title-wrap">
+            <label for="videoTitle"><strong>Video-Titel</strong></label>
+            <input
+                id="videoTitle"
+                name="videoTitle"
+                type="text"
+                class="video-title-input"
+                placeholder="Aufnahmetitel z.B. myVideo.mp4 eingeben"
+                autocomplete="off">
+            <div id="videoTitleError" class="video-title-error" role="alert" aria-live="polite"></div>
+        </div>
+        <%}else{%>
+        <%}%>
+
+        <br><br>
+        <div class="video-actions">
+            <button type="submit" name="action" value="ViewVideo">View Video</button>
+            <% if (!recording) { %>
+            <button id="recVideoBtn" type="submit" name="action" value="RecVideo"
+                style="background:#2c6df6;">
+                &#9654; Rec Video
+            </button>
+            <% } else { %>
+            <button id="recVideoBtn" type="submit" name="action" value="StopRec"
+                style="background:#dc3545;">
+                &#9632; Stop Rec
+            </button>
+            <% } %>
+        </div>
+        <div style="margin-top: 14px; padding: 10px 18px; background: rgba(255,193,7,0.15); border-left: 4px solid #ffc107; border-radius: 6px; color: #ffd966; font-size: 0.9em; text-align: left;">
+            <i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px;"></i>
+            <strong>Hinweis:</strong> Bildwiederholrate in der Vorschau = 15 fps (statt 25 fps).<br>
+            Die Aufnahme erfolgt in voller Video / Audio Qualität.
+        </div>
+        </div>
+        </div>
+    <script>
+        // Require title before starting video recording.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Prevent browser back button / swipe-back navigation
+            history.pushState(null, "", location.href);
+            window.addEventListener("popstate", function () {
+                history.pushState(null, "", location.href);
+            });
+
+            // Block Enter/Return entirely on this page.
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }, true);
+
+            const form = document.querySelector("form[action='../captureVideo']");
+            const titleInput = document.getElementById("videoTitle");
+            const titleError = document.getElementById("videoTitleError");
+            const recButton = document.getElementById("recVideoBtn");
+
+            if (titleInput && recButton) {
+                titleInput.addEventListener("input", function () {
+                    titleInput.classList.remove("is-invalid");
+                    if (titleError) {
+                        titleError.textContent = "";
+                    }
+                });
+            }
+
+            if (!form) return;
+            form.addEventListener("submit", function (event) {
+                const submitter = event.submitter;
+                if (!submitter) return;
+
+                if (submitter.name === "action" && submitter.value === "RecVideo" && titleInput) {
+                    const value = titleInput.value.trim();
+                    if (!value) {
+                        event.preventDefault();
+                        titleInput.classList.add("is-invalid");
+                        if (titleError) {
+                            titleError.textContent = "Bitte Video-Titel eingeben, bevor die Aufnahme gestartet wird.";
+                        }
+                        titleInput.focus();
+                        return;
+                    }
+                    titleInput.value = value;
+                }
+            });
+        });
+    </script>
+
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+
+</body>
+</html>

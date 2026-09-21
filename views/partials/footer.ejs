@@ -1,0 +1,23 @@
+<br>
+<p style="text-align: center; color: red";><%- pState.text %></p>
+<div id="debug" style="text-align: center; color:rgb(238, 229, 229); font-size:14px;"></div>
+<div id="debug2" style="text-align: center; color:rgb(238, 229, 229); font-size:14px;"></div>
+
+<script>
+(function() {
+    // Die Liste aller verfügbaren Themes
+    const allThemes = ['vintage', 'sci-fi'];
+    const savedTheme = localStorage.getItem('theme') || 'modern';
+    const body = document.body;
+
+    // 1. Erstmal alle eventuellen Theme-Klassen löschen
+    allThemes.forEach(t => body.classList.remove(t));
+
+    // 2. Das gespeicherte Theme setzen (außer es ist 'modern')
+    if (allThemes.includes(savedTheme)) {
+        body.classList.add(savedTheme);
+    }
+    
+    console.log("🎨 Theme-Manager: " + savedTheme + " aktiv.");
+  })();
+  </script>

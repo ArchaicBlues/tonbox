@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+
+<body class="my-body">
+
+        <form action='../lyricSearch', method='POST', content-type="text/javascript">
+            <button type="submit" name='Back' value="Back" >Back</button> 
+            <br>
+            
+            <h1><img src="images/YouTube.jpg" width="5%" height="5%" alt="YouTube">&nbsp;&nbsp;
+                <b>Lyric Search</b> &nbsp;&nbsp;
+            <img src="images/YouTube.jpg" width="5%" height="5%" alt="YouTube">
+            </h1>
+            <div class="col-auto">
+            <br><br>
+            <h2>Suchbegriff
+            <input type="text" name='ytsearch' value="" class="form-control" aria-label="Search Item" placeholder="">            
+            <button type="submit" name='Submit' value="Submit" class="btn btn-primary mb-3 btn-lg">Enter</button> 
+            </h2>
+            </div>
+                
+        </form>
+    </div>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

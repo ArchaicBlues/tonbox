@@ -1,0 +1,71 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+
+
+    <title>SSE EventSource Example</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/event-source-polyfill/0.0.9/eventsource.min.js"></script>
+      <script>
+        const es = new EventSource("http://" + "<%= ip %>" + ":8000" + "<%= sysdir %>" + "/ArchaicNodeEJS/funcSSE");
+        const listener = function (event) {
+            const type = event.type;
+            window.console.log(`${type}: ${event.data || es.url}`);
+            if (type === 'result') {
+                es.close();
+            }
+        };
+        es.addEventListener('open', listener);
+        es.addEventListener('message', listener);
+        es.addEventListener('error', listener);
+        es.addEventListener('result', listener);
+      </script>
+</head>
+
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<link rel=stylesheet type="text/css" href="views/css/style.css">
+
+
+<body class="my-body">
+       
+        <h1  >Manage your media thru your webbrowser
+        <h4><br>
+        <p><%= tagline %></p><br>
+        <ul>
+            <% info.forEach(function(info) { %>
+                <li>
+                    <strong><%= info.name %></strong>
+                    used for <%= info.organization %> %>
+                </li>
+            <% }); %>
+        </ul>
+    </h4>
+    </h1>
+   
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

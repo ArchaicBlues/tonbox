@@ -1,0 +1,602 @@
+  :root {
+      --primary-color: #1a1a1a;
+      --secondary-color: #2d2d2d;
+      --accent-color: #00ff88;
+      --text-primary: #ffffff;
+      --text-secondary: #b3b3b3;
+  }
+
+  * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+  }
+
+
+  body {
+      background: var(--primary-color);
+      color: var(--text-primary);
+      min-height: 100vh;
+  }
+
+  .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+  }
+
+  /* Navigation Header */
+  .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--secondary-color);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Media Controls */
+  .media-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 2rem 0;
+  }
+
+  .control-btn {
+      background: var(--secondary-color);
+      border: none;
+      padding: 1rem;
+      border-radius: 8px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+  }
+
+
+.control-music-btn {
+  white-space: nowrap; /* prevent button text wrapping */
+  padding: 1em 1em; /* adjust as needed */
+  font-size: 1rem;
+  cursor: pointer;
+
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap; /* if too many, wrap nicely */
+  gap: 0.5rem;     /* spacing between buttons */
+  overflow-x: auto; /* add scroll if needed */
+  padding: 0.5rem 0;
+}
+
+.control-music2-btn {
+  display: block;           /* Makes the button take full width */
+  width: 50%;              /* Ensures full line width */
+  text-align: center;       /* Center the text inside */
+  padding: 10px 0;          /* Optional: adds vertical padding */
+  margin: 5px 0;            /* Optional: spacing between buttons */
+  background-color: #61c4ab;   /* Optional: dark background */
+  color:#000;
+  /*color: var(--text-primary); Optional: text color */
+  border: none;             /* Optional: removes default border */
+  font-size: 1rem;          /* Optional: increase text size */
+  border-radius: 6px;       /* Optional: rounded corners */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  gap: 0.5rem;
+  }
+  .control-btn:hover {
+      background: var(--accent-color);
+      color: var(--primary-color);
+      transform: translateY(-2px);
+  }
+
+  /* Equalizer Modal */
+  .modal-content {
+      background: var(--secondary-color);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .eq-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #404040;
+      border-radius: 4px;
+      outline: none;
+  }
+
+  .eq-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      cursor: pointer;
+  }
+
+  /* Visualizer */
+  .visualizer {
+      width: 25%;
+      height: 50px;
+      background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+      border-radius: 8px;
+      margin: 2rem 0;
+  }
+
+  /* Progress Bar */
+  .progress-wrapper {
+      width: 100%;
+      margin: 2rem 0;
+  }
+
+  #progress {
+      width: 100%;
+      height: 4px;
+      background: #404040;
+      border-radius: 2px;
+      overflow: hidden;
+  }
+
+  #progress::-webkit-progress-value {
+      background: var(--accent-color);
+  }
+
+  /* Search Bar */
+  .search-container {
+      display: flex;
+      gap: 1rem;
+      margin: 2rem 0;
+  }
+
+  .search-input {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--secondary-color);
+      color: var(--text-primary);
+  }
+
+  /* Video Player */
+  .video-container {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .group-center {
+      display: grid;
+      grid-template-columns: 1fr; /* or repeat(3, 1fr) for multiple columns */
+      justify-items: center; /* or start, end */
+      gap: 20px;
+      width: 100%;
+  }
+  /* center several images */
+  .group-img-center {
+      display: grid;
+      grid-template-columns: 1fr; /* Eine Spalte */
+      justify-items: center;      /* Horizontale Zentrierung der Grid-Inhalte */
+      align-items: center;
+      gap: 0;                     /* Wir steuern Abstände lieber über Margin */
+      width: 100%;
+  }
+  .middleImg{
+      display: inline-block;
+  }
+
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+      .media-controls {
+          grid-template-columns: 1fr;
+      }
+      
+      .nav-header {
+          flex-direction: column;
+          gap: 1rem;
+      }
+  }
+
+  .full-width-btn {
+      display: block;
+      width: 100%;
+      background-color: rgb(8, 8, 8);
+      color: white;
+      border: none;
+      padding: 10px;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+  }
+
+  .full-width-btn:hover {
+      background-color: #222;
+  }
+
+
+
+
+
+/* ------------------------------------old----------------- */
+
+
+/* h1 {
+ color:black;
+}
+h2 {
+ color:black;
+}
+h3 {
+ color:black;
+}
+h4 {
+ color:black;
+}
+h5 {
+ color:black;
+} */
+
+hr {
+width: 100%;
+height: 3px;
+margin-right: auto;
+margin-left: auto;
+margin-top: 5px;
+margin-bottom: 5px;
+border-width: 2px;
+border-color: rgb(254, 254, 254);
+}
+
+/* See funcAudio.js for hoover text */
+
+.hovertext {
+position: relative;
+border-bottom: 1px dotted black;
+}
+
+.hovertext:before {
+content: attr(data-hover);
+visibility: hidden;
+opacity: 0;
+background-color: white;
+color: black;
+text-align: center;
+font-size:15px;
+border-radius: 5px;
+padding: 5px 0;
+transition: opacity 1s ease-in-out;
+
+position: absolute;
+z-index: 1;
+left: 0;
+top: 110%;
+}
+
+.hovertext:hover:before {
+opacity: 1;
+visibility: visible;
+}
+
+
+.slidecontainer {
+    width: 70%; /* Width of the outside container */
+    justify-content:center;
+  }
+  
+  /* The slider itself */
+  .slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 70%; /* Full-width */
+    height: 3px; /* Specified height */
+    background: #0338f5; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+  }
+  
+  /* Mouse-over effects */
+  .slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+  }
+  
+  /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 5px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: #0a0a0a; 
+    cursor: pointer; /* Cursor on hover */
+    color:#000;
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 7px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: #0a0a0a; 
+    cursor: pointer; /* Cursor on hover */
+  }    
+
+
+  /* 
+The "cursor:pointer" changes the mouse cursor to pointer; 
+"font-size" and "height" are in rem unit just to make the button responsive.
+The "border:none" removes the annoying border 
+and "border-radius:10px" makes the button edges circular (which is just nice).
+The "color" and "background-color" attribute are one's choice.
+The "outline:none" removes the outline drawn around the button when it is clicked. 
+The "box-shadow" property is to give the button some shadow.
+And I've used some pseudo classes
+The "filter:brightness(110%)" property increases the brightness of the button when we 
+  hover over it like it is changing the color.
+The "transform:translate(0,0.3rem)" moves the button to the Y-direction */    
+.button-container{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+  }
+button{
+    cursor: pointer;
+    font-size: 1.2rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 10px;
+    color: rgb(245, 241, 241);
+    background-color: rgb(5, 5, 5);
+    outline:none;
+    box-shadow: 0 0.3rem rgba(121,121,121,0.70);
+  }
+button:hover{
+    filter:brightness(300%);
+  }
+button:active{
+    transform: translate(0.0.3rem);
+    box-shadow: 0 01.rem rgba(184, 68, 68, 0.7);
+  }
+
+.buttonCircle {border-radius: 100%;}
+
+.smallButton {
+  /* width: 90%; */
+  height: auto;
+  font-size: 20px;
+  color:#fcfafa;
+  background-color:#020202;
+}
+.smallButton-grey {
+  /* width: 10%; */
+  height: auto;
+  font-size: 12px;
+  font-weight: bold;
+  color:#f50303;
+  background-color:#8b8989
+}
+.smallButton-blue {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  font-size: 12px;
+  color:#f5f1f1;
+  background-color:#370cd1
+}
+/* .smallButton-blue {
+  width: 100%;
+  height: auto;
+  font-size: 12px;
+  color:#f5f1f1;
+  background-color:#370cd1
+} */
+.smallButton-red {
+  /* flex: 1;
+  width: 100%; */
+  height: auto;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  color:#f7f3f3;
+  background-color:rgb(248, 1, 25)
+}
+/* .smallButton-red {
+  width: 50%;
+  height: auto;
+  font-size: 12px;
+  font-weight: bold;
+  color:#f7f3f3;
+  background-color:rgb(220,53,69)
+} */
+
+.midButton {
+  width: 90%;
+  height: auto;
+  font-size: 18px;
+}
+
+/*used to set the space between an element and its surrounding elements*/
+.eq {
+  margin: 2%; 
+}
+
+div.controls label {
+  display: inline-block;
+  text-align: right;
+  /*width: 200px;*/
+  vertical-align: middle;
+  padding: 0;
+  margin: 0;
+}
+
+div.controls input {
+    width:50%
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; 
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100vw; /* Full width */
+  height:80vh; /* Full height */
+  overflow: auto; /* Enable scroll if needed */ 
+  background-color: rgba(100, 99, 99, 0.4); /* Black w/ opacity */
+  /* Use flex to center content */
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #080808;
+  color:white;
+  margin: auto;
+  padding: 20px;
+  width: 90%;
+  border: 3px solid #0540f1;
+  max-width: 500px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+/* The Close Button */
+.close {
+  color: #db0606;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.group-center {
+    display: grid;
+    grid-template-columns: 1fr; /* or repeat(3, 1fr) for multiple columns */
+    justify-items: center; /* or start, end */
+}
+
+/* center several images */
+.group-img-center{
+  text-align: center
+}
+.middleImg{
+    display: inline-block;
+}
+
+canvas {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-bottom: -3px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.7), 0 3px 4px rgba(0, 0, 0, 0.7);
+}
+
+/*marquee equivalent to html4 */
+.holder {
+  /*background:#ccc;*/
+  padding:0.5rem;
+  overflow: hidden;
+}
+.news {
+  animation : slide 30s linear infinite; 
+}
+@keyframes slide {
+  0% {
+    transform: translatex(0%)
+  }
+
+  100% {
+    transform: translatex(100%)
+  }
+}
+
+
+  .progress-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  #progress {
+    width: 300px;
+  }
+
+        /* Popup-Styles */
+        .popup-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgb(5, 5, 5);
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(110, 51, 51, 0.3);
+            z-index: 1000;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .popup-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .entry-item:hover {
+            background-color: #09e009;
+        }
+        
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .insert-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .close-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            align-self: flex-end;
+        }

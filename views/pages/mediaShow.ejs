@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <title>Fading Image Stream</title>
+    <style>
+        body {
+            background: black;
+            color: white;
+        }
+
+        #marquee-container {
+            display: none !important;
+        }
+
+        main.container {
+            background: black;
+            max-width: none;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Fill the viewport exactly below the fixed header (64px) and body's
+           bottom padding (10px), so the show never needs a page scrollbar and
+           always fits fully, in both portrait and landscape. */
+        main.container form {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 74px);
+            overflow: hidden;
+        }
+
+        .control-row,
+        .skip-controls,
+        .skip-hint {
+            flex: 0 0 auto;
+        }
+
+        #slideshow {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: black;
+        }
+
+        #slideshow img, #slideshow video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0;
+        transition: opacity 3s ease-in-out;
+        }
+
+        #slideshow img.active, #slideshow video.active {
+        opacity: 1;
+        z-index: 2;
+        }
+
+        .control-row {
+        display: flex;
+        align-items: center;   /* vertikal zentrieren */
+        gap: 10px;             /* Abstand zwischen Button und Slider */
+        padding: 0 var(--spacing-sm, 1rem);
+        }
+
+        .control-row .btn-modern {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: white;
+        }
+
+        .control-row .btn-modern:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .control-row .eq-slider {
+            accent-color: #ffffff;
+        }
+
+        .skip-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px auto 0;
+            flex-wrap: wrap;
+        }
+
+        .skip-btn {
+            min-width: 56px;
+            min-height: 48px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 1rem;
+            padding: 0 14px;
+        }
+
+        .skip-btn:hover,
+        .skip-btn:focus {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .skip-hint {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.82rem;
+            margin-top: 6px;
+        }
+
+        /* Phone landscape: very little viewport height is available, so the
+           controls need to shrink as much as possible to leave real room for
+           the image/video itself instead of squeezing it into a thin strip. */
+        @media (max-height: 500px) {
+            .control-row {
+                padding: 2px var(--spacing-sm, 1rem);
+            }
+            .control-row .btn-modern {
+                padding: 0.25rem 0.4rem;
+            }
+            .skip-controls {
+                margin: 4px auto 0;
+                gap: 6px;
+            }
+            .skip-btn {
+                min-width: 44px;
+                min-height: 30px;
+                padding: 0 10px;
+                font-size: 0.85rem;
+            }
+            .skip-hint {
+                display: none;
+            }
+        }
+
+        /* Very short viewports (e.g. a modern phone in landscape, ~270px tall)
+           can't spare 64px for the Tonbox top bar on top of the controls this
+           page already has of its own (Back/Volume/Eq) - so hide it
+           and reclaim that space entirely for the image/video. */
+        @media (max-height: 400px) {
+            .top-bar,
+            .sidebar {
+                display: none !important;
+            }
+            body {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                padding-left: 0 !important;
+            }
+            main.container form {
+                height: 100vh !important;
+                width: 100vw !important;
+            }
+            .control-row {
+                padding: 1px var(--spacing-sm, 1rem);
+                gap: 6px;
+            }
+            .control-row .btn-modern {
+                padding: 0.15rem 0.3rem;
+            }
+            .skip-controls {
+                margin: 2px auto 0;
+            }
+            .skip-btn {
+                min-height: 24px;
+                min-width: 36px;
+                padding: 0 8px;
+                font-size: 0.75rem;
+            }
+        }
+
+        #touchArea {
+            background: black !important;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+    </style>
+</head>
+<body>    
+    <%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../mediaShow', method='POST', content-type='text/html; text/javascript; multipart/form-data; application/json'>
+    <script>
+        console.clear();
+        //define page contents
+        audioOut = "<%- (typeof settings !== 'undefined' && settings && settings.mediaOut) ? settings.mediaOut : '' %>";
+        console.log("audioOut="+audioOut)
+        let currentReverb = "<%- (typeof settings !== 'undefined' && settings && settings.reverb) ? settings.reverb : 'off' %>";
+
+        //collapse the sidebar immediately (before it can flash open/animate shut)
+        if (window.innerWidth > 768) {
+            document.body.classList.add("sidebar-collapsed");
+            try { localStorage.setItem("sidebarCollapsed", "1"); } catch (e) {}
+        }
+        //try to enter FullView automatically for the show
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                var el = document.documentElement;
+                var req = el.requestFullscreen || el.webkitRequestFullscreen;
+                if (req && !document.fullscreenElement && !document.webkitFullscreenElement) req.call(el);
+            } catch (e) {}
+        });
+    </script>
+
+        <div class="control-row">
+            <button class="btn-modern" type="submit" name="Back" value="Back"><i class="bi bi-arrow-left"></i>Back</button>
+            <input oninput="volumeRadio(this.value, 'vGain')" id="vol" type="range" step="1" min="0" max="50" class="eq-slider" style="width: 100%;">
+            <button type="button" class="btn-modern" onclick="openEq()">Eq</button>
+        </div>
+        <div class="skip-controls" aria-label="Skip controls">
+            <button class="skip-btn" type="button" onclick="showPreviousMedia()" aria-label="Previous image or media">Prev</button>
+            <button class="skip-btn" type="button" onclick="showNextMedia(true)" aria-label="Next image or media">Next</button>
+            <button id="playPauseBtn" class="skip-btn" type="button" onclick="toggleSlideshowPlayback()" aria-label="Pause slideshow"><i class="bi bi-pause-fill"></i></button>
+        </div>
+        <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+
+        <!-- EQ Modal -->
+        <div id="eqModel" class="modal"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content"
+                style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>Equalizer</h5>
+                    <span class="close-btn" onclick="closeEq()"
+                        style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                </div>
+                <div>
+                    <div class="mb-1 d-flex gap-1">
+                        <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==='0')
+                                ? 'checked' : '' %>> Clear</label>
+                        <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==='1')
+                                ? 'checked' : '' %>> Neutral</label>
+                        <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==='2')
+                                ? 'checked' : '' %>> Warm</label>
+                        <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==='3')
+                                ? 'checked' : '' %>> Bass</label>
+                        <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==='4')
+                                ? 'checked' : '' %>> My</label>
+                    </div>
+                    <div style="max-height:45vh; overflow-y:auto;">
+                        <div class="eq-row">
+                            <span class="eq-label">40  Hz</span>
+                            <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">121 Hz</span>
+                            <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">547 Hz</span>
+                            <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">674 Hz</span>
+                            <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">818 Hz</span>
+                            <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1503Hz</span>
+                            <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1605Hz</span>
+                            <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">1722Hz</span>
+                            <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">4160Hz</span>
+                            <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                        </div>
+                        <div class="eq-row">
+                            <span class="eq-label">12 kHz</span>
+                            <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                        </div>
+                    </div>
+                    <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                        Toggle Reverb <%= (settings && settings.reverb === 'off') ? 'ON' : 'OFF' %>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="touchArea" style="width:100%;background:black">
+            <div id="slideshow" style="position: relative; width: 100%; margin: 0 auto;">
+            </div>
+        </div>
+    </form>
+<!-- 
+        <div class="volume-control" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        </div> -->
+
+    </main>
+
+    <script>
+        getVolumeSettings()
+        var pauseTime = parseInt("<%- pauseTime %>")
+        if (!Number.isFinite(pauseTime) || pauseTime <= 0) {
+            pauseTime = 4
+        }
+        console.log("pauseTime="+pauseTime)
+        pauseTime *= 1000
+        console.log("pauseTime="+pauseTime)
+        var mediaFiles = [];
+        var index = 0;
+        var container = "";
+        var element1, element2;
+        var next = ""
+        var mediaState = false;
+        var mediaImgStop = true
+        var mediaType = ""
+        var intervalPtr = null
+        var isShowPaused = false
+        container = document.getElementById('slideshow');
+
+        audioElement = document.getElementById("myAudio")
+        audioTag = true
+
+        //notify user if browser doesn't support Web Audio API
+        webAudioApi = true
+        //document.write(navigator.userAgent); 
+        if (navigator.userAgent.match("SamsungBrowser/27")) {
+            webAudioApi = false
+            console.log("Web Audio API not supported1");
+        }
+        if (navigator.userAgent.match("Chrome/125")) {
+            webAudioApi = false
+            console.log("Web Audio API not supported2");
+        }
+
+        if (navigator.userAgent.match("Firefox")){ 
+            if ('webkitAudioContext' in window || 'AudioContext' in window) {
+                console.log('Web Audio API should be ok');
+            } else {
+                webAudioApi = false
+                console.log('Web Audio API may not be enabled')
+            }
+            if (!webAudioApi){
+                //mediaElement.volume = 0;
+                console.log("web volume NULL")
+            }
+        }
+
+        function createMediaElement(file) {
+            if (file.match(/\.(mp4|mov|avi|mpg|mpeg)$/i)) {
+                const video = document.createElement('video');
+                video.controls = false;
+                video.autoplay = true;
+                video.muted = false; // Required for autoplay in most browsers
+                // video.style.width = '100%';
+                // video.style.height = '100%';
+                video.style.objectFit = 'contain';
+                return video;
+            } else {
+                const img = document.createElement('img');
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'contain';
+                return img;
+            }
+        }
+
+        function getCurrentMediaElement() {
+            return container.querySelector('.active') || null;
+        }
+
+        function getCurrentMediaIndex() {
+            const current = getCurrentMediaElement();
+            if (!current || !current.dataset || current.dataset.mediaIndex === undefined) {
+                return -1;
+            }
+            return Number(current.dataset.mediaIndex);
+        }
+
+        function clearAutoAdvanceTimer() {
+            if (intervalPtr) {
+                clearTimeout(intervalPtr);
+                intervalPtr = null;
+            }
+        }
+
+        //client-side only: pauses/resumes the slideshow timer, any playing video
+        //and the background audio element, without touching the server-managed
+        //playback (no form submit / no request to /mediaShow or the audio routes)
+        function toggleSlideshowPlayback() {
+            const btn = document.getElementById('playPauseBtn');
+            const current = getCurrentMediaElement();
+            const isVideo = current && current.tagName.toLowerCase() === 'video';
+
+            if (!isShowPaused) {
+                clearAutoAdvanceTimer();
+                if (isVideo) current.pause();
+                if (audioElement && !audioElement.paused) audioElement.pause();
+                isShowPaused = true;
+                if (btn) {
+                    btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    btn.setAttribute('aria-label', 'Resume slideshow');
+                }
+            } else {
+                isShowPaused = false;
+                if (isVideo) {
+                    current.play().catch(() => {});
+                } else if (current) {
+                    scheduleAutoAdvanceForMedia(current);
+                }
+                if (audioElement && audioElement.paused && audioElement.src) audioElement.play().catch(() => {});
+                if (btn) {
+                    btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    btn.setAttribute('aria-label', 'Pause slideshow');
+                }
+            }
+        }
+
+        function scheduleAutoAdvanceForMedia(activeElement) {
+            clearAutoAdvanceTimer();
+            if (!activeElement || isShowPaused) return;
+
+            const isVideo = activeElement.tagName.toLowerCase() === 'video';
+            if (isVideo) {
+                activeElement.onended = function () {
+                    if (!activeElement.classList.contains('active')) return;
+                    showNextMedia(false);
+                };
+                return;
+            }
+
+            activeElement.onended = null;
+            intervalPtr = setTimeout(() => {
+                showNextMedia(false);
+            }, pauseTime);
+        }
+
+        function setMediaElementSource(element, fileName) {
+            if (!element) return;
+            element.dataset.mediaIndex = String(mediaFiles.indexOf(fileName));
+            element.src = `/mediaShow/${encodeURIComponent(fileName)}`;
+        }
+
+        function skipCurrentMedia(seconds) {
+            const current = getCurrentMediaElement();
+            if (!current) return;
+
+            if (current.tagName.toLowerCase() === 'video') {
+                const nextTime = Math.max(0, Math.min((current.duration || 0) || 0, (current.currentTime || 0) + seconds));
+                if (Number.isFinite(nextTime)) {
+                    current.currentTime = nextTime;
+                }
+                return;
+            }
+
+            if (seconds >= 0) {
+                showNextMedia(true);
+            } else {
+                showPreviousMedia();
+            }
+        }
+
+        function showMediaAtIndex(targetIndex) {
+            if (!Array.isArray(mediaFiles) || mediaFiles.length === 0) return;
+            const safeIndex = ((targetIndex % mediaFiles.length) + mediaFiles.length) % mediaFiles.length;
+            const fileName = mediaFiles[safeIndex];
+            const current = getCurrentMediaElement();
+            const isVideo = /\.(mp4|mov|avi|mpg|mpeg)$/i.test(fileName);
+            const targetElement = createMediaElement(fileName);
+
+            targetElement.dataset.mediaIndex = String(safeIndex);
+            targetElement.src = `/mediaShow/${encodeURIComponent(fileName)}`;
+
+            if (current) {
+                if (current.tagName.toLowerCase() === 'video') {
+                    current.pause();
+                    current.currentTime = 0;
+                }
+                current.classList.remove('active');
+            }
+
+            container.appendChild(targetElement);
+            if (current) {
+                container.replaceChild(targetElement, current);
+                //keep the element1/element2 rotation (used by showNextMedia) in
+                //sync, otherwise it ends up alternating with a detached node
+                if (current === element1) element1 = targetElement;
+                else if (current === element2) element2 = targetElement;
+            }
+
+            if (isVideo) {
+                targetElement.controls = true;
+                targetElement.play().catch(() => {});
+                audioElement.muted = true;
+                mediaType = 'video';
+            } else {
+                targetElement.controls = false;
+                audioElement.muted = false;
+                mediaType = 'img';
+            }
+
+            targetElement.classList.add('active');
+            index = safeIndex + 1;
+            next = targetElement;
+            scheduleAutoAdvanceForMedia(targetElement);
+        }
+
+        function showPreviousMedia() {
+            if (!Array.isArray(mediaFiles) || mediaFiles.length === 0) return;
+            const currentIndex = getCurrentMediaIndex();
+            const targetIndex = currentIndex >= 0 ? currentIndex - 1 : Math.max(0, index - 2);
+            showMediaAtIndex(targetIndex);
+        }
+
+        function showNextMedia(brk) {
+            if (!Array.isArray(mediaFiles) || mediaFiles.length === 0) {
+                return
+            }
+            if (index >= mediaFiles.length){
+                console.log("ENDE")
+                clearAutoAdvanceTimer()
+                window.history.back();
+                return
+            }
+            const nextFile = mediaFiles[index % mediaFiles.length];
+            const current = container.querySelector('.active');
+            if (current){
+                if (current.tagName.toLowerCase() === 'video') {
+                    console.log("currentTime="+current.currentTime + " current.duration="+current.duration + " ended=" + current.ended)
+                    if (!brk){
+                        if (!current.ended) {
+                            mediaState=true
+                            return
+                        }else{
+                            current.classList.remove('active');
+                            mediaState=false
+                        }
+                    }
+                    else{
+                        current.currentTime = current.duration
+                    }
+                }
+            }
+
+            // if (mediaType.match("img") && !mediaImgStop){
+            //     console.log("?????????!!!!!!!!!!!")
+            //     return
+            // }
+
+            if (!next) {
+                next = element1 || element2;
+            }
+            next = current === element1 ? element2 : element1;
+
+            console.log("nextFile1="+nextFile)
+            // Remove existing element if type changes
+            if (next.tagName.toLowerCase() !== (nextFile.match(/\.(mp4|mov|avi|mpg|mpeg)$/i) ? 'video' : 'img')) {
+                const newElement = createMediaElement(nextFile);
+                newElement.dataset.mediaIndex = String(index % mediaFiles.length);
+                container.replaceChild(newElement, next);
+                if (next === element1) element1 = newElement;
+                else element2 = newElement;
+                next = newElement;
+            }
+
+            // Set source and handle video specific logic
+            const mediaUrl = `/mediaShow/${encodeURIComponent(nextFile)}`;
+            const nextIsVideo = /\.(mp4|mov|avi|mpg|mpeg)$/i.test(nextFile);
+            next.dataset.mediaIndex = String(index % mediaFiles.length);
+            if (nextIsVideo) {
+                next.src = mediaUrl;
+                next.controls = true;
+                next.muted = false
+                if (typeof next.play === 'function') {
+                    next.play().catch(() => {})
+                }
+                mediaType="video"
+                audioElement.muted=true//stop()
+            } else {
+                next.src = mediaUrl;
+                //createResponsiveImage(`${nextFile}`)
+                mediaType="img"
+                audioElement.muted=false//play()
+            }
+
+            next.classList.add('active');
+            if (current) {
+                if (current.tagName.toLowerCase() === 'video') {
+                    current.pause();
+                    current.currentTime = 0;
+                }
+                current.classList.remove('active');
+            }
+            index++;
+            scheduleAutoAdvanceForMedia(next);
+        }
+
+        async function fetchMedia() {
+            const res = await fetch('/imagelist');
+            return await res.json();
+        }
+
+        async function startSlideshow() {
+            console.log("startSlideshow")
+            if (audioElement)
+            {
+                //GET Anfrage an Server senden. Dieser setzt CORS Header...
+                const proxyUrl = "/radio?url=" + encodeURIComponent("<%- lastRadiostation %>");
+                //...kommt wieder hierher zurück und übergibt die proxyUrl an das audioElement
+                audioElement.setAttribute('src',proxyUrl );
+                //audioElement.setAttribute('src', '<%- lastRadiostation %>');
+                audioElement.play()
+                initEqAudio()
+            }
+            mediaFiles = await fetchMedia();
+            console.log(mediaFiles)
+            if (!Array.isArray(mediaFiles) || mediaFiles.length === 0) {
+                console.warn("No media files available for slideshow")
+                return
+            }
+
+            // Create initial media elements
+            element1 = createMediaElement(mediaFiles[0]);
+            element2 = createMediaElement(mediaFiles[Math.min(1, mediaFiles.length - 1)]);
+            element1.dataset.mediaIndex = "0";
+            element2.dataset.mediaIndex = String(Math.min(1, mediaFiles.length - 1));
+
+            container.appendChild(element1);
+            container.appendChild(element2);
+
+            mediaState=true
+            mediaRunnning=true
+
+            next = element1
+            if (next.tagName.toLowerCase() === 'video'){
+                element1.src = `/mediaShow/${encodeURIComponent(mediaFiles[0])}`;
+                element1.dataset.mediaIndex = "0";
+                element1.classList.add('active');
+                if (typeof element1.play === 'function') {
+                    element1.play().catch(() => {})
+                }
+                mediaType="video"
+                audioElement.muted=true
+            }
+            else {   
+                // Initialize first element
+                element1.src = `/mediaShow/${encodeURIComponent(mediaFiles[0])}`;
+                element1.dataset.mediaIndex = "0";
+                
+                element1.controls = true
+                element1.classList.add('active');
+                mediaType="img"
+                audioElement.muted=false //play()
+            }
+            // Preload second element
+            element2.src = `/mediaShow/${encodeURIComponent(mediaFiles[Math.min(1, mediaFiles.length - 1)])}`;
+            element2.dataset.mediaIndex = String(Math.min(1, mediaFiles.length - 1));
+
+            // Start slideshow
+            index = 1;
+            scheduleAutoAdvanceForMedia(element1);
+        }
+
+        function volumeRadio(val){
+            var value = parseFloat(val)
+            value = val/50 //sonst zu laut bzw. Verzerrung
+            audioElement.volume = value;
+            console.log("volumeRadio("+val+") = " + value)
+            //jackVolume is stored as a canonical 0..100 value (see getVolumeSettings(),
+            //which reads it back as slider position = jackVolume*0.5); val is already
+            //the 0..50 slider position, so it must be scaled back up before saving,
+            //otherwise the slider jumps to half its position on the next page load
+            value = Math.round(val*2)
+            var xhr = new XMLHttpRequest();
+            console.log("setVolumeSettings("+val+")="+value)
+            xhr.open("POST", "/equalizer", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send("setVolumeSettings="+value);
+        }
+
+        function getVolumeSettings(){
+            console.log("getVolumeSettings()")
+            fetch('/get_volume_settings')
+            .then(response => response.json())
+            .then(data => {
+                console.log("volume="+data)
+                sl = document.getElementById('vol')
+                if(sl){
+                    if (audioOut && audioOut.match("HTTP")){
+                        sl.value = data*0.5
+                        if (audioTag){
+                            data *= 0.5
+                            data /= 50; //match volumeRadio(): gain = sliderPos/50
+                            console.log("getVolumeSettings: set audioElement.volume="+data)
+                            audioElement.volume = data;
+                        }
+                    }
+                    else{
+                        sl.value =80+data*0.15
+                        console.log("set slider")
+                    }
+                }
+            });
+        }
+
+        //Equalizer
+        //---------
+        //Radio audio during the slideshow always plays through this <audio> element,
+        //so the EQ is applied via the Web Audio API regardless of settings.mediaOut.
+        var eqSlider = {}
+        var currentFilterNum = 4
+        var changedEQ = false
+        var eqAudioCtx, eqSourceNode, eqPass40, eqPass121, eqPass547, eqPass674, eqPass818,
+            eqPass1503, eqPass1605, eqPass1722, eqPass4160, eqPass12000
+
+        function sliderValToGain(n) {
+            //mirrors sliderValtoGain() in funcEqualizer.js: slider 0..100 -> -9..+9 dB, 50 => 0 dB
+            if (n > 50) return (n - 50) * 9 / 50
+            else return -9 + n * 9 / 50
+        }
+
+        //Reverb (Web Audio equivalent of the PipeWire convolver used for Line-Out,
+        //see bashScript/conv.sh): fetches the same impulse-response file and inserts
+        //a ConvolverNode at the tail of the EQ chain, toggled by toggleReverb().
+        var reverbConvolver = null
+        var reverbEnabled = false
+        var reverbTailNode = null
+        var reverbDestNode = null
+
+        function loadReverbNode(ctx) {
+            return fetch('/filter/reverbIR.wav')
+                .then(r => r.arrayBuffer())
+                .then(buf => ctx.decodeAudioData(buf))
+                .then(decoded => {
+                    var node = ctx.createConvolver()
+                    node.buffer = decoded
+                    node.normalize = true
+                    return node
+                })
+        }
+
+        function initReverbForChain(ctx, tailNode, destNode) {
+            reverbTailNode = tailNode
+            reverbDestNode = destNode
+            reverbEnabled = currentReverb === "on"
+            tailNode.connect(destNode) //start dry; swapped in below once the IR has loaded, if needed
+            loadReverbNode(ctx).then(node => {
+                reverbConvolver = node
+                if (reverbEnabled) applyReverbRouting(true)
+            }).catch(err => console.error("reverb IR load failed:", err))
+        }
+
+        function applyReverbRouting(enabled) {
+            reverbEnabled = enabled
+            if (!reverbConvolver || !reverbTailNode || !reverbDestNode) return
+            try { reverbTailNode.disconnect(reverbDestNode) } catch (e) {}
+            try { reverbTailNode.disconnect(reverbConvolver) } catch (e) {}
+            try { reverbConvolver.disconnect(reverbDestNode) } catch (e) {}
+            if (enabled) {
+                reverbTailNode.connect(reverbConvolver)
+                reverbConvolver.connect(reverbDestNode)
+            } else {
+                reverbTailNode.connect(reverbDestNode)
+            }
+        }
+
+        function toggleReverb() {
+            const newValue = currentReverb === "off" ? "on" : "off";
+            fetch('/reverb', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reverb: newValue })
+            })
+            .then(res => res.json())
+            .then(data => {
+                currentReverb = data.reverb;
+                applyReverbRouting(currentReverb === "on");
+                const reverbBtn = document.getElementById('reverbButton');
+                if (reverbBtn) reverbBtn.textContent = 'Toggle Reverb ' + (currentReverb === "off" ? 'ON' : 'OFF');
+                document.getElementById('eqModel').style.display = 'none';
+            })
+            .catch(err => console.error("Reverb error:", err));
+        }
+
+        function initEqAudio() {
+            if (eqAudioCtx || !webAudioApi || !audioElement) return
+            try {
+                eqAudioCtx = new (window.AudioContext || window.webkitAudioContext)()
+                eqAudioCtx.resume()
+                eqSourceNode = eqAudioCtx.createMediaElementSource(audioElement)
+
+                eqPass40 = eqAudioCtx.createBiquadFilter(); eqPass40.type = "peaking"; eqPass40.frequency.value = 40; eqPass40.Q.value = 0.7
+                eqPass121 = eqAudioCtx.createBiquadFilter(); eqPass121.type = "peaking"; eqPass121.frequency.value = 121; eqPass121.Q.value = 0.7
+                eqPass547 = eqAudioCtx.createBiquadFilter(); eqPass547.type = "peaking"; eqPass547.frequency.value = 547; eqPass547.Q.value = 2.1
+                eqPass674 = eqAudioCtx.createBiquadFilter(); eqPass674.type = "peaking"; eqPass674.frequency.value = 674; eqPass674.Q.value = 0.72
+                eqPass818 = eqAudioCtx.createBiquadFilter(); eqPass818.type = "peaking"; eqPass818.frequency.value = 818; eqPass818.Q.value = 2.82
+                eqPass1503 = eqAudioCtx.createBiquadFilter(); eqPass1503.type = "peaking"; eqPass1503.frequency.value = 1503; eqPass1503.Q.value = 1.64
+                eqPass1605 = eqAudioCtx.createBiquadFilter(); eqPass1605.type = "peaking"; eqPass1605.frequency.value = 1605; eqPass1605.Q.value = 4.95
+                eqPass1722 = eqAudioCtx.createBiquadFilter(); eqPass1722.type = "peaking"; eqPass1722.frequency.value = 1722; eqPass1722.Q.value = 2.75
+                eqPass4160 = eqAudioCtx.createBiquadFilter(); eqPass4160.type = "peaking"; eqPass4160.frequency.value = 4160; eqPass4160.Q.value = 1.62
+                eqPass12000 = eqAudioCtx.createBiquadFilter(); eqPass12000.type = "peaking"; eqPass12000.frequency.value = 12000; eqPass12000.Q.value = 0.7
+
+                eqSourceNode.connect(eqPass40)
+                eqPass40.connect(eqPass121)
+                eqPass121.connect(eqPass547)
+                eqPass547.connect(eqPass674)
+                eqPass674.connect(eqPass818)
+                eqPass818.connect(eqPass1503)
+                eqPass1503.connect(eqPass1605)
+                eqPass1605.connect(eqPass1722)
+                eqPass1722.connect(eqPass4160)
+                eqPass4160.connect(eqPass12000)
+                initReverbForChain(eqAudioCtx, eqPass12000, eqAudioCtx.destination)
+
+                getEqData()
+            } catch (err) {
+                console.error("initEqAudio:", err)
+            }
+        }
+
+        function applyEqGains(i) {
+            if (!eqPass40) return
+            eqPass40.gain.value = sliderValToGain(eqSlider.f40Hz[i])
+            eqPass121.gain.value = sliderValToGain(eqSlider.f121Hz[i])
+            eqPass547.gain.value = sliderValToGain(eqSlider.f547Hz[i])
+            eqPass674.gain.value = sliderValToGain(eqSlider.f674Hz[i])
+            eqPass818.gain.value = sliderValToGain(eqSlider.f818Hz[i])
+            eqPass1503.gain.value = sliderValToGain(eqSlider.f1503Hz[i])
+            eqPass1605.gain.value = sliderValToGain(eqSlider.f1605Hz[i])
+            eqPass1722.gain.value = sliderValToGain(eqSlider.f1722Hz[i])
+            eqPass4160.gain.value = sliderValToGain(eqSlider.f4160Hz[i])
+            eqPass12000.gain.value = sliderValToGain(eqSlider.f12000Hz[i])
+        }
+
+        function setEq(i) {
+            currentFilterNum = i
+            const setSliderValue = (id, value) => {
+                const el = document.getElementById(id)
+                if (el) el.value = value
+            }
+            setSliderValue("40Hz", eqSlider.f40Hz[i])
+            setSliderValue("121Hz", eqSlider.f121Hz[i])
+            setSliderValue("547Hz", eqSlider.f547Hz[i])
+            setSliderValue("674Hz", eqSlider.f674Hz[i])
+            setSliderValue("818Hz", eqSlider.f818Hz[i])
+            setSliderValue("1503Hz", eqSlider.f1503Hz[i])
+            setSliderValue("1605Hz", eqSlider.f1605Hz[i])
+            setSliderValue("1722Hz", eqSlider.f1722Hz[i])
+            setSliderValue("4160Hz", eqSlider.f4160Hz[i])
+            setSliderValue("12000Hz", eqSlider.f12000Hz[i])
+            applyEqGains(i)
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/equalizer", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            switch (i) {
+                case 0: xhr.send("filter=Clear"); break;
+                case 1: xhr.send("filter=Neutral"); break;
+                case 2: xhr.send("filter=Warm"); break;
+                case 3: xhr.send("filter=Bass"); break;
+                case 4: xhr.send("filter=MyEQ"); break;
+            }
+        }
+
+        function eqGain(string, type) {
+            var gainDb = sliderValToGain(parseFloat(string))
+            var band = type.replace("Gain", "")
+            var filterMap = {
+                "40": eqPass40, "121": eqPass121, "547": eqPass547, "674": eqPass674,
+                "818": eqPass818, "1503": eqPass1503, "1605": eqPass1605, "1722": eqPass1722,
+                "4160": eqPass4160, "12000": eqPass12000
+            }
+            if (filterMap[band]) filterMap[band].gain.value = gainDb
+            var key = "f" + band + "Hz"
+            if (eqSlider[key]) eqSlider[key][4] = parseFloat(string)
+            changedEQ = true
+        }
+
+        function saveMyEQ() {
+            changedEQ = false
+            //keep the active preset index in the saved file, otherwise the next
+            //load looks incomplete and the custom MyEQ values appear "lost"
+            eqSlider.preset = currentFilterNum
+            var data = JSON.stringify(eqSlider)
+            console.log("save myEQ:", data)
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/equalizer", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send("SaveFilter=" + data);
+        }
+
+        function closeEq() {
+            document.getElementById('eqModel').style.display = 'none';
+            if (changedEQ) saveMyEQ();
+        }
+
+        function getEqData(retriesLeft) {
+            if (retriesLeft === undefined) retriesLeft = 3;
+            fetch('/filter/eqSlider.json')
+                .then(response => {
+                    if (!response.ok) throw new Error("HTTP Fehler: " + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || typeof data.preset === "undefined" || !data.f40Hz) {
+                        throw new Error("eqSlider.json response incomplete");
+                    }
+                    let idx = data.preset
+                    eqSlider = data;
+                    setEq(idx);
+                    const fIndexEl = document.getElementById("fIndex" + idx);
+                    if (fIndexEl) fIndexEl.checked = true;
+                })
+                .catch(error => {
+                    console.error("Fehler beim Laden von eqSlider:", error);
+                    if (retriesLeft > 0) setTimeout(() => getEqData(retriesLeft - 1), 800);
+                });
+        }
+
+        function openEq() {
+            document.getElementById('eqModel').style.display = 'block';
+        }
+
+        for (const i of [0, 1, 2, 3, 4]) {
+            const fIndexEl = document.getElementById("fIndex" + i)
+            if (fIndexEl) fIndexEl.addEventListener('change', () => setEq(i))
+        }
+
+        //clicking the dark backdrop also closes (and saves) the modal
+        const eqModelEl = document.getElementById('eqModel')
+        eqModelEl.addEventListener("click", function (event) {
+            if (event.target === eqModelEl) closeEq();
+        });
+
+        //Touch Screen
+        //============
+        let startX, startY, endX, endY;
+        const area = document.getElementById("touchArea");
+        area.addEventListener("touchend", function(e) {
+            if (!e.changedTouches || !e.changedTouches[0]) return;
+            const touch = e.changedTouches[0];
+            const rect = area.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            const isVideo = getCurrentMediaElement() && getCurrentMediaElement().tagName.toLowerCase() === 'video';
+
+            if (y <= 400) {
+                if (touch.clientX < rect.left + rect.width / 2) {
+                    if (isVideo) {
+                        skipCurrentMedia(-10);
+                    } else {
+                        showPreviousMedia();
+                    }
+                } else {
+                    if (isVideo) {
+                        skipCurrentMedia(10);
+                    } else {
+                        showNextMedia(true);
+                    }
+                }
+            } else {
+                if (touch.clientX < rect.left + rect.width / 2) {
+                    skipCurrentMedia(-10);
+                } else {
+                    skipCurrentMedia(10);
+                }
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        startSlideshow();
+
+        document.addEventListener('click', function (event) {
+        const menuToggle = document.getElementById('menu-toggle');
+        const mainMenu = document.getElementById('main-menu-bar');
+
+        if (!menuToggle || !mainMenu) return; // ← prevent crash
+        // Nur ausführen, wenn das Menü gerade offen ist
+        if (menuToggle.checked) {
+            // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+            // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+            if (!mainMenu.contains(event.target)) {
+            menuToggle.checked = false;
+            }
+        }
+        });    
+</script>
+</body>
+</html>

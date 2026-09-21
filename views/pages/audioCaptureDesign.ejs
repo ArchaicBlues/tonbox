@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="views/style.css">
+    <style>
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-label {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: #ebf8ff; /* Helles Blau */
+        }
+        .card:hover {
+            transform: translateY(-0.5rem);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a202c; /* Dunkles Grau für bessere Lesbarkeit */
+        }
+        .card-link {
+            display: block;
+            text-decoration: none;
+        }
+        select option {
+            margin: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+        }
+        .point-img-zoom img {
+            transform-origin: 65% 75%;
+            transition: transform 1s, filter .5s ease-out;
+        }
+        .point-img-zoom:hover img {
+            transform: scale(5);
+        }
+    </style>
+</head>
+
+<body class="bg-blue-50 text-gray-800">
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <div class="container mx-auto p-5 my-5 bg-white rounded-lg shadow-lg">
+        <form action='../audioCapture' method='POST' enctype='application/x-www-form-urlencoded'>
+            <div class="flex justify-center mb-5">
+                <button type="submit" name="Back" value="Back" >Back</button>
+            </div>
+
+            <div class="flex justify-center slider-container text-center">
+                <% if (!audioOut.match("HTTP")) { %>
+                    <div>
+                        <div class="slider-label">Lautstärke</div>
+                        <div class="slidecontainer">
+                            <input type="range" min="50" max="100" value="<%- vol %>" class="slider" id="range">
+                            <br><br>
+                            <button type="submit" name="killPlay" value="killPlay" class="btn btn-primary btn-lg mt-3" class="button buttonCircle" >Stop
+                        </div>
+                    </div>
+                    <script>
+                        var slider = document.getElementById("range");
+                        slider.addEventListener('input', function() {
+                            var xhr = new XMLHttpRequest();
+                            xhr.open("GET", "/volume=" + slider.value, true);
+                            xhr.send();
+                        });
+                    </script>
+                <% } %>
+            </div>
+
+            <div class="text-center mb-5">
+                <button type="submit" name="VinylRecords" value="VinylRecords" class="card-link">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">Plattenschrank</div>
+                            <img src="images/SchallplattenStack.jpg" class="w-full h-64 object-cover" alt="VKiste">
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <hr class="my-5">
+
+            <div class="text-center mb-5">
+                <h1>Digitalisierung</h1>
+                <% if (userSave) { %>
+                    <h5 class="text-red-500">Die Analyse hat eine Unstimmigkeit mit den detektierten und den angegebenen Musikstücken ergeben</h5>
+                    <button type="submit" name="userSave" value="ADrecords"  mt-3">Trotzdem in den Plattenschrank verschieben</button>
+                <% } %>
+            </div>
+
+            <div class="text-center mb-5">
+                <span class="hovertext" data-hover="<%- hooverHelp[0] %>">
+                    <button type="submit" name="Discogs" value="Discogs" >Hole Schallplatten Information</button>
+                </span>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="hovertext" data-hover="<%- hooverHelp[4] %>">
+                    <button type="submit" name="UploadImage" value="UploadImage" >Schallplatten Information editieren</button>
+                </span>
+            </div>
+
+            <div class="text-center mb-5">
+                <p class="text-lg">Verzeichnis: <b><%- discogs.info %></b></p>
+                <div class="flex justify-center space-x-4">
+                    <img src="/images/image1.jpg" alt="" class="w-20 h-20 object-cover"/>
+                    <img src="/images/image2.jpg" alt="" class="w-20 h-20 object-cover"/>
+                    <img src="/images/image3.jpg" alt="" class="w-20 h-20 object-cover"/>
+                    <img src="/images/image4.jpg" alt="" class="w-20 h-20 object-cover"/>
+                </div>
+            </div>
+
+            <div class="text-center mb-5">
+                <% if (discogs.sideA[0]) { %>
+                    <h4>Side A:</h4>
+                    <% for (var i in discogs.sideA) { %>
+                        <%- discogs.sideA[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+                <% if (discogs.sideB[0]) { %>
+                    <h4>Side B:</h4>
+                    <% for (var i in discogs.sideB) { %>
+                        <%- discogs.sideB[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+                <% if (discogs.sideC[0]) { %>
+                    <h4>Side C:</h4>
+                    <% for (var i in discogs.sideC) { %>
+                        <%- discogs.sideC[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+                <% if (discogs.sideD[0]) { %>
+                    <h4>Side D:</h4>
+                    <% for (var i in discogs.sideD) { %>
+                        <%- discogs.sideD[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+                <% if (discogs.sideE[0]) { %>
+                    <h4>Side E:</h4>
+                    <% for (var i in discogs.sideE) { %>
+                        <%- discogs.sideE[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+                <% if (discogs.sideF[0]) { %>
+                    <h4>Side F:</h4>
+                    <% for (var i in discogs.sideF) { %>
+                        <%- discogs.sideF[i] %>&nbsp;&nbsp;
+                    <% } %><br>
+                <% } %>
+            </div>
+
+            <div class="text-center mb-5">
+                <label for="stoptime" class="block bg-gray-200 p-2 rounded">Aufnahmedauer [min]: </label>
+                <input type="text" name="stoptime" placeholder="28" value="28" class="p-2 rounded border border-gray-300">
+                <label for="side" class="block bg-gray-200 p-2 rounded mt-2">Plattenseite: </label>
+                <select name="side" id="side" class="p-2 rounded border border-gray-300">
+                    <% for (var i in recSide) { %>
+                        <option value="<%- recSide[i] %>"><%- recSide[i] %></option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="text-center mb-5">
+                Speicherung:
+                <input type="radio" id="wav" name="Format" value="WAV" class="ml-2">
+                <label for="wav" class="ml-1">WAV 1411 kbit/s</label>
+                <input type="radio" id="mp3" name="Format" value="MP3" checked="checked" class="ml-2">
+                <label for="mp3" class="ml-1">MP3 192 kbit/s</label>
+            </div>
+
+            <div class="text-center mb-5">
+                <h5>Plattenschrank hat <b><%- storage.ADrecords.size %></b> Einträge und noch <b><%- storage.ADrecords.free %></b> freier Speicher</h5>
+                <% if (discogsResult.state == "2") { %>
+                    <button type="submit" name="Auto" value="<%- pside %>" class="btn btn-danger btn-lg">Plattenseite ist bereits im Plattenschrank, Aufnahme trotzdem starten?</button>
+                <% } else { %>
+                    <button type="submit" name="Auto" value="Auto" >Aufnahme Start</button>
+                <% } %>
+                <button type="submit" name="MonitorLevel" value="MonitorLevel"  mt-3">Check Aufnahmepegel</button>
+            </div>
+
+            <% if (audioInfo) { %>
+                <% if (audioInfo.match("all.wav") && discogs.sideA[0]) { %>
+                    <div class="text-center mb-5">
+                        <font color="red"><h6><%- audioInfo %></h6></font>
+                        <button type="submit" name="Filter" value="Filter" class="btn btn-danger btn-lg mt-3">Analysiere vorhandene Aufnahmedatei</button>
+                    </div>
+                    <div class="text-center mb-5">
+                        <img src="/images/wav.png" alt="" class="w-1/2 h-auto mx-auto">
+                    </div>
+                <% } %>
+            <% } %>
+
+            <% if (page === "detail") { %>
+                <hr class="my-5">
+                <div class="text-center mb-5">
+                    <p class="text-lg">Wenn zu wenig Musikstücke detektiert worden sind: Erhöhe den GLOBAL SILENCE FAKTOR:</p>
+                    <div class="flex justify-center space-x-2">
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">150
+                            <input type="radio" name="silence" value="150">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">200
+                            <input type="radio" name="silence" value="200">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">250
+                            <input type="radio" name="silence" value="250">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">300
+                            <input type="radio" name="silence" checked value="300">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">350
+                            <input type="radio" name="silence" value="350">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">400
+                            <input type="radio" name="silence" value="400">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">500
+                            <input type="radio" name="silence" value="500">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">600
+                            <input type="radio" name="silence" value="600">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-center mb-5">
+                    <p class="text-lg">Für die Beseitigung von Kratzern / Störgeräuschen kann man unterschiedliche Filter setzen:</p>
+                    <div class="flex justify-center space-x-2">
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">simple median filter
+                            <input type="checkbox" name="filter" checked value="0">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">simple mean filter
+                            <input type="checkbox" name="filter" value="1">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">conditional median filter
+                            <input type="checkbox" name="filter" value="2">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">double median filter1
+                            <input type="checkbox" name="filter" value="3">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">conditional median filter2
+                            <input type="checkbox" name="filter" checked value="4">
+                        </label>
+                        <label class="btn btn-default bg-gray-200 p-2 rounded">RMS filter
+                            <input type="checkbox" name="filter" value="5">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-center mb-5">
+                    <span class="hovertext" data-hover="<%- hooverHelp[3] %>">
+                        <button type="submit" name="Analyze" value="Analyze" >Aufnahme Analyse</button>
+                    </span>
+                </div>
+                <hr class="my-5">
+                <div class="text-center mb-5">
+                    <span class="hovertext" data-hover="<%- hooverHelp[5] %>">
+                        <button type="submit" name="Save" value="Save" >In CD-Quality speichern</button>
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="hovertext" data-hover="<%- hooverHelp[6] %>">
+                        <button type="submit" name="MP3Save" value="MP3Save" >In MP3 wandeln & speichern</button>
+                    </span>
+                </div>
+            <% } %>
+        </form>
+    </div>
+</main>
+
+<!-- <footer>
+    <%- include('../partials/footer'); %>
+</footer> -->
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <form action='../system', method='POST', content-type="text/javascript">
+        <br><br>
+        <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+            <img src="/images/Tonbox.jpg" alt="not available" width="20%" height="20%"/>   
+            <br>
+            <p><h6><%- update %></h6></p><br>
+            <h1><b>Software update done<br>
+                Der Service wird neu gestartet ...</b>
+                <script>
+                try{
+                    const response = fetch("/system", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({restart:""})
+                    });
+                }catch(err){
+                    console.log("Restart:"+err)
+                }
+                </script>
+                <!-- <button class="rect-btn" type="submit" name='sys' value="SYSTEMCTL">Reboot System</button><br> -->
+            <br><br></h1>
+        </div>
+    </form>
+</body>
+</html>

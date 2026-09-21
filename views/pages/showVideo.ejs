@@ -1,0 +1,108 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+</head>
+
+<style>
+    .control-row {
+        display: flex;
+        align-items: center;   /* vertikal zentrieren */
+        gap: 10px;             /* Abstand zwischen Button und Slider */
+    }
+
+    #myVideo {
+        position: fixed;       /* füllt den Bildschirm */
+        top: 0;
+        left: 0;
+        width: 100vw;          /* 100% Viewport-Breite */
+        height: 100vh;         /* 100% Viewport-Höhe */
+        object-fit: contain;     /* Inhalt passt sich an */
+        background: black;     /* schwarze Balken falls nötig */
+    }
+
+    .fullscreen-media {
+        display: flex;
+        justify-content: center; /* horizontal zentrieren */
+        align-items: center;     /* vertikal zentrieren */
+        width: 100%;
+        height: 100vh;           /* gesamte Höhe */
+        background: black;
+        /* position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100vw;
+        height: 100vh;
+        object-fit: contain;
+        transform: translate(-50%, -50%); 
+        background: black; */
+    }
+</style>
+
+
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        singleVid=true
+        vid = JSON.stringify("<%- vidsrc %>")
+        //console.log("vid="+vid+" singleVid="+singleVid)
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        audioTag = false
+        modalWin = true
+     </script>
+    <main class="container">
+    <form action='../showVideo', method='POST', content-type="text/javascript">
+        <div id="touchArea" style="width:100%;height:100vh;background:lightblue">
+        <video id="myVideo" controls playsinline poster="images/tv.jpg" >
+            <source src="<%- vidsrc %>" class="fullscreen-media"> 
+            Ihr Browser kann dieses Video nicht wiedergeben.
+        </video>
+        </div>
+    <script>
+          //Tastatur-Events
+          //===============
+          document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+              window.history.back();
+            }
+          });
+    </script>
+
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+
+    <script src="views/scripts/videoWeb.js"></script>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (!menuToggle || !mainMenu) return; // ← prevent crash
+// Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

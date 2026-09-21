@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/button.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+    <script>
+        console.clear();
+        //define page contents
+        audioOut = JSON.stringify("<%- settings.mediaOut %>");
+        console.log("audioOut="+audioOut)
+        dirType = JSON.stringify("<%- loc %>")
+        console.log("dirType="+dirType)
+        modalWin = true
+        audioTag = true
+        btracks = <%- JSON.stringify(basetracks) %> //this is correct for Array !
+        let currentReverb = "<%= settings.reverb %>";
+        let currentRadioDir = ""; 
+    </script>
+
+    <main class="container">
+    <form action='../myUSB', method='POST', content-type="text/javascript" enctype="multipart/form-data">
+        <% if (loc.match("myUSB")) { %>
+            <!-- Top Controls: Volume & EQ -->
+            <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                        <button class="btn-modern" id="back" type="submit" name="Back" value="Back"><i
+                                class="bi bi-arrow-left"></i> Back</button>
+                </div>
+
+                <div style="flex: 1;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                            class="bi bi-volume-up"></i> Volume</label>
+                    <!-- Check for settings.mediaOut existence -->
+                    <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                        <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50"
+                            style="flex: 1;">
+                    <% } else { %>
+                            <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                                value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol" style="flex: 1;">
+                    <% } %>
+                </div>
+
+                <button type="button" class="btn-modern"
+                    onclick="openEq()">
+                    Eq
+                </button>
+            </div>
+            <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;"> 
+                <!-- frequency bars -->
+                <canvas class="visualizer"></canvas>
+            </div>
+            <audio id="myAudio" type="audio/mpeg" preload="auto" crossorigin="anonymous"></audio>
+            <% if (settings.mediaOut.match("HTTP")) { %>
+                <div class="progress-wrapper">
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                    <input type="range" id="progress" class="eq-slider">
+                </div>
+            <%}%>
+
+            <p style="display: flex; justify-content: center;"> Found <%- basetracks.length %></p>
+            <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+                <div id="button-container">
+                <div id='myUSB'></div></div>
+            </div>
+
+
+            <br>
+            <!-- <div style="display: flex; justify-content: center;align-items: center; gap: 1px;">
+                <button class="btn-modern " type="button" id="searchbutton">Search</button>
+                <input type="text" class="w-20" id="searchtext">&nbsp;&nbsp;
+            </div> -->
+
+           <!-- Equalizer -->
+            <script>modalWin=true</script>
+            <!-- EQ Modal  -->
+            <div id="eqModel" class="modal"
+                style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+                <div class="modal-content"
+                    style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Equalizer</h5>
+                        <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                            style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                    </div>
+                    <form onsubmit="return false;">
+                        <div class="mb-1 d-flex gap-1">
+                            <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                    ? 'checked' : '' %>> Clear</label>
+                            <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                    ? 'checked' : '' %>> Neutral</label>
+                            <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                    ? 'checked' : '' %>> Warm</label>
+                            <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                    ? 'checked' : '' %>> Bass</label>
+                            <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                    ? 'checked' : '' %>> My</label>
+                        </div>
+                        <div style="max-height:45vh; overflow-y:auto;">
+                            <div class="eq-row">
+                                <span class="eq-label">40  Hz</span>
+                                <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">121 Hz</span>
+                                <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">547 Hz</span>
+                                <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">674 Hz</span>
+                                <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">818 Hz</span>
+                                <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1503Hz</span>
+                                <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1605Hz</span>
+                                <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1722Hz</span>
+                                <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">4160Hz</span>
+                                <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">12 kHz</span>
+                                <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                            </div>
+                        </div>
+
+                        <!-- Reverb Toggle (Form Submit) -->
+                        <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                            Toggle Reverb on/off
+                        </button>
+                    </form>
+                    <script>
+                        function toggleReverb() {
+                            const newValue = currentReverb === "off" ? "on" : "off";
+                            fetch('/reverb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ reverb: newValue })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+
+                                currentReverb = data.reverb;   // 🔥 update JS state
+
+                                document.getElementById('eqModel').style.display = 'none';
+                            })
+                            .catch(err => console.error("Reverb error:", err));
+                        }
+                    </script>
+
+                </div>
+            </div>
+        <%}%>
+    
+    <script src="/scripts/audioWeb.js"></script>
+    </form>
+    </main>
+
+    <%- include('../partials/footer'); %>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body class="my-body">
+
+        <h1>
+        <form action='../showYTvideo', method='POST', content-type="text/javascript">
+        <button type="submit" name="Back" value="Back" >Back</button>            
+        <br>
+        
+            <iframe width="90%" height="auto"  controls preload=none poster="images/tv.jpg" src="<%- vidsrc %>"></iframe> 
+        
+        </form>
+    </h1>
+    </div>
+
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+// Stop immediately if elements don't exist on this page
+  if (!menuToggle || !mainMenu) return;
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

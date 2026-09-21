@@ -1,0 +1,6 @@
+/home/pi/mediaServer/Home
+└── Pictures
+    ├── MyStuff
+    └── Test
+
+4 directories

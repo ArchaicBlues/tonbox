@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        
+
+
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+
+
+<!-- 
+Fortschrittsanzeige des Monitor Level Prozesses benutzt Server Side Events (SSE )
+Server empfängt Antwort vom Client über app.get(["/*"], bzw.
+app.get('/home/pi/ArchaicNodeEJS/funcSSE', function(req, res){
+    ..und sendet hier neue Fortschritts-Daten
+}
+Initiierung des Prozesses siehe this.doAnalogDigitalRecording in funcAudio.js
+-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/event-source-polyfill/0.0.9/eventsource.min.js"></script>
+  <script>
+    //For starting a new connection. The client creates a new instance of  EventSource. 
+    //It will send a new HTTP GET request to the server...
+
+    let show = ""
+    const es = new EventSource("http://" + "<%= ip %>" + ":8000" + "<%= sysdir %>" + "/ArchaicNodeEJS/funcSSE");
+
+    const listener = function (event) {
+        //alert("Event Listner: Type=" + event.type + ", data=" + event.data + " url=" + es.url)
+        //See window console "Network" and than "Logs" in Firefox Developer tools
+        console.log("Event from " + es.url + " Text: " + event.data + ", Type:" + event.type);
+
+        // Display the event data in the `content` div
+        var x = document.getElementById("myDIV");
+        x.querySelector(".content").innerHTML = event.data;
+
+        //window.console.log(`${type}: ${event.data || es.url}`);
+        if (event.type === 'result') {
+            es.close();
+            console.log("SSE closed")
+        }else
+        if (event.type === 'error') {
+            console.log("SSE error")
+        }
+        if (event.type === 'open') {
+            console.log("SSE open")
+        }
+    };
+
+    //https://developer.mozilla.org/en-US/docs/Web/API/EventSource
+    es.addEventListener('open', listener);//Fired when a connection to an event source has opened.
+    es.addEventListener('message', listener);//Fired when data is received from an event source
+    es.addEventListener('error', listener);//Fired when a connection to an event source failed to open.
+    es.addEventListener('result', listener);//Fired if connection should be close
+  </script>
+
+</head>
+<body>
+    <%- include('../partials/header'); %>
+    <main>
+        <form action='../monitorLevel', method='POST', content-type="text/javascript">
+            <button class="rect-btn" type="submit" name="Back" value="<%- page %>"></button> </button>Back</button>&nbsp;&nbsp;
+            <br>
+            <div style="max-height: 200px; overflow-y: auto; width: 90%; margin: 0 auto; text-align: center;">
+            <h2><b>Audio Input Level</b></h2>
+            <b>0.60...0.95 </b><br>
+            <div id="myDIV">
+                <h2 class="content"></h2>
+            </div>        
+            </div>
+        </form>
+    </main>
+    <%- include('../partials/footer'); %>
+    <script>
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  // Nur ausführen, wenn das Menü gerade offen ist
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});    
+</script>
+
+</body>
+</html>

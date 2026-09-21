@@ -1,0 +1,104 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+
+<link rel=stylesheet type="text/css" href="views/style.css">
+
+
+<body class="my-body">
+        <form action='../myradio', method='POST', content-type="text/javascript">
+            <button type="submit" name="Back" value="Back" >Back</button>&nbsp;&nbsp;
+        
+            <h1><img src="images/radio.png" width="5%" height="5%" alt="Radio Search">
+                Radiostationen Favoriten 
+                <img src="images/radio.png" width="5%" height="5%" alt="Radio Search">
+            </h1>
+            <!-- <h6 >Es sind max. 5 Aufnahmen gleichzeitig möglich...</h6>  -->
+            <br>
+
+            <%if (audioOut != "HTTP live streaming") {%>
+                <h4>Lautstärke:<br>    
+                <div class="slidecontainer">
+                    -<input type="range" min="50" max="100" value="<%- vol %>" class="slider" id="range">+
+                </div>
+                <script>
+                    var dummy
+                    var slider = document.getElementById("range");
+                    var x = document.getElementById("range").defaultValue;
+                    document.getElementById("range").innerHTML = x;
+                    let update = () => dummy = slider.value;
+                    slider.addEventListener('input', update);
+                    slider.onchange = function(event){
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("GET", "/volume="+slider.value);
+                        xhr.send();
+                    }
+                </script>                        
+                <br>
+                <button type="submit" name="StopPlayx" value="StopPlayx"  class="button buttonCircle" >Stop</button>
+                <br><br>
+                <% if (play >= 0) {%>
+                        <b><%- rdUrl[play] %></b><br>
+                <%}%>
+                <!-- <h5><b><%- storage.Music.free %></b> freier Speicher</h5><br>            -->
+            <%}%>
+
+            <% for (var i=0; i<bName.length; i++) {
+                if (bName[i] != "none") {%> 
+                    <br><b><h6 ><%- bName[i] %></b><br></h6>
+                    <%if (audioOut != "HTTP live streaming") {%>
+                        <% if (play == i) {%>
+                            <button type="submit" name='Playx' value=<%- i %> class="btn btn-success mb-3">Play</button>&nbsp;&nbsp;
+                        <%}else{%>
+                            <button type="submit" name='Playx' value=<%- i %> class="btn btn-dark mb-3">Play</button>&nbsp;&nbsp;
+                        <%}%>
+                    <%}else{%>
+                    <audio id="audio_with_controls" muted=true controls preload=none >
+                        <source src=<%- rdUrl[i] %> type="audio/mp3">
+                        Ihr Browser kann dieses Tondokument nicht wiedergeben.
+                    </audio>
+                    <br>
+                    <%}%>                    <% if (bRec[i]) {%>
+                    <button type="submit" name='Start' value=<%- bUrl[i] %> class="btn btn-danger mb-3">Aufnahme aktiv ...</button> 
+                    <%} else {%>
+                        <button type="submit" name='Start' value=<%- bUrl[i] %> class="btn btn-dark mb-3">Aufnahme starten</button>
+                    <%}%>
+                    &nbsp;&nbsp; 
+                    <button type="submit" name='Stop' value=<%- bUrl[i] %> class="btn btn-dark mb-3">Aufnahme stoppen</button> 
+                    <br>
+                    <button type="submit" name='Remove' value=<%- i %> class="btn btn-dark mb-3"><%- bName[i] %> entfernen</button><br> 
+                <%}%>                       
+            <%}%>   
+        
+    </form>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

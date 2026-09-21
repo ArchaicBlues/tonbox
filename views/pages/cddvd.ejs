@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/captureModals'); %>
+    <%- include('../partials/head'); %>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="button.css">
+        <link rel="manifest" href="/manifest/manifest.json?v=2">
+
+        <style>
+            /* CD/DVD Page Specific Styles */
+            .track-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+            }
+
+            .track-item {
+                padding: 1rem;
+                margin-bottom: 0.5rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: 1px solid transparent;
+                display: flex;
+                align-items: center;
+            }
+
+            .track-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateX(5px);
+            }
+
+            .track-item.active {
+                background: rgba(0, 210, 255, 0.15);
+                border-color: var(--accent-color);
+                color: var(--accent-color);
+                font-weight: 600;
+            }
+
+            .track-item::before {
+                content: "\f001";
+                /* Music Note */
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                margin-right: 15px;
+                opacity: 0.5;
+            }
+
+            .control-panel {
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin: 2rem 0;
+            }
+
+            .search-row {
+                display: flex;
+                width: 100%;
+            }
+
+            .search-btn {
+                width: 100%;
+                padding-inline: 1.2rem;
+                min-height: calc(1.5em + 0.75rem + 2px);
+                white-space: nowrap;
+                flex: 1 1 auto;
+            }
+
+            /* Styles for generated images */
+            .myClass {
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+                transition: transform 0.3s ease;
+                max-width: 100%;
+            }
+
+            .myClass:hover {
+                transform: scale(1.05);
+                z-index: 10;
+            }
+
+            #image-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .close-btn,
+            .insert-btn {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                color: white;
+                padding: 5px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .aux-capture-wrap {
+                position: relative;
+                width: 100%;
+            }
+
+            .track-editor-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 0.5rem;
+                max-height: 50vh;
+                overflow-y: auto;
+                margin-top: 0.75rem;
+            }
+
+            .track-editor-grid input {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #fff;
+                border-radius: 6px;
+                padding: 0.4rem 0.55rem;
+                width: 100%;
+            }
+
+            .nothing-found-btn {
+                border: 1px dashed rgba(255, 77, 77, 0.8);
+                background: rgba(255, 77, 77, 0.18);
+                color: #ffd7d7;
+                border-radius: 6px;
+                padding: 0.15rem 0.5rem;
+                cursor: pointer;
+                font-size: 0.9rem;
+            }
+
+            .aux-capture-hint {
+                position: absolute;
+                left: 50%;
+                bottom: calc(100% + 0.75rem);
+                transform: translateX(-50%);
+                width: min(36rem, calc(100vw - 2rem));
+                padding: 0.75rem 1rem;
+                border-radius: 12px;
+                background: #ffffff;
+                border: 1px solid rgba(0, 0, 0, 0.18);
+                color: #000000;
+                font-size: 0.9rem;
+                line-height: 1.35;
+                text-align: center;
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+                z-index: 5;
+                pointer-events: none;
+            }
+
+            .aux-capture-wrap:hover .aux-capture-hint,
+            .aux-capture-wrap:focus-within .aux-capture-hint {
+                opacity: 1;
+                visibility: visible;
+                transform: translateX(-50%) translateY(-2px);
+            }
+        </style>
+</head>
+
+<body>
+    <%- include('../partials/header'); %>
+
+        <script>
+            //cd over http needs cd ripping, not implemented yet
+            audioOut = "0" //JSON.stringify("<%- settings.mediaOut %>");
+
+            dirType = "audio";
+            modalWin = true;
+            audioTag = true;
+            let currentReverb = "<%= settings.reverb %>";
+
+            // Robust track handling
+            <% if (typeof tracks !== 'undefined' && tracks) { %>
+                const tracksVal = <%- JSON.stringify(tracks) %>;
+                    // Ensure we have a valid JSON string or object
+                    cdInfo = (typeof tracksVal === 'string') ? tracksVal : JSON.stringify(tracksVal);
+            <% } else { %>
+                    cdInfo = "[]";
+            <% } %>
+        </script>
+
+        <% const canCaptureCd = (
+            (discInfo && discInfo.type === "Audio CD") ||
+            (discInfo && typeof discInfo.filesystem === 'string' && discInfo.filesystem.toLowerCase().includes('audio')) ||
+            (discInfo && Number(discInfo.tracks) > 0)
+        ); %>
+        <% const hasTracklistInfo = !!(tracks && Array.isArray(tracks.tracks) && tracks.tracks.length > 0); %>
+        <% const showCdCaptureAux = (
+            (typeof hasCdDrive !== 'undefined' ? !hasCdDrive : false) &&
+            !!usbAudioCaptureDetected
+        ); %>
+
+        <main class="container">
+                <div class="glass-panel top-controls">
+                    <div class="d-flex align-items-center gap-3">
+                    <form action="../cddvd" method="POST" style="margin:0;">
+                        <button class="btn-modern" type="submit" name="Back" value="Back"><i
+                                class="bi bi-arrow-left"></i>Back</button>
+                    </form>
+                </div>
+
+                <div style="flex: 1;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem;"><i
+                            class="bi bi-volume-up"></i> Volume</label>
+                    <!-- Check for settings.mediaOut existence -->
+                    <% if (settings && settings.mediaOut && settings.mediaOut.match("HTTP")) { %>
+                        <h6 class="section-title text-center">CD playing over HTTP needs CD ripping</h6>
+                    <%}%>
+                    <!-- <input oninput="volumeWEB(this.value)" id="vol" type="range" step="1" min="0" max="50"> -->
+                    <input onchange="volumeRPI(this.value)" type="range" min="75" max="100"
+                        value="<%- (typeof vol !== 'undefined') ? vol : 85 %>" id="vol">
+                </div>
+
+                <button type="button" class="btn-modern"
+                    onclick="openEq()">
+                    Eq
+                </button>
+            </div>
+
+            <!-- CD Player Main Area -->
+            <div class="row">
+                <!-- Left Column: Controls & Inputs -->
+                <div class="col-md-5 mb-4">
+                    <div class="glass-panel p-4">
+                        <% if (!showCdCaptureAux) { %>
+                        <div id="cd-controls-container" class="mb-4 d-flex justify-content-center">
+                            <!-- Controls injected by cdControls.js -->
+                        </div>
+                        <%}%>
+                        <hr style="border-color: var(--glass-border);">
+
+                        <div class="mb-3">
+                            <input id="artist" class="form-control mb-2" placeholder="Title Name Label CatalogNum..."
+                                list="artistHistoryList" autocomplete="off">
+                            <!-- <input id="title" class="form-control mb-3" placeholder="Album/Track Title..."
+                                list="titleHistoryList" autocomplete="off"> -->
+
+                            <datalist id="artistHistoryList"></datalist>
+                            <datalist id="titleHistoryList"></datalist>
+
+                            <div class="search-row">
+                                <button type="button" id="searchDiscButton" class="btn-modern btn-primary search-btn"><i
+                                        class="bi bi-search"></i> Search / Retrieve Info</button>
+                            </div>
+                        </div>
+                        <div>
+                            <button type="button" id="getDiscInfoBtn" class="btn-modern mb-3 w-100">
+                                <i class="bi bi-box-arrow-up-right"></i> Show info on Discogs
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-3 mt-4 text-center">
+                        <h5 id="discogsTrueTitel" class="text-info m-0"></h5>
+                        <select id="discSelector" class="mt-2"
+                            style="display:none; background: #333; color: white; border: none; padding: 5px; border-radius: 4px;">
+                            <option value="all">All Discs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Right Column: Tracklist -->
+                <div class="col-md-7 mb-4">
+                    <div class="glass-panel p-4 h-100">
+                        <h4 class="mb-3"><i class="bi bi-list-ol"></i> Tracklist</h4>
+                        <div id="tracklistOutput" style="max-height: 500px; overflow-y: auto;">
+                            <p class="text-muted text-center mt-5">Load a CD or search for tracklist...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="image-container" class="glass-panel p-3 mb-5">
+                <!-- Images injected here -->
+                <% for(let i=1; i<=21; i++) { %>
+                    <img class="myClass" id="img<%= i %>" style="display:none;">
+                    <% } %>
+            </div>
+
+            <!-- disc info -->
+            <% if (!showCdCaptureAux){%>
+            <pre id="output"></pre>
+            <%}%>
+
+            <% if (canCaptureCd) { %>
+                <div class="flex-center" style="margin-top: 1.5rem;">
+                    <form action="../cddvd" method="POST" onsubmit="prepareCapture()">
+                        <input type="hidden" name="tracklistJson" id="tracklistJson">
+                        <input type="hidden" name="selectedDisc" id="selectedDisc">
+                        <input type="hidden" name="discTitle" id="discTitle">
+                        <hr class="w-100" style="border-color: rgba(241, 238, 238, 0.1);">
+                        <button class="btn-modern btn-danger w-100 py-3" type="button"
+                            onclick="startRipping('CD')"
+                            style="background: linear-gradient(45deg, #ff0055, #ff4d4d); border: none; font-size: 1.1rem; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                            <i class="bi bi-record-circle"></i> Rip CD
+                        </button>
+                    </form>
+                </div>
+                
+            <% }else if (discInfo && discInfo.files && Object.keys(discInfo.files).length > 0) { %>
+                <div class="flex-center" style="margin-top: 1.5rem;">
+                    <button class="btn-modern btn-primary" type="button" onclick="startMoveAudio()">
+                        Move Audio Data <i class="bi bi-arrow-right"></i> Audio
+                    </button>
+                </div>
+            <%}%>
+            <% if (!canCaptureCd && showCdCaptureAux) { %>
+                <div class="flex-center" style="margin-top: 1.5rem;">
+                    <div class="aux-capture-wrap">
+                        <div class="aux-capture-hint">
+                            <b>Capture Audio AUX from a CD / DVD player using connection:</b><br><br>=&gt; AUX In Your Receiver LineOut =&gt; USB-Audio-Capture =&gt; RPI<br> or<br>
+                             =&gt; AUX IN USB-Soundcard =&gt; RPI<br><br>
+                             <b>Retrieve CD Infos first. Start player and click button.
+                                Result will be saved in library "Vinyl / CD"
+                             </b>
+                        </div>
+                        <form action="../cddvd" method="POST" style="display: flex; justify-content: center;">
+                            <button class="btn-modern btn-danger py-3" type="button" 
+                                onclick="startRipping('AUX')"
+                                aria-label="Capture AUX from a CD / DVD player: => AUX In Your Receiver LineOut => USB-Audio-Capture => RPI or Capture AUX from CD player => AUX IN USB-Soundcard => RPI"
+                                style="width: auto; display: inline-flex; justify-content: center; white-space: nowrap; background: linear-gradient(45deg, #ff0055, #ff4d4d); border: none; font-size: 1.1rem; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                                <i class="bi bi-record-circle"></i> Capture AUX from your disc player
+                            </button>
+                            <!-- <button class="btn-modern btn-danger py-3" type="submit" value="captureAux" name="action"
+                                aria-label="Capture AUX from a CD / DVD player: => AUX In Your Receiver LineOut => USB-Audio-Capture => RPI or Capture AUX from CD player => AUX IN USB-Soundcard => RPI"
+                                style="width: auto; display: inline-flex; justify-content: center; white-space: nowrap; background: linear-gradient(45deg, #ff0055, #ff4d4d); border: none; font-size: 1.1rem; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                                <i class="bi bi-record-circle"></i> Capture AUX from your disc player
+                            </button> -->
+                        </form>
+                    </div>
+                </div>
+            <% } %>
+<script>
+// async function scanDisc() {
+//     const res = await fetch("/scan-disc");
+//     const data = await res.json();
+const discInfo = <%- JSON.stringify(discInfo) %>;
+const output = document.getElementById("output");
+output.textContent = "Disc Media Info\n"+JSON.stringify(discInfo,null,2)
+output.style.backgroundColor = "black";
+output.style.color = "white";   // important so text is visible
+output.style.padding = "10px";  // optional
+// //}
+</script>
+            <!-- EQ Modal  -->
+            <div id="eqModel" class="modal"
+                style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+                <div class="modal-content"
+                    style="background: rgba(72, 72, 75, 0.95); margin: 5% auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Equalizer</h5>
+                        <span class="close-btn" onclick="document.getElementById('eqModel').style.display='none'"
+                            style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+                    </div>
+                    <form onsubmit="return false;">
+                        <div class="mb-1 d-flex gap-1">
+                            <label><input type="radio" name="eq" id="fIndex0" <%=(settings && settings.filterIndex==0)
+                                    ? 'checked' : '' %>> Clear</label>
+                            <label><input type="radio" name="eq" id="fIndex1" <%=(settings && settings.filterIndex==1)
+                                    ? 'checked' : '' %>> Neutral</label>
+                            <label><input type="radio" name="eq" id="fIndex2" <%=(settings && settings.filterIndex==2)
+                                    ? 'checked' : '' %>> Warm</label>
+                            <label><input type="radio" name="eq" id="fIndex3" <%=(settings && settings.filterIndex==3)
+                                    ? 'checked' : '' %>> Bass</label>
+                            <label><input type="radio" name="eq" id="fIndex4" <%=(settings && settings.filterIndex==4)
+                                    ? 'checked' : '' %>> My</label>
+                        </div>
+                        <div style="max-height:45vh; overflow-y:auto;">
+                            <div class="eq-row">
+                                <span class="eq-label">40  Hz</span>
+                                <input id="40Hz" type="range" value="70.0" oninput="eqGain(this.value, '40Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">121 Hz</span>
+                                <input id="121Hz" type="range" value="51.4" oninput="eqGain(this.value, '121Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">547 Hz</span>
+                                <input id="547Hz" type="range" value="49.5" oninput="eqGain(this.value, '547Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">674 Hz</span>
+                                <input id="674Hz" type="range" value="47.0" oninput="eqGain(this.value, '674Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">818 Hz</span>
+                                <input id="818Hz" type="range" value="49.75" oninput="eqGain(this.value, '818Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1503Hz</span>
+                                <input id="1503Hz" type="range" value="49.5" oninput="eqGain(this.value, '1503Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1605Hz</span>
+                                <input id="1605Hz" type="range" value="54.5" oninput="eqGain(this.value, '1605Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">1722Hz</span>
+                                <input id="1722Hz" type="range" value="48.25" oninput="eqGain(this.value, '1722Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">4160Hz</span>
+                                <input id="4160Hz" type="range" value="50" oninput="eqGain(this.value, '4160Gain');"></input>
+                            </div>
+                            <div class="eq-row">
+                                <span class="eq-label">12 kHz</span>
+                                <input id="12000Hz" type="range" value="23.75" oninput="eqGain(this.value, '12000Gain');"></input>
+                            </div>
+                        </div>
+
+                        <!-- Reverb Toggle (Form Submit) -->
+                        <button class="btn-modern mt-3 w-100" id="reverbButton" type="button" onclick="toggleReverb()">
+                            Toggle Reverb on/off
+                        </button>
+                    </form>
+                    <script>
+                        function toggleReverb() {
+                            const newValue = currentReverb === "off" ? "on" : "off";
+                            fetch('/reverb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ reverb: newValue })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+
+                                currentReverb = data.reverb;   // 🔥 update JS state
+
+                                document.getElementById('eqModel').style.display = 'none';
+                            })
+                            .catch(err => console.error("Reverb error:", err));
+                        }
+                    </script>
+
+                </div>
+            </div>
+
+            <div id="trackEditorModal" class="modal"
+                style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2100; background: rgba(0,0,0,0.7); backdrop-filter: blur(3px);">
+                <div class="modal-content"
+                    style="background: rgba(40, 40, 45, 0.97); margin: 3% auto; padding: 16px; width: min(920px, 95vw); border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="m-0">Tracklist Editor</h5>
+                        <button type="button" class="close-btn" onclick="closeTrackEditor()">&times;</button>
+                    </div>
+                    <label for="editorAlbumTitle" class="mb-1">Title</label>
+                    <input id="editorAlbumTitle" type="text" class="form-control" placeholder="Album title">
+                    <div class="mt-2">
+                        <label for="editorImage1" class="mb-1">Image 1</label>
+                        <input id="editorImage1" type="file" accept="image/*" class="form-control mb-2">
+                        <label for="editorImage2" class="mb-1">Image 2</label>
+                        <input id="editorImage2" type="file" accept="image/*" class="form-control">
+                    </div>
+                    <div class="track-editor-grid" id="trackEditorGrid"></div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn-modern" onclick="useDefaultTrackEditor()" style="margin-right: 0.5rem;">
+                            Use Default
+                        </button>
+                        <button type="button" class="btn-modern btn-primary" onclick="submitTrackEditor()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <%- include('../partials/footer'); %>
+            <script src="/scripts/audioWeb.js"></script>
+
+            <script type="module">
+                import CDControls from '/scripts/cdControls.js';
+                const cd = new CDControls({
+                    container: '#cd-controls-container',
+                    onEvent: (ev, detail) => console.log(ev, detail)
+                });
+                window.cdInstance = cd;
+            </script>
+
+            <script>
+                /* --------- LOGIC ---------- */
+                let lastTrack = null;
+                const HISTORY_LIMIT = 20;
+                const ARTIST_HISTORY_KEY = 'cdArtistHistory';
+                const TITLE_HISTORY_KEY = 'cdTitleHistory';
+
+                function loadHistory(key) {
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem(key));
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        return [];
+                    }
+                }
+
+                function saveHistory(key, values) {
+                    localStorage.setItem(key, JSON.stringify(values.slice(0, HISTORY_LIMIT)));
+                }
+
+                function addToHistory(key, value) {
+                    if (!value) return;
+                    const trimmed = value.trim();
+                    if (!trimmed) return;
+                    const current = loadHistory(key).filter(v => v !== trimmed);
+                    current.unshift(trimmed);
+                    saveHistory(key, current);
+                }
+
+                function renderHistoryList(listId, key) {
+                    const list = document.getElementById(listId);
+                    if (!list) return;
+                    const values = loadHistory(key);
+                    list.innerHTML = values.map(v => `<option value="${String(v).replace(/"/g, '&quot;')}"></option>`).join('');
+                }
+
+                function refreshInputHistory() {
+                    renderHistoryList('artistHistoryList', ARTIST_HISTORY_KEY);
+                    renderHistoryList('titleHistoryList', TITLE_HISTORY_KEY);
+                }
+
+                function triggerTracklistSearch() {
+                    document.dispatchEvent(new CustomEvent('cd:tracklist'));
+                }
+
+                function parseMyDiscTrackCount(value) {
+                    const match = String(value || '').trim().match(/^mydisc\s+(\d{1,2})$/i);
+                    if (!match) return null;
+                    const count = Number(match[1]);
+                    return Number.isInteger(count) && count > 0 && count <= 50 ? count : null;
+                }
+
+                refreshInputHistory();
+                window.manualTracklistSubmitted = false;
+                window.manualDiscTitle = "";
+
+                function applyImagesToPreview(currentImages) {
+                    const images = Array.isArray(currentImages) ? currentImages : [];
+                    for (let i = 1; i <= 21; i++) {
+                        const img = document.getElementById(`img${i}`);
+                        if (!img) continue;
+                        if (i <= images.length) {
+                            img.src = `${images[i - 1]}?t=${Date.now()}`;
+                            img.style.display = "block";
+                        } else {
+                            img.style.display = "none";
+                        }
+                    }
+                }
+
+                const searchDiscButton = document.getElementById('searchDiscButton');
+                if (searchDiscButton) {
+                    searchDiscButton.addEventListener('click', triggerTracklistSearch);
+                }
+
+                function openDiscogsSearch() {
+                    const title = document.getElementById('title')?.value.trim() || '';
+                    const artist = document.getElementById('artist')?.value.trim() || '';
+                    const q = [artist, title].filter(Boolean).join(' ').trim();
+                    const targetUrl = q
+                        ? `https://www.discogs.com/search/?q=${encodeURIComponent(q)}`
+                        : 'https://www.discogs.com';
+                    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                }
+
+                const getDiscInfoBtn = document.getElementById('getDiscInfoBtn');
+                if (getDiscInfoBtn) {
+                    getDiscInfoBtn.addEventListener('click', openDiscogsSearch);
+                }
+
+                ['artist', 'title'].forEach(id => {
+                    const node = document.getElementById(id);
+                    if (!node) return;
+                    node.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            triggerTracklistSearch();
+                        }
+                    });
+                });
+
+                document.addEventListener('cd:tracklist', async () => {
+                    try {
+                        console.log("addEventListener(cd:tracklist)")
+                        const title = document.getElementById('title')?.value.trim() || "";
+                        const artist = document.getElementById('artist')?.value.trim() || "";
+                        const searchValue = [artist, title].filter(Boolean).join(' ').trim();
+                        const myDiscTrackCount = parseMyDiscTrackCount(searchValue);
+
+                        if (myDiscTrackCount) {
+                            window.trackEditorTrackCountOverride = myDiscTrackCount;
+                            openTrackEditor("1");
+                            return;
+                        }
+
+                        addToHistory(ARTIST_HISTORY_KEY, artist);
+                        addToHistory(TITLE_HISTORY_KEY, title);
+                        refreshInputHistory();
+
+                        const res = await fetch('/cddvd', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'tracklist', query: title, queryArtist: artist })
+                        });
+
+                        let data = await res.json();
+                        console.log(data)
+                        if (data.error) {
+                            document.getElementById("tracklistOutput").innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
+                            return;
+                        }
+                        // Parse potentially double-encoded string
+                        if (typeof data === 'string') {
+                            try { data = JSON.parse(data); } catch (e) { }
+                        }
+
+                        const tracks = data.tracks;
+                        window.allTracks = tracks;
+                        window.currentVisibleTracks = tracks;
+                        window.manualTracklistSubmitted = false;
+                        window.manualDiscTitle = "";
+                        if (!Array.isArray(tracks) || tracks.length === 0) {
+                            document.getElementById("tracklistOutput").innerHTML = "<p class='text-muted text-center'>No tracks found.</p>";
+                            return;
+                        }
+
+                        // Disc Selector logic
+                        const discSelector = document.getElementById("discSelector");
+                        const discs = [...new Set(tracks.map(t => t.disc))].sort((a, b) => a - b);
+                        discSelector.innerHTML = '<option value="all">All Discs</option>';
+                        if (discs.length > 1) {
+                            discs.forEach(disc => {
+                                const opt = document.createElement("option");
+                                opt.value = String(disc);
+                                opt.textContent = `CD ${disc}`;
+                                discSelector.appendChild(opt);
+                            });
+                            discSelector.style.display = "inline-block";
+                        } else {
+                            discSelector.style.display = "none";
+                        }
+
+                        discSelector.addEventListener("change", function () {
+                            const selected = this.value;
+
+                            if (!window.allTracks) return;
+
+                            if (selected === "all") {
+                                window.currentVisibleTracks = window.allTracks;
+                                renderTracklist(window.allTracks);
+                            } else {
+                                const filtered = window.allTracks.filter(t => String(t.disc) === selected);
+                                window.currentVisibleTracks = filtered;
+                                renderTracklist(filtered);
+                            }
+                        });
+
+                        renderTracklist(tracks);
+
+                        const currentImages = data.images || [];
+                        applyImagesToPreview(currentImages);
+                        const titleNode = document.getElementById("discogsTrueTitel");
+                        if (titleNode) {
+                            titleNode.textContent = (data.discogsTitel && data.discogsTitel !== "empty")
+                                ? data.discogsTitel
+                                : "";
+                        }
+
+                    } catch (err) {
+                        console.error("Tracklist failed:", err);
+                        document.getElementById("tracklistOutput").innerHTML = `<p class="text-danger">Failed to load: ${err.message}</p>`;
+                    }
+                });
+                // Auto-load when page opens
+                document.dispatchEvent(new CustomEvent('cd:tracklist'));
+
+                function prepareCapture() {
+                    const hidden = document.getElementById("tracklistJson");
+                    const hiddenDisc = document.getElementById("selectedDisc");
+                    const hiddenTitle = document.getElementById("discTitle");
+                    const discSelector = document.getElementById("discSelector");
+
+                    if (window.manualTracklistSubmitted) {
+                        const manualTracks = Array.isArray(window.currentVisibleTracks) && window.currentVisibleTracks.length > 0
+                            ? window.currentVisibleTracks
+                            : (Array.isArray(window.allTracks) ? window.allTracks : []);
+                        if (hiddenDisc) hiddenDisc.value = "1";
+                        if (hidden) hidden.value = JSON.stringify(manualTracks);
+                        if (hiddenTitle) hiddenTitle.value = String(window.manualDiscTitle || "").trim();
+                        return true;
+                    }
+
+                    if (hiddenDisc) {
+                        hiddenDisc.value = discSelector ? discSelector.value : "all";
+                    }
+                    if (hiddenTitle) {
+                        hiddenTitle.value = "";
+                    }
+
+                    if (!discSelector || discSelector.value === "all") {
+                        hidden.value = "";
+                        return true;
+                    }
+
+                    if (window.currentVisibleTracks) {
+                        hidden.value = JSON.stringify(window.currentVisibleTracks);
+                    }
+
+                    return true;
+                }
+
+                function buildCapturePayload() {
+                    if (window.manualTracklistSubmitted) {
+                        const manualTracks = Array.isArray(window.currentVisibleTracks) && window.currentVisibleTracks.length > 0
+                            ? window.currentVisibleTracks
+                            : (Array.isArray(window.allTracks) ? window.allTracks : []);
+                        return {
+                            capture: "capture",
+                            selectedDisc: "1",
+                            tracklistJson: JSON.stringify(manualTracks),
+                            discTitle: String(window.manualDiscTitle || "").trim()
+                        };
+                    }
+
+                    const discSelector = document.getElementById("discSelector");
+                    const selectedDisc = discSelector ? discSelector.value : "all";
+                    const payload = {
+                        capture: "capture",
+                        selectedDisc
+                    };
+
+                    if (selectedDisc !== "all" && Array.isArray(window.currentVisibleTracks) && window.currentVisibleTracks.length > 0) {
+                        payload.tracklistJson = JSON.stringify(window.currentVisibleTracks);
+                    }
+
+                    return payload;
+                }
+                function updateCurrentTrack(trackNum) {
+                    lastTrack = trackNum;
+                    document.querySelectorAll(".track-item").forEach(li => {
+                        const num = Number(li.dataset.trackNum);
+                        li.classList.toggle("active", num === trackNum);
+                    });
+
+                    // Restore Sync with CDControls if available
+                    if (window.cdInstance) {
+                        window.cdInstance.setTrack(trackNum);
+                    }
+                }
+
+                function escapeHtml(value) {
+                    return String(value || "")
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#39;");
+                }
+
+                function isNothingFoundTrack(title) {
+                    return /nothing\s*found/i.test(String(title || ""));
+                }
+
+                function buildTonboxDefaultTitle() {
+                    const now = new Date();
+                    const weekday = now.toLocaleDateString('en-US', { weekday: 'short' });
+                    const day = now.getDate();
+                    const month = now.toLocaleDateString('en-US', { month: 'short' });
+                    const time = now.toLocaleTimeString('en-GB', { hour12: false });
+                    const year = now.getFullYear();
+                    return `Tonbox-${weekday} ${day} ${month} ${time} ${year}`;
+                }
+
+                function getEditorTrackCount() {
+                    const overrideTrackCount = Number(window.trackEditorTrackCountOverride);
+                    if (Number.isFinite(overrideTrackCount) && overrideTrackCount > 0) {
+                        return Math.min(Math.floor(overrideTrackCount), 50);
+                    }
+
+                    const fromDiscInfo = Number(discInfo && discInfo.tracks);
+                    if (Number.isFinite(fromDiscInfo) && fromDiscInfo > 0) {
+                        return fromDiscInfo;
+                    }
+                    return 0;
+                }
+
+                function closeTrackEditor() {
+                    const modal = document.getElementById("trackEditorModal");
+                    if (modal) modal.style.display = "none";
+                    delete window.trackEditorTrackCountOverride;
+                }
+
+                async function uploadEditorImages() {
+                    const image1Input = document.getElementById("editorImage1");
+                    const image2Input = document.getElementById("editorImage2");
+                    const file1 = image1Input && image1Input.files ? image1Input.files[0] : null;
+                    const file2 = image2Input && image2Input.files ? image2Input.files[0] : null;
+
+                    if (!file1 && !file2) {
+                        return;
+                    }
+
+                    const fd = new FormData();
+                    if (file1) fd.append("image1", file1);
+                    if (file2) fd.append("image2", file2);
+
+                    const response = await fetch('/cddvd/editor-images', {
+                        method: 'POST',
+                        body: fd
+                    });
+                    const payload = await response.json();
+                    if (!response.ok || !payload.ok) {
+                        throw new Error(payload && payload.error ? payload.error : 'image upload failed');
+                    }
+
+                    if (Array.isArray(payload.images)) {
+                        applyImagesToPreview(payload.images);
+                    }
+                }
+
+                function openTrackEditor(targetDisc) {
+                    const modal = document.getElementById("trackEditorModal");
+                    const grid = document.getElementById("trackEditorGrid");
+                    const titleInput = document.getElementById("editorAlbumTitle");
+                    if (!modal || !grid || !titleInput) return;
+
+                    const editorTrackCount = getEditorTrackCount();
+                    if (editorTrackCount <= 0) {
+                        alert("No disc");
+                        return;
+                    }
+
+                    const discSelector = document.getElementById("discSelector");
+                    const selectedDisc = String(targetDisc || (discSelector ? discSelector.value : "1") || "1");
+                    const normalizedDisc = selectedDisc === "all" ? "1" : selectedDisc;
+
+                    const discTracks = (Array.isArray(window.allTracks) ? window.allTracks : [])
+                        .filter(t => String(t.disc || "1") === normalizedDisc);
+
+                    titleInput.value = buildTonboxDefaultTitle();
+                    titleInput.dataset.disc = normalizedDisc;
+
+                    let html = "";
+                    for (let i = 1; i <= editorTrackCount; i++) {
+                        const existing = discTracks.find(t => Number(t.track) === i);
+                        let existingTitle = existing ? String(existing.title || "").replace(/^\d+\-\d+\s*/, "") : "";
+                        if (isNothingFoundTrack(existingTitle)) {
+                            existingTitle = `track${i}`;
+                        }
+                        html += `<input type="text" name="track${i}" data-track-index="${i}" placeholder="track${i}" value="${escapeHtml(existingTitle)}">`;
+                    }
+                    grid.innerHTML = html;
+                    modal.style.display = "block";
+                }
+
+                function applyTrackEditorTracks(disc, albumTitle, manualTracks) {
+                    if (!Array.isArray(manualTracks) || manualTracks.length === 0) {
+                        alert("Please provide at least one track title.");
+                        return;
+                    }
+
+                    const forcedDisc = "1";
+                    const normalizedManualTracks = manualTracks.map((t, idx) => {
+                        const trackNo = Number(t.track) || (idx + 1);
+                        const titleText = String(t.title || "").replace(/^\d+\-\d+\s*/, "");
+                        return {
+                            disc: forcedDisc,
+                            track: trackNo,
+                            title: `${forcedDisc}-${trackNo} ${titleText}`,
+                            duration: t.duration || ""
+                        };
+                    });
+
+                    const existingAll = Array.isArray(window.allTracks) ? window.allTracks : [];
+                    const otherDiscs = existingAll.filter(t => String(t.disc || "1") !== forcedDisc);
+                    window.allTracks = otherDiscs.concat(normalizedManualTracks);
+                    window.currentVisibleTracks = normalizedManualTracks;
+                    window.manualTracklistSubmitted = true;
+
+                    const discSelector = document.getElementById("discSelector");
+                    if (discSelector) {
+                        discSelector.innerHTML = '<option value="1">CD 1</option>';
+                        discSelector.value = "1";
+                        discSelector.style.display = "none";
+                    }
+
+                    const hiddenDisc = document.getElementById("selectedDisc");
+                    if (hiddenDisc) hiddenDisc.value = "1";
+                    const hiddenTracks = document.getElementById("tracklistJson");
+                    if (hiddenTracks) hiddenTracks.value = JSON.stringify(normalizedManualTracks);
+
+                    const discTitleNode = document.getElementById("discogsTrueTitel");
+                    if (discTitleNode && albumTitle) {
+                        discTitleNode.textContent = albumTitle;
+                    }
+                    window.manualDiscTitle = String(albumTitle || "").trim();
+                    delete window.trackEditorTrackCountOverride;
+
+                    renderTracklist(window.currentVisibleTracks);
+                    closeTrackEditor();
+                }
+
+                async function submitTrackEditor() {
+                    const titleInput = document.getElementById("editorAlbumTitle");
+                    const grid = document.getElementById("trackEditorGrid");
+                    if (!titleInput || !grid) return;
+
+                    const disc = String(titleInput.dataset.disc || "1");
+                    const albumTitle = (titleInput.value || "").trim();
+                    const inputs = Array.from(grid.querySelectorAll("input[data-track-index]"));
+
+                    const manualTracks = inputs
+                        .map((input, idx) => ({
+                            track: idx + 1,
+                            text: (input.value || "").trim()
+                        }))
+                        .filter(item => item.text.length > 0)
+                        .slice(0, getEditorTrackCount())
+                        .map(item => ({
+                            disc,
+                            track: item.track,
+                            title: `${disc}-${item.track} ${item.text}`,
+                            duration: ""
+                        }));
+
+                    try {
+                        await uploadEditorImages();
+                    } catch (err) {
+                        alert("Image upload failed: " + (err && err.message ? err.message : err));
+                        return;
+                    }
+
+                    applyTrackEditorTracks(disc, albumTitle, manualTracks);
+                }
+
+                async function useDefaultTrackEditor() {
+                    const titleInput = document.getElementById("editorAlbumTitle");
+                    if (!titleInput) return;
+
+                    const disc = String(titleInput.dataset.disc || "1");
+                    const albumTitle = (titleInput.value || "").trim();
+                    const editorTrackCount = getEditorTrackCount();
+                    const manualTracks = [];
+                    for (let i = 1; i <= editorTrackCount; i++) {
+                        manualTracks.push({
+                            disc,
+                            track: i,
+                            title: `${disc}-${i} track${i}`,
+                            duration: ""
+                        });
+                    }
+
+                    try {
+                        await uploadEditorImages();
+                    } catch (err) {
+                        alert("Image upload failed: " + (err && err.message ? err.message : err));
+                        return;
+                    }
+
+                    applyTrackEditorTracks(disc, albumTitle, manualTracks);
+                }
+
+                window.closeTrackEditor = closeTrackEditor;
+                window.submitTrackEditor = submitTrackEditor;
+                window.useDefaultTrackEditor = useDefaultTrackEditor;
+
+                function renderTracklist(tracksToRender) {
+                    let html = "<ul class='track-list'>";
+                    tracksToRender.forEach(t => {
+                        const key = `${t.disc}-${t.track}`;
+                        const nothingFound = isNothingFoundTrack(t.title);
+                        const safeTitle = escapeHtml(t.title);
+                        const titleCell = nothingFound
+                            ? `<button type="button" class="nothing-found-btn" data-action="edit-nothing-found" data-disc="${escapeHtml(t.disc)}">${safeTitle}</button>`
+                            : safeTitle;
+                        html += `
+                            <li class="track-item"
+                                data-track="${key}"
+                                data-track-num="${t.track}"
+                                data-disc="${t.disc}">
+                                <div class="d-flex justify-content-between w-100">
+                                    <span>${titleCell}</span>
+                                    <span class="text-muted small">${t.duration || ''}</span>
+                                </div>
+                            </li>`;
+                    });
+                    html += "</ul>";
+                    document.getElementById("tracklistOutput").innerHTML = html;
+                }
+
+                function clearClientCdState() {
+                    window.allTracks = [];
+                    window.currentVisibleTracks = [];
+                    window.manualTracklistSubmitted = false;
+                    window.manualDiscTitle = "";
+                    const out = document.getElementById("tracklistOutput");
+                    if (out) {
+                        out.innerHTML = "<p class='text-muted text-center mt-5'>No tracklist loaded.</p>";
+                    }
+
+                    const titleNode = document.getElementById("discogsTrueTitel");
+                    if (titleNode) titleNode.textContent = "";
+
+                    const discSelector = document.getElementById("discSelector");
+                    if (discSelector) {
+                        discSelector.innerHTML = '<option value="all">All Discs</option>';
+                        discSelector.style.display = "none";
+                    }
+
+                    for (let i = 1; i <= 21; i++) {
+                        const img = document.getElementById(`img${i}`);
+                        if (img) {
+                            img.removeAttribute("src");
+                            img.style.display = "none";
+                        }
+                    }
+                }
+ 
+                // Click handler for track items
+                document.getElementById("tracklistOutput").addEventListener("click", e => {
+                    const editBtn = e.target.closest('[data-action="edit-nothing-found"]');
+                    if (editBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openTrackEditor(editBtn.dataset.disc || "1");
+                        return;
+                    }
+
+                    const li = e.target.closest(".track-item");
+                    if (!li) return;
+                    const trackKey = li.dataset.track;
+                    const trackNum = Number(li.dataset.trackNum);
+
+                    // Dispatch play event
+                    document.dispatchEvent(new CustomEvent('cd:playtrack', { detail: { trackKey, trackNum } }));
+                    updateCurrentTrack(trackNum);
+                });
+
+                // Listeners for CD Actions (fetch calls)
+                document.addEventListener('cd:eject', async () => {
+                    try {
+                        await fetch('/cddvd', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'eject' })
+                        });
+                    } finally {
+                        clearClientCdState();
+                    }
+                });
+
+                document.addEventListener('cd:stop', async () => {
+                    await fetch('/cddvd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) });
+                    updateCurrentTrack(null);
+                });
+
+                document.addEventListener('cd:play', async () => {
+                    const res = await fetch('/cddvd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'play' }) });
+                    const data = await res.json();
+                    // Check for double-encoded JSON just in case
+                    const parsedContext = (typeof data === 'string') ? JSON.parse(data) : data;
+                    if (parsedContext.currentTrack != null) updateCurrentTrack(parsedContext.currentTrack);
+                });
+
+                document.addEventListener('cd:next', async () => {
+                    const res = await fetch('/cddvd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'next' }) });
+                    const data = await res.json();
+                    const parsedContext = (typeof data === 'string') ? JSON.parse(data) : data;
+                    if (parsedContext.currentTrack != null) updateCurrentTrack(parsedContext.currentTrack);
+                });
+
+                document.addEventListener('cd:prev', async () => {
+                    const res = await fetch('/cddvd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'prev' }) });
+                    const data = await res.json();
+                    const parsedContext = (typeof data === 'string') ? JSON.parse(data) : data;
+                    if (parsedContext.currentTrack != null) updateCurrentTrack(parsedContext.currentTrack);
+                });
+
+                document.addEventListener('cd:playtrack', async (e) => {
+                    const { trackKey, trackNum } = e.detail;
+                    const res = await fetch('/cddvd', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'playTrack', track: trackNum, trackKey: trackKey })
+                    });
+                    const data = await res.json();
+                    const parsedContext = (typeof data === 'string') ? JSON.parse(data) : data;
+                    //if (parsedContext.currentTrack != null) updateCurrentTrack(parsedContext.currentTrack);
+                });
+
+                // Polling
+                let cdIntervalState = setInterval(async () => {
+                    try {
+                        const res = await fetch('/cdplayerStatus');
+                        const data = await res.json();
+                        const parsedContext = (typeof data === 'string') ? JSON.parse(data) : data;
+
+                        if (parsedContext.currentTrack !== undefined && parsedContext.currentTrack !== lastTrack) {
+                            updateCurrentTrack(parsedContext.currentTrack);
+                        }
+                    } catch (e) { }
+                }, 2000);
+
+
+                // const discSelector = document.getElementById("discSelector");
+                // const hiddenDiscInput = document.getElementById("selectedDisc");
+
+                // if (discSelector) {
+                //     discSelector.addEventListener("change", function () {
+                //         hiddenDiscInput.value = this.value;
+                //     });
+                // }
+                // hiddenDiscInput.value = discSelector.value;
+
+                window.addEventListener('beforeunload', () => {
+                    console.log("clearInterval(cdIntervalState)")
+                    clearInterval(cdIntervalState);
+                });
+            </script>
+
+<script>
+const rm = document.getElementById("recordModal")
+let es = null;
+let esMv = null;
+
+function hideRecordModal() {
+    rm.classList.remove("show");
+    rm.style.display = "none";
+}
+
+async function waitForSseReady(maxWaitMs = 4000, pollMs = 150) {
+    const started = Date.now();
+    while ((Date.now() - started) < maxWaitMs) {
+        try {
+            const rsp = await fetch('/sse-ready', { cache: 'no-store' });
+            if (rsp.ok) {
+                const state = await rsp.json();
+                if (state && state.active) {
+                    return true;
+                }
+            }
+        } catch (err) {
+            // Retry until timeout.
+        }
+        await new Promise(resolve => setTimeout(resolve, pollMs));
+    }
+    return false;
+}
+
+async function startRipping(input) {
+    console.log("startRipping..")
+
+    if (input === "CD") {
+        const discSelector = document.getElementById("discSelector");
+        const requiresDiscSelection = !!(
+            discSelector &&
+            discSelector.options &&
+            discSelector.options.length > 1 &&
+            discSelector.value === "all"
+        );
+        if (requiresDiscSelection) {
+            alert("Please select tracklist for one disc");
+            return;
+        }
+    }
+
+    rm.classList.add("show");
+    rm.style.display = "flex";
+    // First tell the server to start CD capture, then open SSE for progress.
+    let response;
+    if (input === "CD")
+        response = await fetch("/cddvd", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(buildCapturePayload())
+        });
+    else
+    {
+        const auxPayload = buildCapturePayload();
+        delete auxPayload.capture;
+        auxPayload.action = "captureAux";
+        response = await fetch("/cddvd", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(auxPayload)
+        });
+    }
+    if (!response.ok) {
+        console.log("Error !response.ok")
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (err) { }
+        hideRecordModal();
+        if (payload && payload.message) {
+            alert(payload.message);
+        }
+        return;
+    }
+    
+    const sseReady = await waitForSseReady();
+    if (!sseReady) {
+        console.log("SSE readiness timeout, continue with direct EventSource connect");
+    }
+
+    console.log("start EventSource funcSSE")
+    let gotFirstMessage = false;
+    let retried = false;
+
+    const connectSse = function() {
+        es = new EventSource("/funcSSE");
+        es.addEventListener("message", function(event) {
+            gotFirstMessage = true;
+            console.log("event.data="+event.data);
+            const rV = document.getElementById("recordValue")
+            if (rV)
+                rV.innerText = event.data;
+        });
+        es.addEventListener("result", function(event) {
+            es.close();
+            hideRecordModal();
+            const msg = event && event.data ? String(event.data) : "";
+            if (msg.match(/done|sseEndDisc/i)) {
+                try { localStorage.setItem('showADrecords.typeFilter', 'CD'); } catch(e) {}
+                window.location.href = "/showADrecords?t=" + Date.now();
+            }
+        });
+    };
+
+    connectSse();
+    setTimeout(function() {
+        if (!gotFirstMessage && !retried) {
+            retried = true;
+            try { es.close(); } catch (e) {}
+            console.log("No SSE message yet, reconnect EventSource once");
+            connectSse();
+        }
+    }, 2500);
+
+    console.log("CD capture started");
+}
+
+function stopRecording(){
+    closeRecordModal()
+}
+
+async function startMoveAudio() {
+    rm.classList.add("show");
+    rm.style.display = "flex";
+    await fetch("/cddvd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ move: "disc" })
+    });
+    const sseReady = await waitForSseReady();
+    if (!sseReady) {
+        console.log("SSE readiness timeout, continue with direct EventSource connect");
+    }
+
+    let gotFirstMoveMessage = false;
+    let moveRetried = false;
+
+    const connectMoveSse = function() {
+        esMv = new EventSource("/funcSSE");
+        esMv.addEventListener("message", function(event) {
+            gotFirstMoveMessage = true;
+            const rV = document.getElementById("recordValue");
+            if (rV) rV.innerText = event.data;
+        });
+        esMv.addEventListener("result", function(event) {
+            esMv.close();
+            hideRecordModal();
+            const msg = event && event.data ? String(event.data) : "";
+            if (msg.match(/done|sseEndDisc/i)) {
+                try { localStorage.setItem('showADrecords.typeFilter', 'CD'); } catch(e) {}
+                window.location.href = "/showADrecords?t=" + Date.now();
+            }
+        });
+    };
+
+    connectMoveSse();
+    setTimeout(function() {
+        if (!gotFirstMoveMessage && !moveRetried) {
+            moveRetried = true;
+            try { esMv.close(); } catch (e) {}
+            console.log("No SSE message yet (move), reconnect EventSource once");
+            connectMoveSse();
+        }
+    }, 2500);
+}
+
+async function closeRecordModal() {
+    //Archtecture: client Start Rec --> Server starts "arecord" sends SSE modal info
+    // --> client open recordModal shows bytes...--> recording, shows analyzer stuff in recordModal
+    // --> server kills "adrecord" start analyzing -->sends SSE modal info --> refresh client page
+    // --> client close recordModal
+    rm.style.display = "none";
+    if (es) es.close();
+    try {
+        await fetch('/audioCapture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recordingStop: "audioCapture" })
+        });
+        location.reload() //loads ejs var 
+        // const data = await res.json();
+    } catch (err) {
+        console.error("audio analyzer probably failed:", err);
+        // document.getElementById("recordModal").style.display = "none";
+        // if (es) es.close();
+    }
+}
+</script>
+
+
+</body>
+
+</html>

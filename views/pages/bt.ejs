@@ -1,0 +1,97 @@
+<!-- *1 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<link rel=stylesheet type="text/css" href="views/style.css">
+
+    
+<body class="my-body">
+    <h3>
+    <form action='../bluetooth', method='POST', content-type="text/javascript">
+    <button type="submit" name="Back" value="Back" >Back</button>  
+    <br>          
+    
+        <br><br>
+        <button type="submit" name="BTList" value="BTList" >Update List</button>  
+        <br><br>
+        <% if (devicesPaired.length > 1) { var con=false; %>
+            <br>
+            <% for (i=1; i<devicesPaired.length; i++) { %>
+                <% if (devicesConnected.length > 1) {  %>
+                    <% for (c=1; c<devicesConnected.length; c++) { %>
+
+                        <% if (devicesPaired[i] == devicesConnected[c]) { con=true; %>
+                            <button type="submit" name="BTdevPaired" value="<%- devicesPaired[i] %>" class="btn btn-danger btn-lg"><%- devicesPaired[i]%> verbunden, click um Verbindung zu trennen</button>
+                            <button type="submit" name="BTRemoveDev" value="<%- devicesPaired[i] %>" >Entkoppeln & trennen</button>
+                            <br><br>
+                            <% if (!settings.mediaOut.match("HTTP")){%>
+                            Lautstärke
+                            <div class="slidecontainer">
+                                -<input type="range" min="50" max="100" value="<%- vol %>" class="slider" id="range">+
+                            </div>
+                            <script>
+                                var dummy
+                                var slider = document.getElementById("range");
+                                var x = document.getElementById("range").defaultValue;
+                                document.getElementById("range").innerHTML = x;
+                                let update = () => dummy = slider.value;
+                                slider.addEventListener('input', update);
+                                slider.onchange = function(event){
+                                    var xhr = new XMLHttpRequest();
+                                    xhr.open("GET", "/volume="+slider.value, true);
+                                    xhr.send();
+                                }
+                            </script>
+                            <%}%>                        
+                            <% break }%>
+
+                    <%}%>
+                    <% if (!con) {%>
+                        <button type="submit" name="BTdevPaired" value="<%- devicesPaired[i] %>" class="btn btn-primary btn-lg"><%- devicesPaired[i]%></button>
+                        <button type="submit" name="BTRemoveDev" value="<%- devicesPaired[i] %>" >Entkoppeln & trennen</button>
+                    <% } %>
+                <%}%>
+            <% if (!con) {%>
+                <button type="submit" name="BTdevPaired" value="<%- devicesPaired[i] %>" class="btn btn-primary btn-lg"><%- devicesPaired[i]%></button>
+                <button type="submit" name="BTRemoveDev" value="<%- devicesPaired[i] %>" >Entkoppeln & trennen</button>
+                <% } %>
+            <br><br>
+            <%}%>
+        <%}%>
+        <hr><br>
+        <button type="submit" name="BTPairPi" value="BTPairPi" >Koppelmode</button><br><br>
+        <button type="submit" name="BTConnect" value="BTConnect" >Verbindungsmode</button><br>
+
+    
+    </form>
+    </h3>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>

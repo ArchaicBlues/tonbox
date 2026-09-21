@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body class="my-body">
+<div class="row">
+    <div class="col-sm-8">
+    
+            <h3>Input user data to register.</h3>
+            <% if(typeof alert != 'undefined') { %>
+                <% alert.forEach(function(error) { %>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <%= error.msg %>
+                        <button type="button" class="close-btn" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                <% }) %>
+            <% } %>
+    
+            <form action="../register" method="POST">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" name="username" id="username">
+                </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email address</label>
+                    <input type="email" class="form-control" name="email" id="email">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Enter</button>
+            </form>
+         </div>
+    </div>
+</div>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</html>

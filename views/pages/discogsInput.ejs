@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/android-chrome-192x192.png">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+</head>
+<body>
+<%- include('../partials/header'); %>
+    <main class="container">
+    <form action='../discogsInput', method='POST', content-type="text/javascript">
+        <button class="btn-modern" type="submit" name="Back" value="Back" >Back / Submit</button>
+        <br><br>
+        <div style="width: 90%; margin: 0 auto; text-align: center;">
+        <% if (!discogsState) {%>
+            <b>
+            If you would use 
+            <a href="https://www.discogs.com" target="_blank" style="color:#0d6efd; text-decoration: underline;">
+                DISCOGS
+            </a> 
+            you don't need to 'Edit / Upload Infos.<br>
+            Info and images will be get thru the internet.
+            </b>
+            <br><br>
+        <%}else{%>
+            DISCOGS Token valid. Type Artist, Titel and ENTER<br><br>
+        <%}%>
+        Artist:<br><input type="text" style="background-color: rgb(238, 240, 241);color:rgb(0,0,0);font-weight: bold;" name="Artist" placeholder="Enter Artist and..."/>
+        Title:<br><input type="text" style="background-color: rgb(243, 245, 247);color:rgb(0,0,0);font-weight: bold;" name="Title" placeholder="...Title and press Search"/>
+        <br><br><br><br><br><br>
+        <button class="btn-modern" type="submit" name="editInfo" value="editInfo">Edit / Upload Infos</button>&nbsp;&nbsp;&nbsp;
+        <button class="btn-modern" onclick="window.open('https://www.discogs.com', '_blank')">
+            Go to Discogs and check spelling of Artist and Title
+        </button>
+        <br> 
+        </div>
+
+    </form>
+    </main>
+    <%- include('../partials/footer'); %>
+</body>
+</html>

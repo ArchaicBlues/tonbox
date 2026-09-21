@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<!-- <body class="container"> -->
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+    
+<body class="my-body">
+        <h1>Audio Capture Result</h1>
+        <br>
+        <h4>
+            <% if (pState=="done") {%>
+            Analyze process done!
+            <%} else {%>
+            Analyze process running...
+            <%}%>
+        </h4>
+        <form action='../audioCaptureResult', method='POST', content-type="text/javascript">
+            <%- pState %>
+            <% if (pState=="done") {%>
+                <div class="input-group mb-3">
+                    <button type="submit" name="OK" value="OK" class="btn btn-primary btn-lg btn-block">OK</button>
+                </div>
+            <%}%>
+
+        </form>
+</body>
+
+<script>
+    <%- include('../partials/footer'); %>
+
+
+document.addEventListener('click', function (event) {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mainMenu = document.getElementById('main-menu-bar');
+
+  if (menuToggle.checked) {
+    // Prüfen, ob der Klick AUSSERHALB der Navbar (main-menu-bar) war
+    // .contains prüft, ob das geklickte Element (event.target) Teil der Navbar ist
+    if (!mainMenu.contains(event.target)) {
+      menuToggle.checked = false;
+    }
+  }
+});
+</script>
+</body>
+</html>
