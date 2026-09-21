@@ -1,2 +1,6 @@
 node_modules/
 *.log
+
+# Credentials - never track these
+.settings.conf
+client_secret_*.json
