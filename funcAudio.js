@@ -82,7 +82,7 @@ module.exports = function (required) {
     }
   },
   this.sendCaptureStatus = async function (res) {
-    if (res) res.render('pages/audioCapture', { pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: "", audioInfo: progressInfo, discogs: discogsResult, pside: recAD.side, userSave: adjustRenameState.userCheck, getPara: false, vol: settings.jackVolume, settings: settings })
+    if (res) res.render('pages/audioCapture', { pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: "", audioInfo: progressInfo, discogs: discogsResult, pside: recAD.side, userSave: adjustRenameState.userCheck, getPara: false, vol: settings.jackVolume, settings: settings })
   },
   this.startConversion = function () {
     //no-op
@@ -107,7 +107,7 @@ module.exports = function (required) {
     procStatus.text = "Vinyl capture feature disabled in this BASIS build"
     if (res) {
       res.render('pages/audioCapture', {
-        pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez,
+        pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez,
         recording: getScheduledJobsWithoutTimeout(),
         pState: procStatus, audioInfo: "none",
         discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck,
@@ -164,7 +164,7 @@ module.exports = function (required) {
     return false
   },
   this.getRecordTime = async function (res) {
-    if (res) res.render('pages/audioCapture', { pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, audioInfo: progressInfo, discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck, getPara: false, vol: settings.jackVolume, settings: settings })
+    if (res) res.render('pages/audioCapture', { pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, audioInfo: progressInfo, discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck, getPara: false, vol: settings.jackVolume, settings: settings })
   },
   this.songRecognition = async function (res, result) {
     if (res) return doTape(res, false)
@@ -180,9 +180,9 @@ module.exports = function (required) {
     procStatus.text = "Vinyl capture feature disabled in this BASIS build"
     if (res) {
       res.render('pages/audioCapture', {
-        pageInfo: pageInfo, settings: settings, silenceFacor: 0,
-        recSide: "", page: "normal",
-        storage: 0,
+        pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor,
+        recSide: recSide, page: "normal",
+        storage: storage,
         btDevice: bluez,
         recording: getScheduledJobsWithoutTimeout(),
         pState: procStatus,
@@ -203,7 +203,7 @@ module.exports = function (required) {
   this.checkAllWav = async function (res) {
     if (res) {
       res.render('pages/audioCapture', {
-        pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez,
+        pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez,
         recording: getScheduledJobsWithoutTimeout(),
         pState: procStatus, audioInfo: "none",
         discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck,
@@ -387,7 +387,7 @@ module.exports = function (required) {
       if (res) doTape(res, false)
     } else {
       if (res) res.render('pages/audioCapture', {
-        pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez,
+        pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez,
         recording: getScheduledJobsWithoutTimeout(),
         pState: procStatus, audioInfo: progressInfo,
         discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck,
@@ -404,7 +404,7 @@ module.exports = function (required) {
       if (res) doTape(res, false)
     } else {
       if (res) res.render('pages/audioCapture', {
-        pageInfo: pageInfo, settings: settings, silenceFacor: 0, recSide: "", page: "normal", storage: 0, btDevice: bluez,
+        pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez,
         recording: getScheduledJobsWithoutTimeout(),
         pState: procStatus, audioInfo: progressInfo,
         discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck,
