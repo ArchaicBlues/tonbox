@@ -4,3 +4,12 @@ node_modules/
 # Credentials - never track these
 .settings.conf
 client_secret_*.json
+
+# Compiled binaries (architecture-specific, not for source distribution)
+/gramocli
+/songrec
+
+# Local/personal machine state - not relevant to other installs
+.bluetoothctl_history
+.migration_done
+discogsCallback.json

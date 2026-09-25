@@ -1,13 +1,14 @@
 {
-  "name": "archaicnodeejs",
+  "name": "tonbox",
   "version": "1.0.0",
-  "description": "A server app with multiple audio / video / slide / TV functionality",
+  "description": "A Raspberry Pi based networked audio/media center: internet radio, Bluetooth speaker, CD/vinyl capture, DLNA casting and more",
   "main": "server.js",
   "keywords": [
+    "raspberry-pi",
     "dlna",
     "upnp",
-    "cast",
-    "client"
+    "internet-radio",
+    "bluetooth-speaker"
   ],
   "author": "ArchaicBlues",
   "license": "MIT",
@@ -16,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bartve/disconnect.git"
+    "url": "git+https://github.com/ArchaicBlues/tonbox.git"
   },
   "dependencies": {
     "body-parser": "^1.19.1",
@@ -36,9 +37,9 @@
     "start": "node server.js"
   },
   "bugs": {
-    "url": "https://github.com/bartve/disconnect/issues"
+    "url": "https://github.com/ArchaicBlues/tonbox/issues"
   },
-  "homepage": "https://github.com/bartve/disconnect#readme",
+  "homepage": "https://github.com/ArchaicBlues/tonbox#readme",
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/node_modules/**": true
