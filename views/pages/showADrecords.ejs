@@ -402,12 +402,6 @@
         </div>
         <br><br>
         <div id="allImgContainer"></div>
-        <!-- <div class="group-img-center">
-            <img src="/images/helpDB/image1.jpg" alt="unavailable" width="30%" heigth="30%">    
-            <img src="/images/helpDB/image2.jpg" alt="unavailable" width="30%" heigth="30%">
-            <img src="/images/helpDB/image3.jpg" alt="unavailable" width="30%" heigth="30%">     
-            <img src="/images/helpDB/image4.jpg" alt="unavailable" width="30%" heigth="30%">  
-        </div> -->
         <div class="col-auto">
             <% if (baseimages.length < 4) {%>
                 <b>Add / upload image</b>
@@ -473,8 +467,9 @@
             console.log("Anzahl Images=" + length);
 
             for (let i = 0; i < length; i++) {
+                let filename = baseImages[i];
+                if (!filename) continue;
                 let img = document.createElement("img");
-                let filename = baseImages[i] || "image" + (i + 1) + ".jpg";
                 img.src = "/images/helpDB/" + encodeURIComponent(filename);
                 img.alt = "AD record image " + (i + 1);
                 img.style.margin = "8px";
