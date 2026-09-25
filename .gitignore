@@ -13,3 +13,6 @@ client_secret_*.json
 .bluetoothctl_history
 .migration_done
 discogsCallback.json
+
+# Editor config - personal, and launch.json hardcodes this machine's paths
+.vscode/
