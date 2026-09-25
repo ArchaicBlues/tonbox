@@ -44,7 +44,6 @@ const SSE = require('./funcSSE');
 global.rememberDB = "";
 global.sseData = "";
 global.quit_HLS = false
-global.systemReady = false
 
 const path = require('path')
 //Upload: für eigene Images die in DISCOGS nicht vorhanden sind https://code-boxx.com/upload-files-nodejs-express/
@@ -169,7 +168,8 @@ async function ping() {
 async function ipConfig() {
     try {
         if (ip_config_events === 0){
-            await doLAN(false)        
+            await loadSettings()   //vor doLAN() laden, sonst sieht doLAN() nur die Defaults statt der .settings.conf-Werte
+            await doLAN(false)
             ipConfigTimer = setInterval(ipConfig, 1000)
         }
         if (++ip_config_events < constants.IP_CONFIG_ELAPSED_EVENTS) {
@@ -213,20 +213,23 @@ function startWebApp() {
             logging("startWebApp ip addr: " + err)
         })
 
-     app.listen(8000, settings.ip, function (err) {
-        if (err) {
-            console.log("app.listen:" + err)
-            logging("ERROR = " + err)
-        }
-        else {
-            console.log("nodeJS server listen on " + settings.ip + ":8000")
-            console.log("__dirname=" + __dirname)
-            logging("listen on " + settings.ip + ":8000")
-            global.systemReady = true
-            startPowerUpAudio()
+    function onListening() {
+        console.log("nodeJS server listen on " + settings.ip + ":8000")
+        console.log("__dirname=" + __dirname)
+        logging("listen on " + settings.ip + ":8000")
+        startPowerUpAudio()
 
-            //console.log('Plattform:', os.platform());
-        }
+        //console.log('Plattform:', os.platform());
+    }
+
+    //bindet settings.ip nicht immer an ein tatsächlich vorhandenes Interface (z.B. wenn eth0/wlan0
+    //die IP noch nicht angenommen hat) - ohne diesen Fallback würde ein Bind-Fehler den ganzen
+    //Prozess per "Unhandled 'error' event" abstürzen lassen, statt auf allen Interfaces zu lauschen
+    var webServer = app.listen(8000, settings.ip, onListening)
+    webServer.on('error', function (err) {
+        console.log("app.listen on " + settings.ip + " failed: " + err + " - falling back to all interfaces")
+        logging("app.listen on " + settings.ip + " failed: " + err + " - falling back to all interfaces")
+        app.listen(8000, onListening)
     })
 }
 
@@ -296,30 +299,6 @@ app.get("/api/version", (req, res) => {
     }
 });
 
-app.get("/health", (req, res) => {
-    try {
-        // -----------------------
-        // UPDATE STATE (source of truth)
-        // -----------------------
-        let update = "idle";
-
-        if (fs.existsSync("help/update_status")) {
-            update = fs.readFileSync("help/update_status", "utf8").trim();
-        }
-        const systemReady = update === "installed" && global.systemReady === true;
-        res.json({
-            status: "ok",
-            update,
-            systemReady
-        });
-    } catch (err) {
-        res.status(500).json({
-            status: "error",
-            update: "unknown",
-            uptime: process.uptime()
-        });
-    }
-});
 /***********************************************    */
 
 
@@ -560,7 +539,6 @@ app.post('/audioProcessWav', urlencodedParser, function (req, res) {
 
     initiateRecEnd("ended by user")
     if (!req.body || req.body.Back) {
-        killProc("gramocli")
         res.render('pages/audioCapture', {pageInfo:pageInfo, settings:settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: "stop playing", audioInfo: progressInfo, discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck, getPara: false,   vol: settings.jackVolume, settings:settings })
         return
     }
@@ -719,12 +697,6 @@ app.get("/video-view-stream", (req, res) => {
     res.writeHead(200, { "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg" });
     res.end();
 });
-
-app.post('/songRecognitionProcess', urlencodedParser, function (req, res) {
-    procStatus.text = ""
-    console.log(rememberDB + "*** Url: " + req.url + " body:" + JSON.stringify(req.body));
-    setInitialPage(res)
-})
 
 
 
@@ -2246,10 +2218,6 @@ app.get('/stoprec', function (req, res) {
 
 app.get('/system', function (req, res) {
     console.log("rememberDB="+rememberDB + " " + req.url + ", body:" + JSON.stringify(req.body))
-    if (fs.existsSync("help/tonbox_update_finished")) {
-        fs.unlinkSync("help/tonbox_update_finished");
-        return res.redirect("/");
-    }
     if (!procStatus.stat){
         stopMusicPlay(constants.AUDIO_ALL)
         doSystem(res)
@@ -2262,20 +2230,11 @@ app.get('/system', function (req, res) {
 
 app.post('/system', urlencodedParser, async function (req, res) {
     console.log(rememberDB + "*** Url: " + req.url + " body:" + JSON.stringify(req.body));
-    if (fs.existsSync("help/tonbox_update_finished")) {
-        fs.unlinkSync("help/tonbox_update_finished");
-        return res.redirect("/");
-    }
 
     if (req.body.sys == "restart") {
         //siehe auch /etc/systemd/system/Tonbox.service
         res.send("Server wird neu gestartet...");
         process.exit(0);
-        return
-    }
-
-    if (req.body.sys == "UPDATE") {
-        updateTonbox(res)
         return
     }
 
@@ -2430,14 +2389,18 @@ app.get('/radio', async (req, res) => {
         res.setHeader("Content-Type", "audio/mpeg");
         res.setHeader("Transfer-Encoding", "chunked");
 
+        // Kein Browser-User-Agent-Spoofing hier: manche (v.a. ältere SHOUTcast v1)
+        // Server erkennen einen "Mozilla/Chrome"-UA als Web-Browser und liefern dann
+        // eine HTML-Statusseite statt des Audiostreams aus, was ffmpeg mit
+        // "Invalid data"/Exit-Code 183 quittiert. ffmpegs eigener Standard-UA wird
+        // von SHOUTcast/Icecast-Servern als normaler Player erkannt.
+        let clientClosed = false;
         const ffmpeg = spawn('ffmpeg', [
             '-hide_banner',
             '-loglevel', 'error',
             '-reconnect', '1',
             '-reconnect_streamed', '1',
             '-reconnect_delay_max', '5',
-            '-user_agent', 'Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
-            '-headers', 'Accept: */*\r\n',
             '-i', url,
             '-vn',
             '-acodec', 'libmp3lame',
@@ -2460,7 +2423,10 @@ app.get('/radio', async (req, res) => {
         });
 
         ffmpeg.on('close', (code) => {
-            if (code !== 0) {
+            // Exit-Code 255 = ffmpeg wurde per SIGTERM beendet (siehe unten,
+            // z.B. weil der Client/Player die Verbindung geschlossen hat) -
+            // das ist ein normaler Abbruch, kein Streaming-Fehler.
+            if (code !== 0 && !(code === 255 && clientClosed)) {
                 console.error("ffmpeg exited with code", code);
             }
             if (!res.writableEnded) {
@@ -2470,6 +2436,7 @@ app.get('/radio', async (req, res) => {
 
         req.on('close', () => {
             if (!ffmpeg.killed) {
+                clientClosed = true;
                 ffmpeg.kill('SIGTERM');
             }
         });
@@ -2498,6 +2465,16 @@ app.get('/radio', async (req, res) => {
 
         const contentType = (response.headers.get("content-type") || "").toLowerCase();
         const needsTranscode = contentType.includes("audio/aac") || contentType.includes("audio/aacp");
+
+        // Manche (v.a. ältere SHOUTcast v1) Server liefern statt des Streams eine
+        // HTML-Statusseite aus, wenn der Request wie ein normaler Web-Browser aussieht.
+        // Das darf nicht als "Audio" durchgereicht werden - stattdessen per ffmpeg
+        // (ohne Browser-UA-Spoofing) neu verbinden, das funktioniert zuverlässig.
+        const looksLikeHtml = contentType.includes("text/html");
+        if (looksLikeHtml) {
+            console.error("Upstream returned HTML instead of an audio stream (likely UA-based blocking) - trying ffmpeg fallback:", targetUrl);
+            return transcodeToMp3(targetUrl);
+        }
 
         if (needsTranscode) {
             return transcodeToMp3(targetUrl);

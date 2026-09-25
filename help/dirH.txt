@@ -1,6 +1,32 @@
-/home/pi/mediaServer/Home
+/home/pi/media/usbmedium1/mediaServer/Home
 └── Pictures
-    ├── MyStuff
-    └── Test
+    ├── 03112023_HuckAndTom
+    ├── 2004
+    ├── 2009
+    ├── 2011
+    ├── 2012
+    ├── 2013
+    ├── 2014
+    ├── 2015
+    ├── 2016
+    ├── 2018
+    ├── 2019
+    ├── 2020
+    ├── 2021
+    ├── 2022
+    ├── 2023
+    ├── 2024
+    ├── ArchaicBlues
+    ├── ArchaicBluesDuo
+    ├── ArchaicBluesTrio
+    ├── Bretagne2026
+    ├── Klaus70
+    ├── Muenster2024
+    ├── Read-y-tainment
+    ├── soloKlaus
+    ├── Stringbone
+    ├── Test
+    ├── Various
+    └── Wernau200926
 
-4 directories
+30 directories

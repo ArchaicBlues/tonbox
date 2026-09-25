@@ -1,11 +1,122 @@
-/home/pi/mediaServer/ADrecords
+/home/pi/media/usbmedium1/mediaServer/ADrecords
+├── algertexasalexandertexastroublesomeblues
+│   ├── audio
+│   └── image
+├── ALittleNightMusic
+│   ├── audio
+│   └── image
+├── BerndCluever-DerKleinePrinz
+│   ├── audio
+│   └── image
+├── BigJoeWilliams-FourClassicAlbums
+│   ├── audio
+│   └── image
+├── blindblake1926-1930thatlovinIcrave
+│   ├── audio
+│   └── image
 ├── BlindBlake-1926-30BootlegRumDumBlues
+│   ├── audio
+│   └── image
+├── BlindBlakeNoDoughBlues1926-29Volume3
+│   ├── audio
+│   └── image
+├── blindboyfullertruckinmybluesaway
+│   ├── audio
+│   └── image
+├── blindwilliejohnsonpraisegodimsatisfied
+│   ├── audio
+│   └── image
+├── BluesfromGeorgia
+│   ├── audio
+│   └── image
+├── BottleneckbluesguitarClassics1926-1937
+│   ├── audio
+│   └── image
+├── Buddyboyhawkinshisbuddies
+│   ├── audio
+│   └── image
+├── CannedHeat-PoorMoon
+│   ├── audio
+│   └── image
+├── CaseyBillWeldonKokomoArnoldBottleneckGuitarTrendsettersOfThe1930s
+│   ├── audio
+│   └── image
+├── CharleyJordan-ItAintClean
 │   ├── audio
 │   └── image
 ├── CharlieSpand-1929-1940TheRemainingTitles
 │   ├── audio
 │   └── image
+├── Crosscutsawtommymcclennan
+│   ├── audio
+│   └── image
+├── CubyBlizzards-AppleknockersFlophouse
+│   ├── audio
+│   └── image
+├── DaveDeeDozyBeakyMickTich-IllLoveYou
+│   ├── audio
+│   └── image
+├── DonovanGoldenHourOf
+│   ├── audio
+│   └── image
+├── EltonJohnAndKikiDee_DontGoBreakingMyHeart
+│   ├── audio
+│   └── image
+├── FingerPickingGuitarTechniques
+│   ├── audio
+│   └── image
+├── FrankStokes-CreatoroftheMemphisBlues
+│   ├── audio
+│   └── image
 ├── FrijidPink-TheHouseOfTheRisingSun
+│   ├── audio
+│   └── image
+├── furrylewisinhisprime1927-1928
+│   ├── audio
+│   └── image
+├── FurryLewis-TheRemainingTitles1927-1929
+│   ├── audio
+│   └── image
+├── GuitarWizards1926-1935
+│   ├── audio
+│   └── image
+├── IkeAndTinaTurner-ProudMary
+│   ├── audio
+│   └── image
+├── IshmanBraceyCompleteRecordingsInChronologicalOrder1928-30
+│   ├── audio
+│   └── image
+├── JimmyWitherspoonSingsTheBluesWithGerryMulliganAndBenWebsterWithMelLewisLeroyVinnegarJimmyRowles-AtTheRenaissance
+│   ├── audio
+│   └── image
+├── joanbaez
+│   ├── audio
+│   └── image
+├── JohnMayallWithPeterGreen,MickTaylor,KeefHartley,JohnMcVie_BluesGiant
+│   ├── audio
+│   └── image
+├── JohnnyWinter-LibertyHallSessions1969
+│   ├── audio
+│   └── image
+├── KansasJoeMcCoy-JoeWilliams1929-1941
+│   ├── audio
+│   └── image
+├── LedZeppelinIII
+│   ├── audio
+│   └── image
+├── LegendaryAnthologyofbritishbluesbellaphon
+│   ├── audio
+│   └── image
+├── leroycarrScrapperBlackwell1930-1958
+│   ├── audio
+│   └── image
+├── mamaletmelayitonyou1926-1935
+│   ├── audio
+│   └── image
+├── memphisjamboree1927-1936
+│   ├── audio
+│   └── image
+├── MemphisMinnie-CompleteRecordedWorks1935-1941InChronologicalOrderVol.39JuneTo15December1937
 │   ├── audio
 │   └── image
 ├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume1--18June1929To29May1930
@@ -20,7 +131,106 @@
 ├── MemphisMinnieKansasJoe-1929-1934RecordingsInChronologicalOrderVolume41933-1934
 │   ├── audio
 │   └── image
+├── MireilleMathieu?RomaRomaRoma
+│   ├── audio
+│   └── image
+├── MississippiJohnHurt1928
+│   ├── audio
+│   └── image
+├── NanaMouskouri_starf?rmillionen
+│   ├── audio
+│   └── image
+├── OdeanPopeAlmostlikeme
+│   ├── audio
+│   └── image
+├── Otto
+│   ├── audio
+│   └── image
+├── PinkFloyd?Animals
+│   ├── audio
+│   └── image
+├── PinkFloyd?WishYouWereHere
+│   ├── audio
+│   └── image
 ├── PlasticOnoBand-GivePeaceAChance
+│   ├── audio
+│   └── image
+├── RickyShayne-Fantastic
+│   ├── audio
+│   └── image
+├── RobertWilkins1928-35
+│   ├── audio
+│   └── image
+├── RobertWilkins-TheOriginalRollingStone
+│   ├── audio
+│   └── image
+├── RockOldies
+│   ├── audio
+│   └── image
+├── RogerWhittaker_BestOf_1
+│   ├── audio
+│   └── image
+├── RollingStones-theverybestof
+│   ├── audio
+│   └── image
+├── RooseveltScottGeorgeJefferson2LuluScott-ChicagoBluesRootsVol.21938-1940CompleteRecordings
+│   ├── audio
+│   └── image
+├── rootsofrobertjohnson
+│   ├── audio
+│   └── image
+├── RoryGallagherTheBestYears
+│   ├── audio
+│   └── image
+├── Santana-TheWoodstockExperience
+│   ├── audio
+│   └── image
+├── ScrapperBlackwellTheVirtuosoGuitarOfScrapperBlackwell
+│   ├── audio
+│   └── image
+├── SimonGarfunkel_BestOf
+│   ├── audio
+│   └── image
+├── SonnyBoyWilliams-1940-1942CompleteRecordingsInChronologicalOrder
+│   ├── audio
+│   └── image
+├── Spitzenreiter70_71
+│   ├── audio
+│   └── image
+├── Starparade72-73
+│   ├── audio
+│   └── image
+├── St.LouisTown1929-1933
+│   ├── audio
+│   └── image
+├── TampaRedBottleneckGuitar1928-1937
+│   ├── audio
+│   └── image
+├── TerryJacks-SeasonsInTheSun
+│   ├── audio
+│   └── image
+├── TexasAlexanderVol.31929-30
+│   ├── audio
+│   └── image
+├── TheArchies-SugarSugar
+│   ├── audio
+│   └── image
+├── TheDaveClarkFive-BitsAndPieces
+│   ├── audio
+│   └── image
+├── TheEntertainer-VariousClassicRags
+│   ├── audio
+│   └── image
+├── theFamous1930ParamountRecordings
+│   ├── audio
+│   └── image
+├── TheLords-PoorBoyPoisonIvy
+│   ├── audio
+│   └── image
+├── TheMississippiBlues19271940
+│   ├── audio
+│   └── image
+├── TobiasBeckerBigband,VerenaN?bel,CherryGehring?StudioKonzert
 │   ├── audio
 │   └── image
 ├── TommyJohnson1928-30
@@ -29,8 +239,62 @@
 ├── TommyMcclennan-CrosscutSaw
 │   ├── audio
 │   └── image
-└── TommyMcClennanRobertPetway-CottonPickinBlues
+├── TommyMcClennanRobertPetway-CottonPickinBlues
+│   ├── audio
+│   └── image
+├── TommyMcClennanTravelinHighwayMan
+│   ├── audio
+│   └── image
+├── Tonbox-5-19-2026
+│   ├── audio
+│   └── image
+├── TRex?SolidGold-EasyAction
+│   ├── audio
+│   └── image
+├── UdoJ?rgens-MalerSingle
+│   ├── audio
+│   └── image
+├── Various-12ClassicBluesSongsFromThe1920sPlus11PostWarRarities
+│   ├── audio
+│   └── image
+├── Various-16ClassicBluesSongsFromThe1920sPlus6PostWarRaritiesVol.17
+│   ├── audio
+│   └── image
+├── VariousBluesVol1
+│   ├── audio
+│   └── image
+├── Various-CountryBluesClassicsVolume2
+│   ├── audio
+│   └── image
+├── Various-JacksonStomp
+│   ├── audio
+│   └── image
+├── Various-MisterCharliesBlues1926-1938
+│   ├── audio
+│   └── image
+├── VariousMisterCharliesBlues1926-1938
+│   ├── audio
+│   └── image
+├── VariousTex-Arkana-LouisianaCountry1929-1933
+│   ├── audio
+│   └── image
+├── VariousTheFirstGreatRockFestivalsOfTheSeventies-IsleOfWightAtlantaPopFestival
+│   ├── audio
+│   └── image
+├── VariousTheMississippiBlues1927-1940
+│   ├── audio
+│   └── image
+├── VariousTheMississippiBluesNo.3Transition1926-1937
+│   ├── audio
+│   └── image
+├── Various?TheWorldOfRock
+│   ├── audio
+│   └── image
+├── Various?Vergi?meinnicht-Stern-StundeDerMusik
+│   ├── audio
+│   └── image
+└── walterbuddyboyhawkins1927-29
     ├── audio
     └── image
 
-34 directories
+298 directories

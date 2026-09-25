@@ -19,6 +19,8 @@ const emitter = new EventEmitter();
 const titelRef = { value: "" };
 
 const streamCache = new Map();
+let radioFfmpegProc = null;
+let radioPwPlayProc = null;
 //radio Recording, see radioFavorites.ejs, Array of json!
 global.scheduledRadioRecJobs = [];
 global.activeRecordings = {};
@@ -376,42 +378,6 @@ function isDefinitelyBad(url) {
   return false;
 }
 
-async function testChromiumHttp(url, timeoutMs = 3000) {
-  return new Promise((resolve) => {
-    const lib = url.startsWith("https") ? https : http;
-
-    let finished = false;
-    const done = (val) => {
-      if (finished) return;
-      finished = true;
-      resolve(val);
-    };
-
-    const req = lib.request(url, {
-      method: "GET",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari",
-        "Icy-MetaData": "1",
-        "Accept": "*/*"
-      }
-    }, (res) => {
-      res.resume(); // discard data
-
-      const ok = res.statusCode >= 200 && res.statusCode < 400;
-      done(ok);
-    });
-
-    req.on("error", () => done(false));
-
-    req.setTimeout(timeoutMs, () => {
-      req.destroy();
-      done(false);
-    });
-
-    req.end();
-  });
-}
-
 async function testMPV(url, timeoutMs = 5000) {
   return new Promise((resolve) => {
     const mpv = spawn("mpv", [
@@ -419,7 +385,10 @@ async function testMPV(url, timeoutMs = 5000) {
       "--ao=null",
       "--idle=no",
       "--ytdl=no",
-      "--user-agent=Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari",
+      // Kein Browser-UA-Spoofing: manche (v.a. aeltere SHOUTcast v1) Server
+      // blocken einen Browser-UA und liefern eine HTML-Statusseite statt
+      // Audio, was diese Probe faelschlich scheitern liesse. mpvs eigener
+      // Standard-UA wird von SHOUTcast/Icecast als normaler Player erkannt.
       "--http-header-fields=Icy-MetaData: 1,Accept: */*",
       "--demuxer-lavf-o=icy=1",
       url
@@ -479,6 +448,60 @@ async function testMPV(url, timeoutMs = 5000) {
   });
 }
 
+
+async function testFfmpeg(url, timeoutMs = 6000) {
+  return new Promise((resolve) => {
+    // Kein Browser-UA-Spoofing, siehe testMPV() weiter oben - selbe Begruendung.
+    const ffmpeg = spawn("ffmpeg", [
+      "-hide_banner",
+      "-loglevel", "info",
+      "-reconnect", "1",
+      "-reconnect_streamed", "1",
+      "-reconnect_delay_max", "5",
+      "-i", url,
+      "-t", "3",
+      "-vn",
+      "-f", "null",
+      "-"
+    ]);
+
+    let timer = null;
+    let settled = false;
+
+    function done(result) {
+      if (settled) return;
+      settled = true;
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      try { ffmpeg.kill("SIGKILL"); } catch (_) {}
+      resolve(result);
+    }
+
+    const inspectOutput = (d) => {
+      const s = d.toString();
+      if (/Stream #\d+:\d+.*Audio:/.test(s)) {
+        done(true);
+      }
+      if (
+        s.includes("Invalid data found") ||
+        s.includes("Server returned 4") ||
+        s.includes("Server returned 5") ||
+        s.includes("Connection refused")
+      ) {
+        done(false);
+      }
+    };
+
+    ffmpeg.stderr.on("data", inspectOutput);
+
+    ffmpeg.on("exit", () => done(false));
+    ffmpeg.on("error", () => done(false));
+
+    timer = setTimeout(() => done(false), timeoutMs);
+  });
+}
 
 async function validateStation(stationsToValidate = radioFound) {
   const source = Array.isArray(stationsToValidate) ? stationsToValidate : [];
@@ -546,14 +569,17 @@ async function probeStream(url) {
       return "mpv";
     }
 
-    console.log("MPV failed, trying HTTP:", url);
+    console.log("MPV failed, trying ffmpeg:", url);
 
-    // Nur als Fallback
-    const httpOk = await testChromiumHttp(url);
+    // Nur als Fallback: manche Streams kann mpv nicht direkt oeffnen,
+    // ffmpeg aber schon (z.B. exotischere Container/Codecs). Headless
+    // Chromium wurde hier frueher als letzter Fallback verwendet, gibt auf
+    // diesem Geraet aber nachweislich nie echten Ton aus - daher ffmpeg.
+    const ffmpegOk = await testFfmpeg(url);
 
-    if (httpOk) {
-      streamCache.set(url, "chromium");
-      return "chromium";
+    if (ffmpegOk) {
+      streamCache.set(url, "ffmpeg");
+      return "ffmpeg";
     }
     streamCache.set(url, "failed");
     return("failed")
@@ -1046,7 +1072,7 @@ module.exports = function(){
         `--cache-secs=${cacheSecs}`,
         `--demuxer-readahead-secs=${readaheadSecs}`,
         "--ytdl=no",
-        "--user-agent=Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari",
+        // Kein Browser-UA-Spoofing, siehe testMPV() weiter oben.
         "--http-header-fields=Icy-MetaData: 1,Accept: */*",
         "--demuxer-lavf-o=icy=1",
         "--display-tags=*",
@@ -1073,25 +1099,81 @@ module.exports = function(){
     });
     return mpv;
   },
-  this.playChromium = function(url) {
-    console.log("play Chromium "+url)
-    settings.powerUpSoundURL = "chromium-browser --headless --disable-gpu --no-sandbox --autoplay-policy=no-user-gesture-required " + "'"+url+"'"
+  this.playFfmpegLocal = function(url) {
+    console.log("play ffmpeg (local) "+url)
+    settings.powerUpSoundURL = "ffmpeg -i '"+url+"' -f wav pipe:1 | pw-play -"
     writeSettings()
-    console.log(settings.powerUpSoundURL)
-    return spawn("chromium-browser", [
-      "--headless",
-      "--disable-gpu",
-      "--no-sandbox",
-      "--autoplay-policy=no-user-gesture-required",
-      url
-    ], {
-      stdio: "ignore",
-      detached: true
+
+    // Kein Browser-UA-Spoofing, siehe testMPV() weiter oben. Dieser Pfad
+    // ersetzt das frühere playChromium(): Headless Chromium gibt auf diesem
+    // Geraet nachweislich nie echten Ton ueber PipeWire aus, ffmpeg->pw-play
+    // dagegen schon.
+    const ffmpeg = spawn("ffmpeg", [
+      "-hide_banner",
+      "-loglevel", "error",
+      "-reconnect", "1",
+      "-reconnect_streamed", "1",
+      "-reconnect_delay_max", "5",
+      "-i", url,
+      "-vn",
+      "-f", "wav",
+      "pipe:1"
+    ], { stdio: ["ignore", "pipe", "pipe"] });
+
+    const pwplay = spawn("pw-play", ["-"], { stdio: ["pipe", "ignore", "ignore"] });
+    // Ohne diesen Handler wirft ein Schreibversuch auf das bereits
+    // geschlossene stdin von pw-play (z.B. beim Stoppen/Senderwechsel) ein
+    // unhandled 'error'-Event (EPIPE) und reisst den ganzen Node-Prozess mit.
+    pwplay.stdin.on('error', () => {});
+    ffmpeg.stdout.pipe(pwplay.stdin);
+
+    radioFfmpegProc = ffmpeg;
+    radioPwPlayProc = pwplay;
+
+    ffmpeg.stderr.on('data', (data) => {
+      console.error("ffmpeg radio (local) transcode:", data.toString());
     });
+
+    ffmpeg.on('error', (err) => console.log('ffmpeg (radio local) spawn failed:', err));
+    pwplay.on('error', (err) => console.log('pw-play (radio local) spawn failed:', err));
+
+    ffmpeg.on('exit', (code, signal) => {
+      // code 255 = ffmpeg per SIGTERM beendet (normaler Stop/Senderwechsel),
+      // kein echter Fehler - siehe server.js /radio Fallback.
+      if (!(signal === 'SIGTERM' || (code === 255 && !signal))) {
+        console.log('ffmpeg (radio local) exited', code, signal);
+      }
+      if (radioFfmpegProc === ffmpeg) radioFfmpegProc = null;
+      try { pwplay.kill('SIGTERM'); } catch (_) {}
+    });
+    pwplay.on('exit', () => {
+      if (radioPwPlayProc === pwplay) radioPwPlayProc = null;
+    });
+
+    return ffmpeg;
+  },
+  this.stopRadioFfmpeg = function() {
+    if (radioFfmpegProc) {
+      try { radioFfmpegProc.kill('SIGTERM'); } catch (_) {}
+      radioFfmpegProc = null;
+    }
+    if (radioPwPlayProc) {
+      try { radioPwPlayProc.kill('SIGTERM'); } catch (_) {}
+      radioPwPlayProc = null;
+    }
   },
   this.playStream = async function (index,fav) {
     // return new Promise((resolve, reject) => {
     try{
+      // Ein aktiver BT-Stream hat Vorrang: eine neu gestartete lokale
+      // Radio-Wiedergabe soll dann gar nicht erst kurz hoerbar werden,
+      // statt erst beim naechsten doMonitorBT()-Tick (bis zu 1.5s) wieder
+      // gestoppt zu werden.
+      if (await isBtStreamActive()) {
+        console.log("playStream: BT-Stream aktiv, lokale Wiedergabe wird nicht gestartet")
+        procStatus.text = "Bluetooth-Stream aktiv - Radio wird nicht gestartet"
+        return false;
+      }
       let url = ""
       if (fav === "favorites"){
         url = history.button[index].url
@@ -1100,8 +1182,10 @@ module.exports = function(){
           await playMPV(url);
           if (!intervalRadio)
           intervalRadio = setInterval(getMetadata, constants.META_DATA_INTERVAL)
+        } else if (history.button[index].engine === "ffmpeg"){
+          await playFfmpegLocal(url);
         } else {
-          await playChromium(url);
+          console.log("playStream: unbekannte engine, ueberspringe Wiedergabe:", history.button[index].engine)
         }
       }else{
         url = radioFound[index].url
@@ -1110,8 +1194,10 @@ module.exports = function(){
           await playMPV(url);
           if (!intervalRadio)
           intervalRadio = setInterval(getMetadata, constants.META_DATA_INTERVAL)
+        } else if (radioFound[index].engine === "ffmpeg"){
+          await playFfmpegLocal(url);
         } else {
-          await playChromium(url);
+          console.log("playStream: unbekannte engine, ueberspringe Wiedergabe:", radioFound[index].engine)
         }
       }
       return true;

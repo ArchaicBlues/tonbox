@@ -166,9 +166,6 @@ module.exports = function (required) {
   this.getRecordTime = async function (res) {
     if (res) res.render('pages/audioCapture', { pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, audioInfo: progressInfo, discogs: discogsResult, recAD: recAD, userSave: adjustRenameState.userCheck, getPara: false, vol: settings.jackVolume, settings: settings })
   },
-  this.songRecognition = async function (res, result) {
-    if (res) return doTape(res, false)
-  },
   this.resetMP3select = function () {
     mp3Select.in = ""
     mp3Select.out = ""
@@ -282,35 +279,9 @@ module.exports = function (required) {
     try {
       //turn video off
       await execCmd("sudo chmod 000 /dev/video*")
-      let data = await fsPromises.readFile('.settings.conf', 'utf8');
-      if (data.length > 10) {
-        let s = JSON.parse(data)
-        if ("warning" in s) {
-          delete s.warning;
-          s.reverb = "off"
-        }
-
-        if (s.gateway !== undefined) settings.gateway = s.gateway
-        if (s.ip !== undefined) settings.ip = s.ip
-        if (s.installDir !== undefined) settings.installDir = s.installDir
-        if (s.mediaOut !== undefined) settings.mediaOut = s.mediaOut
-        if (s.sysAudioOut !== undefined) settings.sysAudioOut = s.sysAudioOut
-        if (s.jackVolume !== undefined) settings.jackVolume = volumeAudioOut = s.jackVolume
-        if (s.ssid !== undefined) settings.ssid = s.ssid
-        if (s.pass !== undefined) settings.pass = s.pass
-        if (s.powerUpSoundIndex !== undefined) settings.powerUpSoundIndex = s.powerUpSoundIndex
-        if (s.powerUpSoundURL !== undefined) settings.powerUpSoundURL = s.powerUpSoundURL
-        settings.reverb = (s.reverb !== undefined ? s.reverb : settings.reverb)
-        if (s.youtubeKey !== undefined) settings.youtubeKey = s.youtubeKey
-        if (s.discogsUserToken !== undefined) settings.discogsUserToken = s.discogsUserToken
-        if (s.admin !== undefined) settings.admin = s.admin
-        else {
-          settings.admin = "0"
-        }
-        if (s.filterIndex !== undefined) settings.filterIndex = s.filterIndex
-        data = JSON.stringify(settings)
-        await fsPromises.writeFile('.settings.conf', data)
-      }
+      //.settings.conf wird bereits vor doLAN() in ipConfig() geladen (loadSettings());
+      //hier nochmal laden, falls setAudioEnvironment() auch unabhängig vom normalen Boot-Ablauf aufgerufen wird
+      await loadSettings()
 
 
       await createEqSliderJson()
@@ -428,11 +399,10 @@ module.exports = function (required) {
         exec("sudo killall mpv", (err, stdout, stderr) => { })
       }
     })
-    exec("pgrep chromium", (err, stdout, stderr) => {
-      if (!err) {
-        exec("sudo killall chromium", (err, stdout, stderr) => { })
-      }
-    })
+    // Stoppt gezielt nur den ffmpeg/pw-play-Prozess der lokalen Radio-Wiedergabe
+    // (siehe playFfmpegLocal() in funcRadio.js) - kein "killall ffmpeg", da
+    // ffmpeg auch fuer Aufnahmen und den /radio-Browser-Proxy laeuft.
+    stopRadioFfmpeg()
     trackState = "done"
 
     exec("pgrep pw-play", (err, stdout, stderr) => {
@@ -549,9 +519,6 @@ module.exports = function (required) {
     if (res) res.render('pages/captureVideo', { pageInfo: pageInfo, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus })
   },
   this.startVideoRecording = function (recordFile) {
-    //no-op
-  },
-  this.songRecognitionProcess = async function () {
     //no-op
   },
   this.calcRecEnd = async function (time) {

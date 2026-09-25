@@ -141,12 +141,57 @@ var SDcardMediaServer=constants.SD_CARD_MEDIASERVER_NOK
 global.bluez = ""
 global.monSys = {temp:"",space:""}
 
+// Bluetooth-Audio kommt beim Verbinden mit ungedaempftem PipeWire-Volume
+// (100%) an, wird aber gegenueber dem Radiostream trotzdem als sehr leise
+// wahrgenommen (Handy-eigene Medienlautstaerke/AVRCP bzw. Referenzpegel).
+// Deshalb wird jeder aktive BT-Sink-Input software-seitig auf diesen Wert
+// verstaerkt (Unity-Gain = 100%). Bei Bedarf anpassen, falls zu leise/laut.
+const BT_VOLUME_BOOST_PERCENT = 150
+
+// Liefert alle gerade aktiv streamenden (nicht "corked"/pausierten)
+// Bluetooth-Sink-Inputs. "Verbunden" (device.api=bluez5) reicht nicht: ein
+// Bluetooth-Geraet kann verbunden sein, ohne gerade Audio zu senden (z.B.
+// Musik auf dem Handy pausiert).
+async function getActiveBtSinkInputs() {
+  try {
+    const raw = await execCmd("pactl -f json list sink-inputs 2>/dev/null")
+    const items = JSON.parse(raw)
+    return items.filter(si => si.properties && si.properties["device.api"] === "bluez5" && si.corked === false)
+  } catch (err) {
+    return []
+  }
+}
+
+// Global, damit auch funcRadio.js vor dem Start einer lokalen Wiedergabe
+// pruefen kann, ob gerade ein BT-Stream Vorrang haben sollte.
+global.isBtStreamActive = async function() {
+  const active = await getActiveBtSinkInputs()
+  return active.length > 0
+}
+
+async function boostBtVolume(activeBtSinkInputs) {
+  for (const si of activeBtSinkInputs) {
+    const currentPercent = parseInt(si.volume && si.volume["front-left"] && si.volume["front-left"].value_percent) || 100
+    if (currentPercent !== BT_VOLUME_BOOST_PERCENT) {
+      await execCmd("pactl set-sink-input-volume " + si.index + " " + BT_VOLUME_BOOST_PERCENT + "%").catch(() => {})
+    }
+  }
+}
+
 async function doMonitorBT() {
   try{
-    bluez = await execCmd("ls help/btDevice >&1")
+    // .catch() statt try/catch-Reject: execCmd() wirft eine Rejection, wenn
+    // "ls" nichts findet (Geraet getrennt) - ohne das faengt der aeussere
+    // catch das ab, BEVOR die Zuweisung passiert, und bluez bleibt fuer
+    // immer auf dem letzten "verbunden"-Wert stehen (nie wieder "").
+    bluez = await execCmd("ls help/btDevice 2>/dev/null").catch(() => "")
     if (bluez) {
-      //console.log("doMonitorBT(): stopMusicPlay")
-      stopMusicPlay(constants.AUDIO_ALL)
+      const activeBtSinkInputs = await getActiveBtSinkInputs()
+      if (activeBtSinkInputs.length > 0) {
+        await boostBtVolume(activeBtSinkInputs)
+        //console.log("doMonitorBT(): BT-Stream aktiv, stopMusicPlay")
+        stopMusicPlay(constants.AUDIO_ALL)
+      }
     }
   }catch(err){
     //console.log(err)
@@ -459,8 +504,27 @@ const readTree = async (res) => {
                 await generateCoverImg("deleteOld")
             }
         }else{
+            //Only some of the 3 dirs were found on USB storage (e.g. just devMusic on
+            //a single USB stick) - fill in the rest from the SD-card's mediaServer
+            //folder (creating it if needed) instead of leaving them "nok", which would
+            //make the block below treat the whole media server as broken.
+            if (devADrecords.match("nok") || devMusic.match("nok") || devHome.match("nok")){
+                if (devADrecords.match("nok")){
+                    devADrecords = "/home/pi/mediaServer/ADrecords"
+                    await execCmd("mkdir -p " + devADrecords)
+                }
+                if (devMusic.match("nok")){
+                    devMusic = "/home/pi/mediaServer/Music"
+                    await execCmd("mkdir -p " + devMusic + "/Audio " + devMusic + "/Radio " + devMusic + "/Video")
+                }
+                if (devHome.match("nok")){
+                    devHome = "/home/pi/mediaServer/Home"
+                    await execCmd("mkdir -p " + devHome + "/Pictures")
+                }
+                console.log("filled missing mediaServer dirs from SD-Card - devADrecords:"+devADrecords+" devMusic:"+devMusic+" devHome:"+devHome)
+            }
             //get dir tree of each mountpoint
-            var dH=""; var dM=""; var dA=""; 
+            var dH=""; var dM=""; var dA="";
             if (devHome.match("/mediaServer"))
                 dH = devHome
             if (devMusic.match("/mediaServer"))
@@ -1708,327 +1772,6 @@ module.exports = function(required){
             logging(err)
         }
     },
-    // this.updateTonbox = async function (res) {
-    //     //fs.writeFileSync("help/update_status", ""); //siehe sw_update.sh
-    //     try {
-    //         if (swUpdateState === "running") {
-    //             return res.send("Update läuft bereits...");
-    //         }
-    //         swUpdateState = "running"
-    //         res.send(`
-    //         <!DOCTYPE html>
-    //         <html>
-    //         <head>
-    //         <meta name="viewport" content="width=device-width, initial-scale=1">
-    //         <title>Updating...</title>
-    //         <style>
-    //         body {
-    //             background: #000;
-    //             color: #00d2ff;
-    //             display: flex;
-    //             justify-content: center;
-    //             align-items: center;
-    //             height: 100vh;
-    //             font-size: 2rem;
-    //             font-family: sans-serif;
-    //             flex-direction: column;
-    //         }
-    //         .spinner {
-    //             border: 6px solid #222;
-    //             border-top: 6px solid #00d2ff;
-    //             border-radius: 50%;
-    //             width: 60px;
-    //             height: 60px;
-    //             margin-bottom: 30px;
-    //             animation: spin 1s linear infinite;
-    //         }
-    //         @keyframes spin {
-    //             100% { transform: rotate(360deg); }
-    //         }
-    //         </style>
-    //         </head>
-    //         <body>
-
-    //         <div class="spinner"></div>
-    //         <div>Updating system...<br>Please wait...</div>
-
-    //         <script>
-    //             let retryCount = 0;
-    //             let finished = false;
-
-    //             async function checkServer() {
-    //                 if (finished) return;
-
-    //                 try {
-    //                     const controller = new AbortController();
-
-    //                     const timeout = setTimeout(() => {
-    //                         controller.abort();
-    //                     }, 1500);
-
-    //                     const response = await fetch(
-    //                         "/health?t=" + Date.now(),
-    //                         {
-    //                             cache: "no-store",
-    //                             signal: controller.signal
-    //                         }
-    //                     );
-
-    //                     clearTimeout(timeout);
-
-    //                     if (!response.ok) {
-    //                         throw new Error("Server not ready");
-    //                     }
-
-    //                     const data = await response.json();
-
-    //                     // 🟢 SAFE VERSION HANDLING (NEU)
-    //                     const version = data.version || "initializing";
-
-    //                     document.getElementById("versionBox").innerText =
-    //                         (version === "initializing")
-    //                             ? "System starting..."
-    //                             : "Version: " + version;
-
-    //                     // 🟢 READY CHECK
-    //                     if (data.status === "ok" && version !== "initializing") {
-    //                         finished = true;
-
-    //                         document.body.innerHTML =
-    //                             '<div style="color:#00d2ff;font-size:2rem;font-family:sans-serif;">' +
-    //                             'Restart complete...' +
-    //                             '</div>';
-
-    //                         window.location.href =
-    //                             window.location.origin + "/?v=" + Date.now();
-
-    //                         return;
-    //                     }
-
-    //                 } catch (e) {
-    //                     retryCount++;
-    //                     console.log("waiting for server...", retryCount);
-
-    //                     document.getElementById("versionBox").innerText =
-    //                         "waiting for server...";
-    //                 }
-
-    //                 setTimeout(checkServer, 2000);
-    //             }
-
-    //             // start polling
-    //             checkServer();
-
-    //         </script>
-
-    //         </body>
-    //         </html>
-    //         `);
-
-    //         // const child = spawn("/usr/bin/bash", ["./bashScript/sw_update.sh"], {
-    //         //     detached: false,          // IMPORTANT: we want exit code
-    //         //     stdio: "inherit"          // log output into journal
-    //         // });
-    //         const child = spawn("systemd-run", [
-    //             "--user",
-    //             "--unit=tonbox-update",
-    //             "--collect",
-    //             "/usr/bin/bash",
-    //             "/home/pi/ArchaicNodeEJS/bashScript/sw_update.sh"
-    //         ]);
-
-    //         /*
-    //             Your current code sends the HTML response and immediately starts the update process. Sometimes 
-    //             the process exits before the browser fully receives/render the page.
-    //             Add a small delay before spawning:                
-    //             That 500ms delay often fixes “stuck updating page” problems entirely because the browser has time to fully load the polling script before the backend disappears.
-    //             The core reason this happens is:
-    //             Browser loads update page
-    //             Node process exits too fast
-    //             Polling JS never fully initializes
-    //             Browser remains on static HTML forever
-    //             The delay + recursive polling + cache-busting redirect fixes this reliably without user action.            
-    //         */
-
-    //             child.on("close", (code) => {
-    //                 swUpdateState = "ok";
-
-    //                 console.log(`Update script exited with code ${code}`);
-                    
-    //                 if (code === 0)
-    //                     swUpdateState = "ok";
-    //                 else
-    //                     swUpdateState = "error";
-
-    //                 // //remove old stuff
-    //                 // execCmd("rm -rf *.gz*; rm -rf /home/pi/.Trash-1000/files/*")
-
-    //                 // setTimeout(() => {
-    //                 //     process.kill(process.pid, "SIGTERM");
-    //                 // }, 1000);
-    //             });
-
-    //         }, 500);
-    //         child.on("error", (err) => {
-    //             console.error("Failed to start update script:", err);
-    //       });
-    //     } catch (err) {
-    //         console.error("Unexpected error during update:", err);
-    //     }
-    // },
-
-    this.updateTonbox = async function (res) {
-        try {
-            if (fs.existsSync("help/update_status")) {
-                fs.unlinkSync("help/update_status");
-            }
-            fs.writeFileSync("help/update_status", "running");
-            res.send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>Updating...</title>
-
-                <style>
-                body {
-                    background: #000;
-                    color: #00d2ff;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    font-size: 2rem;
-                    font-family: sans-serif;
-                    flex-direction: column;
-                }
-
-                .spinner {
-                    border: 6px solid #222;
-                    border-top: 6px solid #00d2ff;
-                    border-radius: 50%;
-                    width: 60px;
-                    height: 60px;
-                    margin-bottom: 30px;
-                    animation: spin 1s linear infinite;
-                }
-
-                @keyframes spin {
-                    100% { transform: rotate(360deg); }
-                }
-                </style>
-                </head>
-
-                <body>
-
-                <div class="spinner"></div>
-                <div>Updating system...<br>Please wait...</div>
-
-                <script>
-                let finished = false;
-                let retryCount = 0;
-
-                async function checkServer() {
-                    if (finished) return;
-
-                    try {
-                        const controller = new AbortController();
-
-                        const timeout = setTimeout(() => {
-                            controller.abort();
-                        }, 1500);
-
-                        const response = await fetch("/health?t=" + Date.now(), {
-                            cache: "no-store",
-                            signal: controller.signal
-                        });
-
-                        clearTimeout(timeout);
-
-                        const data = await response.json();
-
-                        // ==========================
-                        // UPDATE STATE (INSTALL PHASE)
-                        // ==========================
-                        const update = data.update || "idle";
-                        console.log("update state:", update);
-
-                        if (update === "running") {
-                            console.log("update running...");
-                        }
-
-                        if (update === "error") {
-                            document.body.innerHTML =
-                                '<div style="color:red;font-size:2rem;">Update failed</div>';
-                            return;
-                        }
-
-                        // ==========================
-                        // SYSTEM READY (NEW FINAL STATE)
-                        // ==========================
-                        const systemReady = data.systemReady === true;
-
-                        if (update === "installed" && !systemReady) {
-                            console.log("update installed, waiting for system boot...");
-                        }
-
-                        if (systemReady === true) {
-
-                            finished = true;
-
-                            document.body.innerHTML =
-                                '<div style="color:#00d2ff;font-size:2rem;font-family:sans-serif;">' +
-                                'System ready...' +
-                                '</div>';
-
-                            // safe redirect
-                            window.location.href =
-                                window.location.origin + "/?v=" + Date.now();
-
-                            return;
-                        }
-
-                        // Continue polling until systemReady is true
-                        retryCount = 0;
-
-                    } catch (e) {
-
-                        retryCount++;
-                        console.log("waiting for server...", retryCount);
-                    }
-
-                    setTimeout(checkServer, 2000);
-                }
-
-                // start polling
-                checkServer();
-                </script>
-
-                </body>
-                </html>
-            `);
-
-            // ==========================
-            // START UPDATE PROCESS
-            // ==========================
-            const child = spawn("systemd-run", [
-                "--user",
-                "--unit=tonbox-update",
-                "--collect",
-                "/usr/bin/bash",
-                "/home/pi/ArchaicNodeEJS/bashScript/sw_update.sh"
-            ]);
-
-            child.on("error", (err) => {
-                console.error("Failed to start update script:", err);
-//                swUpdateState = "error";
-            });
-
-        } catch (err) {
-            console.error("Unexpected error during update:", err);
-//            swUpdateState = "error";
-        }
-    };
 
     this.cleanSystem = function(){
         exec("bleachbit --clean system.cache; rm -rf .Trash-1000/; sudo journalctl --vacuum-time=1s", (error, stdout, stderr) => {})
@@ -2299,18 +2042,6 @@ module.exports = function(required){
             await setYouTubeObj()
             await monitorSystem()
             await checkTV("")
-            exec("bashScript/./btInit.sh", (error, stdout, stderr) => {
-                if (error || stderr) {
-                    procStatus.text="btInit:" + error
-                    console.log(procStatus.text)
-                }
-                exec("bashScript/./btConCheck.sh ", (error, stdout, stderr) => {
-                    if (error || stderr) {
-                        procStatus.text="btConCheck:" + error
-                        console.log(procStatus.text)
-                    }
-                })
-            })
             ledOrange("On")
             ledGreen("On")
         }
@@ -2417,6 +2148,15 @@ module.exports = function(required){
         var data = JSON.stringify(settings)
         await fsPromises.writeFile('.settings.conf', data)
         //console.log(data)
+    },
+    this.loadSettings = async function(){
+        try {
+            var data = await fsPromises.readFile('.settings.conf', 'utf8')
+            Object.assign(settings, JSON.parse(data))
+        }
+        catch (err) {
+            if (err.code !== 'ENOENT') console.log(err)
+        }
     },
     this.checkTV = async function(res){
         /*********** DLNA **************/
