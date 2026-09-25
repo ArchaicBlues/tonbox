@@ -1,12 +1,17 @@
 # Tonbox
 
 Tonbox is a Node.js/Express web application that turns a Raspberry Pi into a
-networked audio/media center: internet radio, Bluetooth speaker, CD playback,
-vinyl/AUX capture, a slideshow/TV mode, DLNA/UPnP casting and more, all
-controlled from a browser on your local network.
+networked audio/media center: Its is a comprehensive media handler. 
+It processes audio, video, and images. 
+Suitable for
+• Targeted music search radio, video
+• Analog music data restoration
+• Modernization of older tube radios or receivers
+• Media show consisting of pictures and videos on TV all
+Controlled from a browser on your local network.
 
 This is the free **Basis** build: a small number of hardware/format-heavy
-features (USB media library, video capture, CD cover editing, MP3 conversion)
+features (USB media library, vinyl / video capture, ..)
 are present in the UI but intentionally disabled as no-ops, marked with
 `BASIS build` comments in the source.
 
@@ -28,8 +33,7 @@ npm install
 node server.js
 ```
 
-Then open `http://<raspberry-pi-ip>:<port>/` in a browser (see `server.js`
-for the listening port).
+Then open `http://tonbox.local:8000` in a browser
 
 On first start there is no `.settings.conf` yet — the app runs with built-in
 defaults. Configure WiFi, audio output, a YouTube Data API key (optional, for
@@ -52,8 +56,6 @@ systemctl --user daemon-reload
 systemctl --user enable --now Tonbox.service
 ```
 
-The Bluetooth agent helper service (`filter/conf/userServices/bt-agent.service`)
-can be installed the same way if you want automatic Bluetooth pairing.
 
 ## License
 
