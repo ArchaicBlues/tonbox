@@ -275,6 +275,28 @@ module.exports = function (required) {
     await fsPromises.writeFile('filter/eqSlider.json', jsonString)
     console.log("createEqSliderJson")
   },
+  //filter/conf/{mpv,pipewire} ships the default mpv/pipewire config; on a fresh
+  //install ~/.config/{mpv,pipewire/pipewire.conf.d} doesn't exist yet, so
+  //seed it once. Existing files are left alone so local edits survive updates.
+  this.ensureUserAudioConfig = async function () {
+    const pipewireSrcDir = path.join(__dirname, 'filter/conf/pipewire');
+    const pipewireDestDir = path.join(os.homedir(), '.config/pipewire/pipewire.conf.d');
+    await fsPromises.mkdir(pipewireDestDir, { recursive: true });
+    const pipewireFiles = await fsPromises.readdir(pipewireSrcDir);
+    for (const file of pipewireFiles) {
+      const destPath = path.join(pipewireDestDir, file);
+      if (!fs.existsSync(destPath)) {
+        await fsPromises.copyFile(path.join(pipewireSrcDir, file), destPath);
+      }
+    }
+
+    const mpvDestDir = path.join(os.homedir(), '.config/mpv');
+    await fsPromises.mkdir(mpvDestDir, { recursive: true });
+    const mpvDest = path.join(mpvDestDir, 'mpv.conf');
+    if (!fs.existsSync(mpvDest)) {
+      await fsPromises.copyFile(path.join(__dirname, 'filter/conf/mpv/mpv.conf'), mpvDest);
+    }
+  },
   this.setAudioEnvironment = async function () {
     try {
       //turn video off
@@ -283,6 +305,7 @@ module.exports = function (required) {
       //hier nochmal laden, falls setAudioEnvironment() auch unabhängig vom normalen Boot-Ablauf aufgerufen wird
       await loadSettings()
 
+      await ensureUserAudioConfig()
 
       await createEqSliderJson()
       data = 'pcm.!default\n {\n type asym playback.pcm\n {\n type plug\n slave.pcm "output"\n }\n capture.pcm\n {\n type plug\n slave.pcm "input"\n }\n }\n pcm.output\n {\n type hw\n card 0\n }\n ctl.!default\n {\n type hw\n card 0 \n }\n'
