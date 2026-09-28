@@ -27,7 +27,7 @@ are present in the UI but intentionally disabled as no-ops, marked with
 ## Installation
 
 ```bash
-git clone https://github.com/<your-user>/tonbox.git
+git clone https://github.com/archaicblues/tonbox.git
 cd tonbox
 npm install
 node server.js
