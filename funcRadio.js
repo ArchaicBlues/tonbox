@@ -237,7 +237,7 @@ async function ffmpegRecorder(url, stationName) {
   const filename = "temp.mp3";
   ffmpegTempNameByUrl.set(url, procStatus.marquee || stationName || "temp.mp3");
 
-  const outputDir = `/home/pi/ArchaicNodeEJS/Radio/${stationName}`;
+  const outputDir = `${__dirname}/Radio/${stationName}`;
   await fsPromises.mkdir(outputDir, { recursive: true });
 
   const fullpath = path.join(outputDir, filename);
@@ -1371,11 +1371,11 @@ module.exports = function(){
     res.json({ success: true });
   },
   this.startRadioRecording = async function(url,stationName) {
-    await execCmd("mkdir /home/pi/ArchaicNodeEJS/Radio/ 2>/dev/null")
+    await execCmd(`mkdir ${__dirname}/Radio/ 2>/dev/null`)
     const session = new RecordingSession(
       url,
       stationName,
-      "/home/pi/ArchaicNodeEJS/Radio/",
+      `${__dirname}/Radio/`,
       ffmpegRecorder
     ).start();
 

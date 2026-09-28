@@ -2562,14 +2562,14 @@ app.get(/^\/0/i, function routeHandler(req, res) {
 // })
 app.get("/modern.css", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/views/css/modern.css"
+    p = __dirname + "/views/css/modern.css"
     //console.log(p)
     sendHLS(res, p)
     return
 })
 app.get("/button.css", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/views/css/button.css"
+    p = __dirname + "/views/css/button.css"
     //console.log(p)
     sendHLS(res, p)
     return
@@ -2577,7 +2577,7 @@ app.get("/button.css", function routeHandler(req, res) {
 
 app.get("/scripts/audioWeb.js", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/public/scripts/audioWeb.js"
+    p = __dirname + "/public/scripts/audioWeb.js"
     //console.log(p)
     sendHLS(res, p)
     return
@@ -2585,7 +2585,7 @@ app.get("/scripts/audioWeb.js", function routeHandler(req, res) {
 
 app.get("/scripts/cdControls.js", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/public/scripts/cdControls.js"
+    p = __dirname + "/public/scripts/cdControls.js"
     //console.log(p)
     sendHLS(res, p)
     return
@@ -2608,7 +2608,7 @@ app.get("/resetUpdate", function routeHandler(req, res) {
 
 app.get("/filter/eqSlider.json", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/filter/eqSlider.json"
+    p = __dirname + "/filter/eqSlider.json"
     console.log(p)
     sendHLS(res, p)
     return
@@ -2640,7 +2640,7 @@ app.get("/filter/reverbIR.wav", function routeHandler(req, res) {
 
 app.get("/public/scripts/videoWeb.js", function routeHandler(req, res) {
     //console.log("app-get:", `${req.method} ${req.url}`)
-    p = settings.installDir + "/ArchaicNodeEJS/public/scripts/videoWeb.js"
+    p = __dirname + "/public/scripts/videoWeb.js"
     //console.log(p)
     sendHLS(res, p)
     return
@@ -2837,7 +2837,7 @@ app.get(["/*"], function routeHandler(req, res) {
 
     if (req.url.search("/favicon.ico") >= 0) {
 //        console.log("send favicon.ico")
-        sendHLS(res, settings.installDir + "/ArchaicNodeEJS/public/images/favicon.ico")
+        sendHLS(res, __dirname + "/public/images/favicon.ico")
         return
     }
 
@@ -2893,7 +2893,7 @@ app.get(["/*"], function routeHandler(req, res) {
             }
         } else {
             console.log("Error allTracks.length")
-            p = settings.installDir + "/ArchaicNodeEJS/public/images/Tonbox.jpg"//irgendetwas senden
+            p = __dirname + "/public/images/Tonbox.jpg"//irgendetwas senden
         }
         console.log(x+":"+p)
         streamMP3(req, res, p)
@@ -2934,7 +2934,7 @@ app.get(["/*"], function routeHandler(req, res) {
         return
     }
     if (req.url.match("/eq")) {
-        p = settings.installDir + "/ArchaicNodeEJS/public/images/Tonbox.jpg"
+        p = __dirname + "/public/images/Tonbox.jpg"
         sendHLS(res, p) //must send something anyway
         setEqualizerFilter(req.url)
         return
@@ -2969,7 +2969,7 @@ app.get(["/*"], function routeHandler(req, res) {
     }
 
     console.log("no adequate get info of " + req.url + ", send default")
-    p = settings.installDir + "/ArchaicNodeEJS/public/images/Tonbox.jpg"
+    p = __dirname + "/public/images/Tonbox.jpg"
     sendHLS(res, p)
 })
 
