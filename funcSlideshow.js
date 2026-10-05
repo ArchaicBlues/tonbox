@@ -52,7 +52,7 @@ module.exports = function () {
     return "ok"
   },
   this.convertVideo = async function (res, dir, src) {
-    procStatus.text = "Gallery video conversion disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) showPicDir(res)
   },
   this.checkFileout = async function (filein, fileout) {

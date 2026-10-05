@@ -875,11 +875,7 @@ if (mediaElement) {
                 mediaElement.load()
             }
             //mediaElement.currentTime=0;
-            if (dirType.match("Radio/")) {
-                StartPlayRadioDir(x)
-            } else {
-                StartPlayx(track)
-            }
+            StartPlayx(track)
             oldButtonID = id
             oldButtonX = x;
             buttonID.style.backgroundColor = 'green';
@@ -910,20 +906,6 @@ if (mediaElement) {
         }
     }
 
-
-    function StartPlayRadioDir(index) {
-        console.log("StartPlayRadioDir(" + index + ")")
-        try {
-            const response = fetch("/radioFavorites", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Streamx: index })//+fileExt})
-            });
-            console.log("POST Streamx: " + index)
-        } catch (err) {
-            console.log("StartPlayRadioDir:" + err)
-        }
-    }
 
     function StartPlayx(track) {
         console.log("StartPlayx(" + track + ")")
@@ -1017,7 +999,8 @@ if (mediaElement) {
             canvas = document.querySelector(".visualizer");
             console.log(canvas)
             canvasCtx = canvas.getContext("2d");
-            canvas.setAttribute("width", 300);
+            canvas.setAttribute("width", 330);
+            canvas.setAttribute("height", 165);
             canvasCtx.font = "14px Arial";
             canvasCtx.fillStyle = "red";
             canvasCtx.fillText("Browser unterstützt nicht die Web Audio API", 10, 50)
@@ -1026,7 +1009,8 @@ if (mediaElement) {
         canvas = document.querySelector(".visualizer");
         console.log(canvas)
         canvasCtx = canvas.getContext("2d");
-        canvas.setAttribute("width", 300);
+        canvas.setAttribute("width", 330);
+        canvas.setAttribute("height", 165);
         canvasCtx.fillStyle = "black";
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
         canvasCtx.fillStyle = "red";
@@ -1177,7 +1161,8 @@ if (mediaElement) {
             canvas = document.querySelector(".visualizer");
             console.log(canvas)
             canvasCtx = canvas.getContext("2d");
-            canvas.setAttribute("width", 300);
+            canvas.setAttribute("width", 330);
+            canvas.setAttribute("height", 165);
             canvasCtx.font = "14px Arial";
             canvasCtx.fillStyle = "red";
             canvasCtx.fillText("Browser unterstützt nicht die Web Audio API", 10, 50)
@@ -1732,62 +1717,6 @@ function PlayRadioBars(id, i, stat, name) {
         // resetMarquee()
         try {
             const response = fetch('/radioStation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ StopPlayx: "StopPlayx" })
-            });
-        } catch (err) {
-            console.log("post=" + err)
-        }
-    }
-}
-function PlayRadioBarsFav(id, i, stat, name) {
-    console.log("PlayRadioBarsFav: " + id + "," + i + "," + stat + " " + name)
-
-    //GET Anfrage an Server senden. Dieser setzt CORS Header...
-    const proxyUrl = "/radio?url=" + encodeURIComponent(stat);
-    //...kommt wieder hierher zurück und reicht die proxyUrl an das mediaElement weiter
-    mediaElement.setAttribute('src', proxyUrl);
-    if (dirType != "Radio/"){
-        showStationName = document.getElementById("Station")
-        let country = rd[i].countryCode ? rd[i].countryCode : ""
-        let state = rd[i].state ? rd[i].state : ""
-        showStationName.innerHTML = country + " " + state + "<br>" + rd[i].name
-    }
-    if (!radioPlaying) {
-        console.log("start pw-play on rpi server")
-        try {
-            const response = fetch("/radioFavorites", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Playx: i })
-            });
-        } catch (err) {
-            console.log("post=" + err)
-        }
-        oldButtonObj = document.getElementById(id + i)
-        oldButtonObj.style.backgroundColor = 'green'; // Keep green or rely on class if preferred, user said it was OK
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume().then(() => {
-                mediaElement.play();
-            });
-        } else {
-            mediaElement.play();
-        }
-        radioPlaying = true
-        visuBars()
-    } else {
-        console.log("radio stop")
-        // Get the CSS variable value
-        const glassBg = getComputedStyle(document.documentElement).getPropertyValue('--glass-bg');
-        // Apply it to your button
-        oldButtonObj.style.backgroundColor = glassBg;        
-        mediaElement.pause();
-        radioPlaying = false
-        // clearInterval(marqueeObj)
-        // resetMarquee()
-        try {
-            const response = fetch('/radioFavorites', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ StopPlayx: "StopPlayx" })

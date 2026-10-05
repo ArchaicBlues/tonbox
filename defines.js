@@ -1,16 +1,6 @@
 'use strict';
 
 let constants = {
-    //Internet Radio
-    REC_DEFAULT_HTTP: "http",
-    REC_DEFAULT_REC: "false",
-    REC_DEFAULT_PID: "",
-    REC_DEFAULT_NO_ERR: "",
-    REC_KILL_ERR: "kill",
-    REC_PROCESS_ERR: "access forbidden",
-    REC_PID_ERR: "pid",
-    REC_MAX_RADIO_RECORDINGS: "5",
-    REC_WAIT_PROCESS_START: 2500,//access forbidden could raise ! Wait a bit
     //AD conversion
     AD_RECORDING_ACTIVE: 1,
     AD_RECORDING_STOP_IN_PROGRESS: 2,
@@ -108,7 +98,7 @@ let constants = {
     //Marquee & ffmpegRecorder
     META_DATA_INTERVAL: 1000, //ms
     //Tonbox
-    SOFTWARE_VERSION: "210926"
+    SOFTWARE_VERSION: "280926"
 }
 
 module.exports = Object.freeze(constants); // freeze prevents changes by users

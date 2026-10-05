@@ -28,7 +28,7 @@ global.discogsSearchItem = { "Artist": "", "Title": "", "discType": "" }
 
 module.exports = function (required) {
 	this.discogsDone = async function (res) {
-		if (res) res.json({ success: false, error: "Discogs feature disabled in this BASIS build" });
+		if (res) res.json({ success: false, error: "Feature disabled in this BASIS build" });
 	},
 	this.initiateRecEnd = async function (msg) {
 		procStatus.text = ""
@@ -47,7 +47,7 @@ module.exports = function (required) {
 		//no-op
 	},
 	this.getDiscogsData = async function (res, searchResult) {
-		if (res) res.status(200).json({ error: "Discogs feature disabled in this BASIS build" });
+		if (res) res.status(200).json({ error: "Feature disabled in this BASIS build" });
 	},
 	this.handleImages = async function (data) {
 		//no-op
@@ -126,7 +126,7 @@ module.exports = function (required) {
 		return false
 	},
 	this.searchDiscogs = async function (res) {
-		if (res) res.json({ success: false, error: "Discogs feature disabled in this BASIS build" });
+		if (res) res.json({ success: false, error: "Feature disabled in this BASIS build" });
 	},
 	this.discogsInput = async function (res) {
 		if (res) res.render('pages/discogsInput', { settings: settings, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, discogsState: false })

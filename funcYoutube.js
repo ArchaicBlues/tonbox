@@ -70,11 +70,11 @@ module.exports = function (required) {
     return ""
   },
   this.downloadYTconvertMp3 = async function (url, index, em, save) {
-    procStatus.text = "YouTube feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     SSEIntervalTyp = constants.SSE_NONE_CLEAR_INTERVAL
   },
   this.ytSearch = async function (searchStr, res) {
-    procStatus.text = "YouTube feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) res.render('pages/youtubeselect', {
       vol: volumeAudioOut, play: "", settings: settings, searchYouTube: searchYouTube, btDevice: bluez,
       recording: getScheduledJobsWithoutTimeout(), pState: procStatus, yttitle: [], ytVideoId: [],
@@ -82,7 +82,7 @@ module.exports = function (required) {
     })
   },
   this.downloadYT = async function (url, res, title) {
-    procStatus.text = "YouTube feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) res.render('pages/youtubeselect', {
       vol: volumeAudioOut, play: "", settings: settings, searchYouTube: searchYouTube, btDevice: bluez,
       recording: getScheduledJobsWithoutTimeout(), pState: procStatus, yttitle: ytTitle, ytVideoId: ytVideoId,

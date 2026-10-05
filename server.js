@@ -369,13 +369,6 @@ app.get('/entry', function (req, res) {
         });
         break;
 
-        case "radioFavorites":
-        ledGreen("On")
-        pageInfo = "My Radio"
-        rememberDB = "Radio/Favorites"
-        loadRadioHistory(res);
-        break;
-
         case "cdmob":
         if (cdripping)
         {
@@ -911,7 +904,7 @@ app.get("/cddvd", (req, res) => {
 
 //DUMMY: CD cover editor image upload disabled in this BASIS build.
 app.post('/cddvd/editor-images', async function (req, res) {
-    return res.status(400).json({ ok: false, error: 'CD feature disabled in this BASIS build' });
+    return res.status(400).json({ ok: false, error: 'Feature disabled in this BASIS build' });
 });
 
 app.post('/cddvd', urlencodedParser, async function (req, res) {
@@ -1260,7 +1253,7 @@ app.post('/showMusicWorld', urlencodedParser, async function (req, res) {
         if (rememberDB == "videoplay") {
             res.render('pages/showMusicWorld',{pageInfo:pageInfo, settings:settings, btDevice: bluez, recording: getScheduledJobsWithoutTimeout(), pState: procStatus, basetracks: allTracks, dirMain: 0, dir: 0, indexStart: trackIndex, loc: "Video", vidsrc: "0", vol: volumeAudioOut})
         } else
-            res.redirect("../radioFavorites")//showMusicDir(rememberDB, res)//setInitialPage(res)
+            res.redirect("/")
         return
     }
     // if (req.body.Favorites) {
@@ -1767,20 +1760,6 @@ app.post('/radioStation', urlencodedParser, async function (req, res) {
     //     return
     // }
 
-    if (req.body.Favorites) {
-        pageInfo = "Radio Recordings"
-        rememberDB = "Radio/Favorites"
-        loadRadioHistory(res)
-        return
-    }
-
-    if (req.body.AddFav) {
-        pageInfo = "Radio Recordings"
-        rememberDB = "Radio/Favorites"
-        addRadioFavorit(req.body.AddFav,res)
-        return
-    }
-
     if (req.body.Playx) {
         radioPlay(req.body.Playx, res)
         return
@@ -1853,80 +1832,6 @@ app.post('/radioStation', urlencodedParser, async function (req, res) {
     }
 
     doRenderRadioStation(res, -1)
-});
-
-
-app.post('/radioFavorites', urlencodedParser, function (req, res) {
-    console.log("rememberDB="+rememberDB + " " + req.url + ", body:" + JSON.stringify(req.body))
-    pageInfo="Radio"
-    endSlideShow()
-    if (!req.body || req.body.Back) {
-        if (req.body.Back.match("Delete")){
-            deleteTrack(res,req.body.Back)
-            return
-        }
-        if (req.body.Back === "track"){
-            pageInfo = "Radio Favorit Records"
-            rememberDB = "Radio/Favorites"
-            loadRadioHistory(res)
-            return
-        }
-        pageInfo = "Radio"
-        rememberDB = "Radio/Suchen"
-        res.render('pages/radioStation', {pageInfo:pageInfo,
-            dat: stationCount, search:radioUserSearch, rd:radioFound,
-            btDevice: bluez, recording: getScheduledJobsWithoutTimeout(),
-            pState: procStatus, rec: getRadioRec(),
-            settings:settings,
-            vol: volumeAudioOut,
-            settings:settings,
-            play: radioPlayIndex,
-        });
-        return
-    }
-
-    if (req.body.stoprec) { 
-        let jobId = req.body.stoprec;
-        if (scheduledRadioRecJobs.length > 0){
-            for (let i in scheduledRadioRecJobs){
-                if (scheduledRadioRecJobs[i].jobId === jobId){
-                    stopRadioRecording(scheduledRadioRecJobs[i].radioUrl,scheduledRadioRecJobs[i].stationName)
-                }
-            }
-        }
-        return res.json({ success: true });
-    }
-    if (req.body.Remove) {
-        killRecPID(req.body.Remove, "history", "")
-        setTimeout(removeHistory, 500, req.body.Remove, res)
-        return
-    }
-
-    if (req.body.Streamx != null) { //will allow index 0
-        radioHistoryPlay(req.body.Streamx, res)
-        return
-    }
-    if (req.body.Playx != null) { //will allow index 0
-        radioPlay(req.body.Playx, res)
-        return
-    }
-    if (req.body.StopPlayx) {
-        stopMusicPlay(constants.AUDIO_ALL)
-        radioHistoryStop(res)
-        return
-    }
-    if (req.body.radioDir) {
-        rememberDB = "Radio/"+req.body.radioDir //see later showMusicWorld.js
-        showRadioDir(req.body.radioDir, res)
-        return
-    }
-
-    showMusicDir("Radio", res)
-})
-
-
-app.post('/scheduleRecording', (req, res) => {
-    scheduleRadioRecording(req,res)
 });
 
 
@@ -2206,15 +2111,6 @@ app.post('/videoShow', urlencodedParser, function (req, res) {
     showVideo(res, uri)
 })
 
-app.get('/stoprec', function (req, res) {
-    //    //clientActionTime=Date.now()
-    endSlideShow()
-    killAllRec()
-    doRadioTransfer("all")
-    doRenderRadio(res)
-    procStatus &=~constants.PROC_STAT_REC_ON //delete Bit
-});
-
 
 app.get('/system', function (req, res) {
     console.log("rememberDB="+rememberDB + " " + req.url + ", body:" + JSON.stringify(req.body))
@@ -2286,9 +2182,6 @@ app.post('/system', urlencodedParser, async function (req, res) {
                     settings:settings,
                     play: radioPlayIndex, 
                 });
-                return;
-            case "Radio/Favorites":
-                loadRadioHistory(res)
                 return;
             case "audioCapture":
                 audioCapture(res)

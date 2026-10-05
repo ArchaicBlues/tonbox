@@ -230,15 +230,6 @@
 
   <!-- User / System Actions -->
   <div class="d-flex align-items-center gap-3">
-      <% if (recording && recording.length > 0) { %>
-          <button 
-              type="button"
-              class="btn-modern btn-danger"
-              style="background: rgba(255, 0, 85, 0.2); border-color: red;"
-              onclick="openRecModal()">
-              <i class="bi bi-record-circle-fill text-danger"></i> REC
-          </button>
-      <% } %>
       <button type="button" class="btn-modern icon-only" id="fullViewBtn" title="FullView" aria-label="Toggle FullView"><i class="bi bi-arrows-fullscreen"></i></button>
       <a href="/howto" class="btn-modern icon-only" title="Help"><i class="bi bi-question-circle"></i></a>
   </div>
@@ -249,7 +240,6 @@
   <div class="nav-group">
     <div class="nav-title">Media</div>
     <a href="/entry?src=radio" class="nav-item"><i class="bi bi-broadcast"></i> Radio</a>
-    <a href="/entry?src=radioFavorites" class="nav-item"><i class="bi bi-broadcast"></i> My Radio</a>
     <a href="/showMusicWorld?src=Mediatheken" class="nav-item"><i class="bi bi-youtube"></i> Mediathek</a>
     <% if (settings.myUSB) { %>
     <a href="/showMusicWorld?src=myUSB" class="nav-item"><i class="bi bi-usb-symbol"></i> myUSB</a>
@@ -299,20 +289,6 @@
 
 <div id="marquee-container"></div>
 
-  <!-- Modal -->
-  <div id="recModal" class="rec-modal">
-    <div class="rec-modal-content">
-      <h2>Scheduled Recordings</h2>
-      <div id="recList"></div>
-
-      <div class="modal-footer">
-        <button onclick="closeRecModal()" class="btn-modern">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-
     <script>
     // const ws = new WebSocket('ws://192.168.2.140:8080');
 
@@ -336,65 +312,7 @@
     //   console.error('WebSocket Fehler:', error);
     // };      
 
-    const scheduledRadioRecJobs = <%- JSON.stringify(recording || []) %>;
-
-      async function openRecModal() {
-        console.log("openRecModal")
-
-        const modal = document.getElementById("recModal");
-        modal.style.display = "flex";
-        const list = document.getElementById("recList");
-        list.innerHTML = "";
-        if (!scheduledRadioRecJobs || scheduledRadioRecJobs.length === 0) {
-            list.innerHTML = "<p>No scheduled recordings</p>";
-        } else {
-          scheduledRadioRecJobs.forEach(job => {
-              const div = document.createElement("div");
-                div.className = "rec-job";
-              const start = new Date(Number(job.startTime)).toLocaleString();
-              const stop  = new Date(Number(job.stopTime)).toLocaleString();
-              div.innerHTML = `
-                  <strong>${job.radioUrl}</strong><br>
-                  <small>Start:</small> ${start}<br>
-                  <small>Stop:</small> ${stop}<br>
-                  <button onclick="stopJob('${job.jobId}')">
-                      Stop Recording
-                  </button>
-              `;
-              list.appendChild(div);
-          });
-        }
-        document.getElementById("recModal").style.display = "flex";
-      }
-
-      function closeRecModal() {
-          document.getElementById("recModal").style.display = "none";
-      }
-
-      async function stopJob(jobId) {
-        fetch('/radioFavorites', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stoprec: jobId })
-        })
-        .then(res => res.json())
-        .then(data => {
-          location.reload(true) //refresh page thru server
-          if (data.success) {
-              openRecModal(); // reload list
-          }
-        })
-        .catch(err => console.error("Reverb error:", err));
-
-          // const res = await fetch(`/stoprec?jobId=${jobId}`);
-          // const data = await res.json();
-
-          // if (data.success) {
-          //     openRecModal(); // reload list
-          // }
-      }        
-
-      function toggleSidebar() {
+    function toggleSidebar() {
         if (window.innerWidth <= 768) {
           document.querySelector(".sidebar").classList.toggle("active");
           return;
@@ -406,9 +324,6 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        const modal = document.getElementById("recModal");
-        if (modal) modal.style.display = "none";
-
         const sidebar = document.querySelector(".sidebar");
         const syncSidebarState = () => {
           if (window.innerWidth <= 768) {

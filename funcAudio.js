@@ -31,6 +31,14 @@ global.videoView = null
 global.videoAudio = null
 global.videoStreamClients = new Set()
 
+//pw-cli prints "node.name = \"alsa_output....\"" lines; pull out just the
+//device identifier so it can be written into a "node.target = <device>" line
+//in tonbox(.txt|_All.txt) without corrupting that key (see setAudioEnvironment).
+function extractAlsaOutputName(line) {
+  const match = line && line.match(/"([^"]+)"/);
+  return match ? match[1] : (line || "").trim();
+}
+
 module.exports = function (required) {
   this.killVideoCapture = function () {
     if (videoView) {
@@ -70,7 +78,7 @@ module.exports = function (required) {
     }
   },
   this.playAudioCapture = async function (res) {
-    procStatus.text = "Play USB feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) {
       res.render('pages/playAudioCapture', {
         pageInfo: pageInfo,
@@ -104,7 +112,7 @@ module.exports = function (required) {
     //no-op
   },
   this.audioCapture = async function (res) {
-    procStatus.text = "Vinyl capture feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) {
       res.render('pages/audioCapture', {
         pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor, recSide: recSide, page: "normal", storage: storage, btDevice: bluez,
@@ -149,7 +157,7 @@ module.exports = function (required) {
     //no-op
   },
   this.doRecording = async function (res, plattentyp, page) {
-    procStatus.text = "Recording feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (page === "captureAux") {
       if (res) return checkCDdrive(res);
       return
@@ -174,7 +182,7 @@ module.exports = function (required) {
     return "."
   },
   this.analyzeAllwav = async function (res, discSide) {
-    procStatus.text = "Vinyl capture feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) {
       res.render('pages/audioCapture', {
         pageInfo: pageInfo, settings: settings, silenceFacor: silenceFactor,
@@ -325,15 +333,15 @@ module.exports = function (required) {
         inf = inf.split("\n")
         let full = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox.txt >&1")
         let nodeT = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox.txt | grep node.target >&1")
-        let nodeName = inf[0]
+        let nodeName = extractAlsaOutputName(inf[0])
         if (!nodeName.includes("soc"))
-          nodeName = inf[1]
-        full = full.replace(nodeT, nodeName + "\n")
+          nodeName = extractAlsaOutputName(inf[1])
+        full = full.replace(nodeT, nodeT.replace(/=.*/, "= " + nodeName))
         filePath = path.join(os.homedir(), '/.config/pipewire/pipewire.conf.d/tonbox.txt');
         await fs.writeFileSync(filePath, full);
         full = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox_All.txt >&1")
         nodeT = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox_All.txt | grep node.target >&1")
-        full = full.replace(nodeT, nodeName + "\n")
+        full = full.replace(nodeT, nodeT.replace(/=.*/, "= " + nodeName))
         filePath = path.join(os.homedir(), '/.config/pipewire/pipewire.conf.d/tonbox_All.txt');
         await fs.writeFileSync(filePath, full);
       } else {
@@ -342,15 +350,15 @@ module.exports = function (required) {
         inf = inf.split("\n")
         let full = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox.txt >&1")
         let nodeT = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox.txt | grep node.target >&1")
-        let nodeName = inf[0]
+        let nodeName = extractAlsaOutputName(inf[0])
         if (nodeName.includes("soc"))
-          nodeName = inf[1]
-        full = full.replace(nodeT, nodeName + "\n")
+          nodeName = extractAlsaOutputName(inf[1])
+        full = full.replace(nodeT, nodeT.replace(/=.*/, "= " + nodeName))
         filePath = path.join(os.homedir(), '/.config/pipewire/pipewire.conf.d/tonbox.txt');
         await fs.writeFileSync(filePath, full);
         full = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox_All.txt >&1")
         nodeT = await execCmd("cat ~/.config/pipewire/pipewire.conf.d/tonbox_All.txt | grep node.target >&1")
-        full = full.replace(nodeT, nodeName + "\n")
+        full = full.replace(nodeT, nodeT.replace(/=.*/, "= " + nodeName))
         filePath = path.join(os.homedir(), '/.config/pipewire/pipewire.conf.d/tonbox_All.txt');
         await fs.writeFileSync(filePath, full);
       }
@@ -559,11 +567,11 @@ module.exports = function (required) {
   this.Mp4Mp3 = async function (title, res) {
     rememberDB = "Video"
     trackIndex = -1
-    procStatus.text = "MP3 conversion disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) showMusicDir("Video", res)
   },
   this.Mp4Delete = async function (track, res) {
-    procStatus.text = "Delete disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res) showMusicDir("Video", res)
   },
   this.checkGramoTracks = async function () {

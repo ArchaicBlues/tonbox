@@ -22,7 +22,7 @@ module.exports = function (required) {
     return false
   },
   this.cdDvd = async function (action, tr, res) {
-    if (res) return res.json({ success: false, error: "CD feature disabled in this BASIS build" });
+    if (res) return res.json({ success: false, error: "Feature disabled in this BASIS build" });
   },
   this.startCDPlay = function (track, blkCDdev, res) {
     if (res) return res.json({ success: false, currentTrack: 0 });
@@ -53,7 +53,7 @@ module.exports = function (required) {
     return ""
   },
   this.captureCD = async function (res) {
-    procStatus.text = "CD feature disabled in this BASIS build"
+    procStatus.text = "Feature disabled in this BASIS build"
     if (res && !res.headersSent) {
       res.render('pages/cddvd', {
         pageInfo: pageInfo, recAD: recAD,
