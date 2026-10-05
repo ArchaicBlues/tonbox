@@ -11,6 +11,7 @@ Suitable for
 Controlled from a browser on your local network.
 
 This is the free **Basis** build and let you search radio stations around the world for land, genre, station and quality.
+Music comes thru Line-Out or HTTP i.e. your Smartphone
 A small number of hardware/format-heavy features (USB media library, vinyl / video capture, ..)
 are present in the UI but intentionally disabled as no-ops, marked with
 `BASIS build` comments in the source.
